@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/global_widegts/custom_button.dart';
+import 'package:gastcallde/feature/auth/login/screens/loginScreen.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/const/app_colors.dart';
@@ -82,7 +83,7 @@ class signScreen extends StatelessWidget {
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color: Colors.red,
+                        color: AppColors.primaryColor,
                         width: 2,
                       ), // Active color
                     ),
@@ -156,8 +157,13 @@ class signScreen extends StatelessWidget {
                 children: [
                   Text('Have an account?', style: GoogleFonts.inter()),
                   TextButton(
-                    onPressed: () {},
-                    child: Text('Log In', style: GoogleFonts.inter()),
+                    onPressed: () {
+                      Get.to(LoginScreen());
+                    },
+                    child: Text(
+                      'Log In',
+                      style: TextStyle(color: AppColors.primaryColor),
+                    ),
                   ),
                 ],
               ),
@@ -194,7 +200,7 @@ class signScreen extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: Colors.red,
+                color: AppColors.primaryColor,
                 width: 2,
               ), // Active color
             ),
@@ -213,18 +219,18 @@ class signScreen extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.black,
-        backgroundColor: Colors.white,
+        foregroundColor: Colors.white,
+        backgroundColor: AppColors.primaryColor,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(30),
           side: BorderSide(color: Colors.grey.shade300),
         ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: Colors.black, size: 20),
+          Icon(icon, color: Colors.white, size: 20),
           const SizedBox(width: 10),
           Text(text, style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
         ],
