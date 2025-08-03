@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:gastcallde/feature/dashboard/screens/dashboard.dart';
 import 'package:get/get.dart';
 
 import '../../../core/services_class/local_service/shared_preferences_helper.dart';
@@ -18,7 +19,7 @@ class SplashScreenController extends GetxController {
         Get.offAll(BottomNavbar());
       } else {
         // Redirect to the Welcome Screen if no token is found
-        Get.offAll(onBoardind());
+        Get.offAll(Dashboard());
       }
     });
   }

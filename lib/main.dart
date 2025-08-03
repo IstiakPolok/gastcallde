@@ -40,6 +40,11 @@ class MyApp extends StatelessWidget {
         getPages: AppRoute.routes,
         initialRoute: AppRoute.splashScreen,
         theme: ThemeData(
+          scaffoldBackgroundColor: Colors.white,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.white,
+            elevation: 0,
+          ),
           textTheme:
               GoogleFonts.poppinsTextTheme(), // Apply Philosopher globally
           // If you want to customize it further:

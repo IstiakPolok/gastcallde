@@ -25,10 +25,10 @@ class CustomButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: backgroundColor,
-      borderRadius: BorderRadius.circular(30),
+      borderRadius: BorderRadius.circular(10),
       child: InkWell(
         splashColor: Colors.white.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(10),
         onTap: onPress,
         child: Center(
           child: Container(
@@ -36,6 +36,7 @@ class CustomButton extends StatelessWidget {
             height: 55,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
+
               border: borderColor != null
                   ? Border.all(color: borderColor!)
                   : null,

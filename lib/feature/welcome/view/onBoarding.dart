@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
+import 'package:gastcallde/feature/auth/login/screens/loginScreen.dart';
 import 'package:gastcallde/feature/auth/signUp/screens/signScreen.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -47,9 +48,8 @@ class onBoardind extends StatelessWidget {
                   child: SlideAction(
                     key: key,
                     onSubmit: () {
-                      Get.to(signScreen());
+                      Get.to(LoginScreen());
                       key.currentState!.reset();
-                      //Get.offAll(() => onBoardind2());
                     },
                     height: 80,
                     borderRadius: 40,
@@ -66,7 +66,7 @@ class onBoardind extends StatelessWidget {
                       children: [
                         const SizedBox(width: 80),
                         Text(
-                          'Self Love',
+                          'Lets Go',
                           style: GoogleFonts.philosopher(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,

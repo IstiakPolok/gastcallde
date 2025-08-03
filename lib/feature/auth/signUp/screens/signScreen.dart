@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/const/app_colors.dart';
 import '../../../../core/const/gradientButton.dart';
-import '../../roleSelect/screens/roleSelectScreen.dart';
 import '../controller/signController.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -20,154 +19,169 @@ class signScreen extends StatelessWidget {
 
     return Scaffold(
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Logo and Header
-              Center(
-                child: Image.asset(
-                  'assets/icons/logo.png',
-                  width: 200,
-                  height: 200,
-                ),
-              ),
-              Text(
-                'Register',
-                style: GoogleFonts.inter(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Request for restaurant dashboard',
-                style: GoogleFonts.inter(fontSize: 16),
-              ),
-              const SizedBox(height: 32),
-
-              // Form Fields
-              _buildTextField('Restaurant Name', 'Enter restaurant name'),
-              _buildTextField('Email address', 'Enter your email'),
-              _buildTextField('Phone number', 'Enter your phone number'),
-
-              // Password Field with Visibility Toggle
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Password',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Obx(
-                () => TextFormField(
-                  obscureText: !isPasswordVisible.value,
-                  decoration: InputDecoration(
-                    hintText: 'Type password',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: AppColors.primaryColor,
-                        width: 2,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.grey.shade400,
-                        width: 1,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: AppColors.primaryColor,
-                        width: 2,
-                      ), // Active color
-                    ),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        isPasswordVisible.value
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                        color: AppColors.primaryColor,
-                      ),
-                      onPressed: () {
-                        isPasswordVisible.value = !isPasswordVisible.value;
-                      },
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16),
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width > 600
+                  ? 600
+                  : double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Logo and Header
+                  Center(
+                    child: Image.asset(
+                      'assets/icons/logo.png',
+                      width: 200,
+                      height: 200,
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
+                  Text(
+                    'Register',
+                    style: GoogleFonts.inter(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Request for restaurant dashboard',
+                    style: GoogleFonts.inter(fontSize: 16),
+                  ),
+                  const SizedBox(height: 32),
 
-              // Checkbox
-              Row(
-                children: [
-                  Checkbox(value: false, onChanged: (bool? value) {}),
-                  Expanded(
+                  // Form Fields
+                  _buildTextField('Restaurant Name', 'Enter restaurant name'),
+                  _buildTextField('Email address', 'Enter your email'),
+                  _buildTextField('Phone number', 'Enter your phone number'),
+
+                  // Password Field with Visibility Toggle
+                  Align(
+                    alignment: Alignment.centerLeft,
                     child: Text(
-                      'I agree with all terms & conditions',
-                      style: GoogleFonts.inter(),
+                      'Password',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+                  ),
+                  const SizedBox(height: 8),
+                  Obx(
+                    () => TextFormField(
+                      obscureText: !isPasswordVisible.value,
+                      decoration: InputDecoration(
+                        hintText: 'Type password',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primaryColor,
+                            width: 2,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.grey.shade400,
+                            width: 1,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primaryColor,
+                            width: 2,
+                          ), // Active color
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            isPasswordVisible.value
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: AppColors.primaryColor,
+                          ),
+                          onPressed: () {
+                            isPasswordVisible.value = !isPasswordVisible.value;
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Checkbox
+                  Row(
+                    children: [
+                      Checkbox(value: false, onChanged: (bool? value) {}),
+                      Expanded(
+                        child: Text(
+                          'I agree with all terms & conditions',
+                          style: GoogleFonts.inter(),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Sign up button
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width > 600
+                        ? 300
+                        : double.infinity,
+                    child: CustomButton(title: "Sign up", onPress: () {}),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Divider "Or"
+                  Center(child: Text('Or', style: GoogleFonts.inter())),
+                  const SizedBox(height: 24),
+
+                  // Social login buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildSocialButton(
+                          icon: FontAwesomeIcons.google,
+                          text: 'Sign in with Google',
+                          onPressed: () {},
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildSocialButton(
+                          icon: FontAwesomeIcons.apple,
+                          text: 'Sign in with Apple',
+                          onPressed: () {},
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // "Have an account? Log In"
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Have an account?',
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Get.offAll(LoginScreen());
+                        },
+                        child: Text(
+                          'Log In',
+                          style: TextStyle(color: AppColors.primaryColor),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-
-              // Sign up button
-              SizedBox(
-                width: double.infinity,
-                child: CustomButton(title: "Sign up", onPress: () {}),
-              ),
-              const SizedBox(height: 24),
-
-              // Divider "Or"
-              Center(child: Text('Or', style: GoogleFonts.inter())),
-              const SizedBox(height: 24),
-
-              // Social login buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildSocialButton(
-                      icon: FontAwesomeIcons.google,
-                      text: 'Sign in with Google',
-                      onPressed: () {},
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildSocialButton(
-                      icon: FontAwesomeIcons.apple,
-                      text: 'Sign in with Apple',
-                      onPressed: () {},
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              // "Have an account? Log In"
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Have an account?', style: GoogleFonts.inter()),
-                  TextButton(
-                    onPressed: () {
-                      Get.to(LoginScreen());
-                    },
-                    child: Text(
-                      'Log In',
-                      style: TextStyle(color: AppColors.primaryColor),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
         ),
       ),

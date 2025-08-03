@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gastcallde/core/global_widegts/custom_button.dart';
+import 'package:gastcallde/feature/auth/login/screens/loginScreen.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pin_input_text_field/pin_input_text_field.dart';
@@ -10,128 +12,210 @@ import '../../signUp/screens/signScreen.dart';
 import '../controller/resetPassController.dart';
 
 class resetPassScreen extends StatelessWidget {
-  const resetPassScreen({super.key});
+  resetPassScreen({super.key});
+  final RxBool isPasswordVisible = false.obs;
 
   @override
   Widget build(BuildContext context) {
     final resetPassController controller = Get.put(resetPassController());
     return Scaffold(
-      backgroundColor: AppColors.bgColor,
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 80.0),
-              Center(
-                child: Image.asset(
-                  'assets/icons/logo.png',
-                  width: 200,
-                  height: 200,
-                ),
+        child: Center(
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width > 600
+                ? 500
+                : double.infinity,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 32,
               ),
-              const SizedBox(height: 50.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Logo and Header
+                  Center(
+                    child: Image.asset(
+                      'assets/icons/logo.png',
+                      width: 200,
+                      height: 200,
+                    ),
+                  ),
+                  Text(
+                    'Reset Password',
+                    style: GoogleFonts.inter(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Please enter a new password',
+                    style: GoogleFonts.inter(fontSize: 16),
+                  ),
+                  const SizedBox(height: 32),
 
-              Text(
-                "Reset Password",
-                style: GoogleFonts.poppins(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w500,
-                ),
+                  // Password Field with Visibility Toggle
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Enter New Password',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Obx(
+                    () => TextFormField(
+                      obscureText: !isPasswordVisible.value,
+                      decoration: InputDecoration(
+                        hintText: 'New password',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primaryColor,
+                            width: 2,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.grey.shade400,
+                            width: 1,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primaryColor,
+                            width: 2,
+                          ), // Active color
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            isPasswordVisible.value
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: AppColors.primaryColor,
+                          ),
+                          onPressed: () {
+                            isPasswordVisible.value = !isPasswordVisible.value;
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Confirm New Password',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Obx(
+                    () => TextFormField(
+                      obscureText: !isPasswordVisible.value,
+                      decoration: InputDecoration(
+                        hintText: 'New password',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primaryColor,
+                            width: 2,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.grey.shade400,
+                            width: 1,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primaryColor,
+                            width: 2,
+                          ), // Active color
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            isPasswordVisible.value
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: AppColors.primaryColor,
+                          ),
+                          onPressed: () {
+                            isPasswordVisible.value = !isPasswordVisible.value;
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 36),
+
+                  // Checkbox
+
+                  // Sign up button
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width > 600
+                        ? 300
+                        : double.infinity,
+                    child: CustomButton(title: "Done", onPress: () {}),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // "Have an account? Log In"
+                ],
               ),
-              const SizedBox(height: 70),
-              Obx(() => TextField(
-                obscureText: !controller.isPasswordVisible.value,
-                decoration: InputDecoration(
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      controller.isPasswordVisible.value
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      color: AppColors.primaryColor,
-                    ),
-                    onPressed: controller.togglePasswordVisibility,
-                  ),
-                  labelText: 'Password',
-                  labelStyle: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 18,
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  floatingLabelStyle: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 18,
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  hintText: 'Enter Your Password',
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.grey,
-                      width: 2.0,
-                    ),
-                  ),
-                ),
-              )),
-              SizedBox(height: 30),
-              Obx(() => TextField(
-                obscureText: !controller.isPasswordVisible.value,
-                decoration: InputDecoration(
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      controller.isPasswordVisible.value
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                      color: AppColors.primaryColor,
-                    ),
-                    onPressed: controller.togglePasswordVisibility,
-                  ),
-                  labelText: 'Confirm Password',
-                  labelStyle: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 18,
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  floatingLabelStyle: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 18,
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  hintText: 'Enter Your Password',
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.grey,
-                      width: 2.0,
-                    ),
-                  ),
-                ),
-              )),
-
-
-
-
-
-              const SizedBox(height: 30.0),
-
-
-              GradientButton(
-                text: 'Reset',
-                onPressed: () {
-                  // Handle verification
-                },
-              ),
-
-
-            ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField(String label, String hint) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            label,
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          decoration: InputDecoration(
+            hintText: hint,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.primaryColor, width: 2),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: AppColors.primaryColor,
+                width: 2,
+              ), // Active color
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 }

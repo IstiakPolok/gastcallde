@@ -1,261 +1,261 @@
-// import 'package:flutter/material.dart';
-// import 'package:get/get.dart';
-// import 'package:google_fonts/google_fonts.dart';
-// import '../../../../core/const/app_colors.dart';
-// import '../../../../core/const/gradientButton.dart';
-// import '../../forgetPass/screens/forgetpassScreen.dart';
-// import '../../signUp/screens/signScreen.dart';
-// import '../controller/loginController.dart';
+import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:gastcallde/core/global_widegts/custom_button.dart';
+import 'package:gastcallde/feature/dashboard/screens/dashboard.dart';
+import 'package:gastcallde/feature/dashboard/widgets/RestaurantOverview.dart';
+import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/const/app_colors.dart';
+import '../../../../core/const/gradientButton.dart';
+import '../../forgetPass/screens/forgetpassScreen.dart';
+import '../../signUp/screens/signScreen.dart';
+import '../controller/loginController.dart';
 
-// class LoginScreen extends StatelessWidget {
-//   const LoginScreen({super.key});
+class LoginScreen extends StatelessWidget {
+  const LoginScreen({super.key});
 
-//   @override
-//   Widget build(BuildContext context) {
-//     final LoginController controller = Get.put(LoginController());
+  @override
+  Widget build(BuildContext context) {
+    // You'd typically use a stateful widget or a state management solution (like GetX) for this,
+    // but for a stateless widget, a ValueNotifier can be used for a single-property state.
+    final RxBool isPasswordVisible = false.obs;
 
-//     return Scaffold(
-//       backgroundColor: AppColors.bgColor,
-//       body: SingleChildScrollView(
-//         child: Padding(
-//           padding: const EdgeInsets.symmetric(horizontal: 24.0),
-//           child: Column(
-//             mainAxisAlignment: MainAxisAlignment.center,
-//             children: <Widget>[
-//               const SizedBox(height: 80.0),
-//               Center(
-//                 child: Image.asset(
-//                   'assets/icons/logo.png',
-//                   width: 200,
-//                   height: 200,
-//                 ),
-//               ),
-//               const SizedBox(height: 50.0),
-//               TextField(
-//                 decoration: InputDecoration(
-//                   labelText: 'User Email',
-//                   labelStyle: TextStyle(
-//                     fontFamily: 'Roboto',
-//                     fontSize: 18,
-//                     color: AppColors.primaryColor, // Color when inactive
-//                     fontWeight: FontWeight.w600,
-//                   ),
-//                   // When the label floats (TextField is active/focused)
-//                   floatingLabelStyle: TextStyle(
-//                     fontFamily: 'Roboto',
-//                     fontSize: 18, // Larger size when active
-//                     color: AppColors.primaryColor, // Change to any color you like
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                   hintText: 'Enter Your Email',
-//                   border: OutlineInputBorder(),
-//                   focusedBorder: OutlineInputBorder(
-//                     borderSide: BorderSide(
-//                       color: Colors.grey, // Border color when focused
-//                       width: 2.0,
-//                     ),
-//                   ),
-//                 ),
-//               ),
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Center(
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width > 600
+                ? 600
+                : double.infinity,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 32,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Logo and Header
+                  Center(
+                    child: Image.asset(
+                      'assets/icons/logo.png',
+                      width: 200,
+                      height: 200,
+                    ),
+                  ),
+                  Text(
+                    'Welcome back!',
+                    style: GoogleFonts.inter(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Request for restaurant dashboard',
+                    style: GoogleFonts.inter(fontSize: 16),
+                  ),
+                  const SizedBox(height: 32),
 
-//               SizedBox(height: 40),
+                  // Form Fields
+                  _buildTextField('Email address', 'Enter your email'),
 
-//               Obx(() => TextField(
-//                 obscureText: !controller.isPasswordVisible.value,
-//                 decoration: InputDecoration(
-//                   suffixIcon: IconButton(
-//                     icon: Icon(
-//                       controller.isPasswordVisible.value
-//                           ? Icons.visibility
-//                           : Icons.visibility_off,
-//                       color: AppColors.primaryColor,
-//                     ),
-//                     onPressed: controller.togglePasswordVisibility,
-//                   ),
-//                   labelText: 'Password',
-//                   labelStyle: TextStyle(
-//                     fontFamily: 'Roboto',
-//                     fontSize: 18,
-//                     color: AppColors.primaryColor,
-//                     fontWeight: FontWeight.w600,
-//                   ),
-//                   floatingLabelStyle: TextStyle(
-//                     fontFamily: 'Roboto',
-//                     fontSize: 18,
-//                     color: AppColors.primaryColor,
-//                     fontWeight: FontWeight.w600,
-//                   ),
-//                   hintText: 'Enter Your Password',
-//                   border: OutlineInputBorder(),
-//                   focusedBorder: OutlineInputBorder(
-//                     borderSide: BorderSide(
-//                       color: Colors.grey,
-//                       width: 2.0,
-//                     ),
-//                   ),
-//                 ),
-//               )),
+                  // Password Field with Visibility Toggle
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Password',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Obx(
+                    () => TextFormField(
+                      obscureText: !isPasswordVisible.value,
+                      decoration: InputDecoration(
+                        hintText: 'Type password',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primaryColor,
+                            width: 2,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.grey.shade400,
+                            width: 1,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primaryColor,
+                            width: 2,
+                          ), // Active color
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            isPasswordVisible.value
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: AppColors.primaryColor,
+                          ),
+                          onPressed: () {
+                            isPasswordVisible.value = !isPasswordVisible.value;
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
 
-//               const SizedBox(height: 10),
+                  // Checkbox
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Get.to(forgetpassScreen());
+                      },
+                      child: Text(
+                        'Forgot Password',
+                        style: TextStyle(
+                          color: AppColors.primaryColor,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
 
+                  // Sign up button
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width > 600
+                        ? 300
+                        : double.infinity,
+                    child: CustomButton(
+                      title: "Login",
+                      onPress: () {
+                        //Get.offAll(RestaurantOverviewPage());
+                        Get.offAll(Dashboard());
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 24),
 
-//               Align(
-//                 alignment: Alignment.centerRight,
-//                 child: TextButton(
-//                   onPressed: () {
-//                     Get.to(forgetpassScreen());
-//                   },
-//                   child: Text(
-//                     'Forgot Password',
-//                     style: TextStyle(
-//                       color: Colors.red,
-//                       fontSize: 16,
-//                       fontWeight: FontWeight.w600,
-//                     ),
-//                   ),
-//                 ),
-//               ),
+                  // Divider "Or"
+                  Center(child: Text('Or', style: GoogleFonts.inter())),
+                  const SizedBox(height: 24),
 
+                  // Social login buttons
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width > 600 ? 200 : 200,
+                    child: _buildSocialButton(
+                      icon: FontAwesomeIcons.google,
+                      text: 'Sign in with Google',
+                      onPressed: () {},
+                    ),
+                  ),
 
+                  const SizedBox(height: 24),
 
+                  // "Have an account? Log In"
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Don’t have an account?',
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Get.off(signScreen());
+                        },
+                        child: Text(
+                          'Sign up',
+                          style: TextStyle(color: AppColors.primaryColor),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
+  Widget _buildTextField(String label, String hint) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            label,
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          decoration: InputDecoration(
+            hintText: hint,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.primaryColor, width: 2),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade400, width: 1),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: AppColors.primaryColor,
+                width: 2,
+              ), // Active color
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
 
-//               /// Terms Checkbox
-//               Obx(() => Row(
-//                 children: [
-//                   Checkbox(
-//                     value: controller.agreedToTerms.value,
-//                     onChanged: controller.toggleTermsAgreement,
-//                     activeColor: AppColors.primaryColor,
-//                   ),
-//                   Expanded(
-//                     child: RichText(
-//                       text: TextSpan(
-//                         text: 'By Signing up you\'re agree to our ',
-//                         style: GoogleFonts.roboto(
-
-//                           fontSize: 14,
-//                           fontWeight: FontWeight.bold,
-//                           color: Colors.white,
-//                         ),
-//                         children: <TextSpan>[
-//                            TextSpan(
-//                             text: 'Terms & Conditions',
-//                             style: GoogleFonts.roboto(
-
-//                               fontSize: 14,
-//                               fontWeight: FontWeight.bold,
-//                               color: AppColors.primaryColor,
-//                             ),
-//                           ),
-//                           TextSpan(
-//                             text: ' and ',
-//                             style: GoogleFonts.roboto(
-
-//                               fontSize: 14,
-//                               fontWeight: FontWeight.bold,
-//                               color: Colors.white,
-//                             ),
-//                           ),
-//                           TextSpan(
-//                             text: 'Privacy Policy',
-//                             style:
-//                             GoogleFonts.roboto(
-
-//                               fontSize: 14,
-//                               fontWeight: FontWeight.bold,
-//                               color: AppColors.primaryColor,
-//                             ),
-//                           ),
-//                         ],
-//                       ),
-//                     ),
-//                   ),
-//                 ],
-//               )),
-
-//               const SizedBox(height: 30.0),
-
-//               /// Log In Button
-//               GradientButton(
-//                 text: 'Log In',
-//                 onPressed: () {
-
-//                 },
-
-//               ),
-
-
-//               const SizedBox(height: 30.0),
-
-//               /// Social Login
-//               Row(
-//                 mainAxisAlignment: MainAxisAlignment.center,
-//                 children: [
-//                   _socialIcon(
-//                     url:
-//                     'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Google_Favicon_2025.svg/640px-Google_Favicon_2025.svg.png',
-//                     fallbackIcon: Icons.g_mobiledata,
-//                   ),
-//                   const SizedBox(width: 30.0),
-//                   _socialIcon(
-//                     url:
-//                     'https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg',
-//                     fallbackIcon: Icons.apple,
-//                   ),
-//                 ],
-//               ),
-
-//               const SizedBox(height: 40.0),
-
-//               /// Sign Up Prompt
-//               Row(
-//                 mainAxisAlignment: MainAxisAlignment.center,
-//                 children: <Widget>[
-//                   Text(
-//                     'Don\'t have an account? ',
-//                     style: GoogleFonts.roboto(
-
-//                       color: Colors.grey[700],
-//                       fontSize: 18,
-//                     ),
-//                   ),
-//                   GestureDetector(
-//                     onTap: () {
-//                       Get.off(signScreen());
-//                     },
-//                     child:  Text(
-//                       'Sign up',
-//                       style: GoogleFonts.roboto(
-//                         color: AppColors.primaryColor,
-//                         fontWeight: FontWeight.bold,
-//                         fontSize: 18,
-//                       ),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-
-//               const SizedBox(height: 40.0),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-
-//   Widget _socialIcon({required String url, required IconData fallbackIcon}) {
-//     return GestureDetector(
-//       onTap: () {
-//         // Handle social login
-//       },
-//       child: Image.network(
-//         url,
-//         height: 47,
-//         width: 47,
-//         errorBuilder: (context, error, stackTrace) =>
-//             Icon(fallbackIcon, size: 60),
-//       ),
-//     );
-//   }
-// }
+  Widget _buildSocialButton({
+    required IconData icon,
+    required String text,
+    required VoidCallback onPressed,
+  }) {
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.primaryColor, // For text/icon ripple color
+        side: BorderSide(color: AppColors.primaryColor, width: 1.5),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: AppColors.primaryColor, size: 20),
+          const SizedBox(width: 10),
+          Text(
+            text,
+            style: GoogleFonts.inter(
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

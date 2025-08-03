@@ -1,119 +1,125 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
-// import 'package:get/get.dart';
-// import 'package:google_fonts/google_fonts.dart';
-// import 'package:kev23brown/feature/auth/forgetPass/screens/resetPassScreen.dart';
-// import 'package:pin_input_text_field/pin_input_text_field.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:gastcallde/core/global_widegts/custom_button.dart';
+import 'package:gastcallde/feature/auth/forgetPass/screens/resetPassScreen.dart';
+import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:pin_input_text_field/pin_input_text_field.dart';
 
-// import '../../../../core/const/app_colors.dart';
-// import '../../../../core/const/gradientButton.dart';
-// import '../../signUp/screens/signScreen.dart';
+import '../../../../core/const/app_colors.dart';
+import '../../../../core/const/gradientButton.dart';
+import '../../signUp/screens/signScreen.dart';
 
-// class otpVerificationScreen extends StatelessWidget {
-//   const otpVerificationScreen({super.key});
+class otpVerificationScreen extends StatelessWidget {
+  const otpVerificationScreen({super.key});
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: AppColors.bgColor,
-//       body: SingleChildScrollView(
-//         child: Padding(
-//           padding: const EdgeInsets.symmetric(horizontal: 24.0),
-//           child: Column(
-//             mainAxisAlignment: MainAxisAlignment.center,
-//             children: [
-//               const SizedBox(height: 80.0),
-//               Center(
-//                 child: Image.asset(
-//                   'assets/icons/logo.png',
-//                   width: 200,
-//                   height: 200,
-//                 ),
-//               ),
-//               const SizedBox(height: 50.0),
-//               const Icon(Icons.lock, size: 40),
-//               const SizedBox(height: 30.0),
-//               Text(
-//                 "OTP",
-//                 style: GoogleFonts.poppins(
-//                   fontSize: 24,
-//                   fontWeight: FontWeight.w500,
-//                 ),
-//               ),
-//               const SizedBox(height: 70),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width > 600
+                  ? 500
+                  : double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Logo and Header
+                  Center(
+                    child: Image.asset(
+                      'assets/icons/logo.png',
+                      width: 200,
+                      height: 200,
+                    ),
+                  ),
 
-//               SizedBox(
-//                 height: 60, // Total height for input field area
-//                 child: PinInputTextField(
-//                   pinLength: 4,
-//                   decoration: BoxLooseDecoration(
-//                     strokeColorBuilder: PinListenColorBuilder(
-//                       Colors.grey,
-//                       AppColors.primaryColor,
-//                     ),
-//                     radius: Radius.circular(3),
-//                     strokeWidth: 1,
-//                     gapSpace: 40, // spacing between boxes
-//                   ),
-//                   keyboardType: TextInputType.number,
-//                   inputFormatters: [
-//                     FilteringTextInputFormatter.digitsOnly,
-//                   ],
-//                   // textStyle: const TextStyle(
-//                   //   fontFamily: 'Inter',
-//                   //   fontSize: 24,
-//                   //   fontWeight: FontWeight.bold,
-//                   //   color: Colors.black,
-//                   // ),
-//                   onChanged: (value) {},
-//                   onSubmit: (pin) {
-//                     print('Entered PIN: $pin');
-//                   },
-//                 ),
-//               ),
+                  Text(
+                    'Forgot Password',
+                    style: GoogleFonts.inter(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'To catch you follow the proccess',
+                    style: GoogleFonts.inter(fontSize: 16),
+                  ),
+                  const SizedBox(height: 32),
 
-//               const SizedBox(height: 30.0),
+                  SizedBox(
+                    height: 60,
+                    // total width for 6 boxes and 5 gaps
+                    child: PinInputTextField(
+                      pinLength: 6,
+                      decoration: BoxLooseDecoration(
+                        strokeColorBuilder: PinListenColorBuilder(
+                          Colors.grey,
+                          AppColors.primaryColor,
+                        ),
+                        radius: Radius.circular(4),
+                        strokeWidth: 1,
+                        gapSpace: 10,
+                      ),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
 
-//               /// Verify Button
-//               GradientButton(
-//                 text: 'Verify',
-//                 onPressed: () {
-//                  Get.to(resetPassScreen());
-//                 },
-//               ),
+                      onChanged: (value) {},
+                      onSubmit: (pin) {
+                        print('Entered PIN: $pin');
+                      },
+                    ),
+                  ),
 
-//               const SizedBox(height: 30.0),
+                  const SizedBox(height: 30.0),
 
-//               Row(
-//                 mainAxisAlignment: MainAxisAlignment.center,
-//                 children: <Widget>[
-//                   Text(
-//                     'Don’t Get OTP? ',
-//                     style: GoogleFonts.roboto(
+                  /// Verify Button
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width > 600
+                        ? 300
+                        : double.infinity,
+                    child: CustomButton(
+                      title: "Send Code",
+                      onPress: () {
+                        Get.to(resetPassScreen());
+                      },
+                    ),
+                  ),
 
-//                       color: Colors.grey[700],
-//                       fontSize: 18,
-//                     ),
-//                   ),
-//                   GestureDetector(
-//                     onTap: () {
+                  const SizedBox(height: 30.0),
 
-//                     },
-//                     child:  Text(
-//                       'Resend',
-//                       style: GoogleFonts.roboto(
-//                         color: AppColors.primaryColor,
-//                         fontWeight: FontWeight.bold,
-//                         fontSize: 18,
-//                       ),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        'Don’t Get OTP? ',
+                        style: GoogleFonts.roboto(
+                          color: Colors.grey[700],
+                          fontSize: 18,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {},
+                        child: Text(
+                          'Resend',
+                          style: GoogleFonts.roboto(
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
