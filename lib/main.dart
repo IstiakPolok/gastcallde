@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:gastcallde/feature/orderManagment/controllers/order_controller.dart';
 import 'package:gastcallde/route/app_routes.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  Get.put(OrderController());
 
   configEasyLoading();
 
