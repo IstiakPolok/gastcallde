@@ -165,11 +165,6 @@ class _UploadFoodMenuScreenState extends State<UploadFoodMenuScreen> {
                   );
                 },
               ),
-
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [],
-              ),
             ],
           ),
         ),
