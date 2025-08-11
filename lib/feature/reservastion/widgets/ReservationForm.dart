@@ -16,8 +16,8 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _peopleController = TextEditingController();
 
-  List<bool> _selectedFromTime = List.generate(10, (_) => false);
-  List<bool> _selectedToTime = List.generate(10, (_) => false);
+  final List<bool> _selectedFromTime = List.generate(10, (_) => false);
+  final List<bool> _selectedToTime = List.generate(10, (_) => false);
 
   @override
   void initState() {

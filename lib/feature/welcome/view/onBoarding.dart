@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/feature/auth/login/screens/loginScreen.dart';
-import 'package:gastcallde/feature/auth/signUp/screens/signScreen.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -50,6 +49,7 @@ class onBoardind extends StatelessWidget {
                     onSubmit: () {
                       Get.to(LoginScreen());
                       key.currentState!.reset();
+                      return null;
                     },
                     height: 80,
                     borderRadius: 40,
@@ -61,6 +61,7 @@ class onBoardind extends StatelessWidget {
                       color: Colors.white,
                       size: 24,
                     ),
+                    alignment: Alignment.center,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
@@ -91,7 +92,6 @@ class onBoardind extends StatelessWidget {
                         ),
                       ],
                     ),
-                    alignment: Alignment.center,
                   ),
                 ),
               ),

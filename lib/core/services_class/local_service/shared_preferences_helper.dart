@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPreferencesHelper {
@@ -119,7 +117,7 @@ class SharedPreferencesHelper {
 
   static Future<void> logoutUser() async {
     await clearAllData();
-   // Get.offAll(() => LoginView());
+    // Get.offAll(() => LoginView());
   }
 
   // Save the User ID

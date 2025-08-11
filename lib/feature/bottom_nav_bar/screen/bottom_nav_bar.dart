@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:get/get.dart';
 
 // Assuming these imports are correctly set up in your project

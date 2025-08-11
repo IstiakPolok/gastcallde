@@ -88,14 +88,6 @@ class _UploadFoodMenuScreenState extends State<UploadFoodMenuScreen> {
                           onPressed: () {
                             isListView.value = true; // Set to ListView
                           },
-                          child: Text(
-                            'Upload Menu',
-                            style: TextStyle(
-                              color: isListViewActive
-                                  ? Colors.white
-                                  : Colors.black,
-                            ),
-                          ),
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
@@ -103,6 +95,14 @@ class _UploadFoodMenuScreenState extends State<UploadFoodMenuScreen> {
                             backgroundColor: isListViewActive
                                 ? AppColors.primaryColor
                                 : Colors.grey[300],
+                          ),
+                          child: Text(
+                            'Upload Menu',
+                            style: TextStyle(
+                              color: isListViewActive
+                                  ? Colors.white
+                                  : Colors.black,
+                            ),
                           ),
                         );
                       },
@@ -115,6 +115,14 @@ class _UploadFoodMenuScreenState extends State<UploadFoodMenuScreen> {
                           onPressed: () {
                             isListView.value = false; // Set to GridView
                           },
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            backgroundColor: !isListViewActive
+                                ? AppColors.primaryColor
+                                : Colors.grey[300],
+                          ),
 
                           child: Text(
                             'Upload manually',
@@ -123,14 +131,6 @@ class _UploadFoodMenuScreenState extends State<UploadFoodMenuScreen> {
                                   ? Colors.white
                                   : Colors.black,
                             ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            backgroundColor: !isListViewActive
-                                ? AppColors.primaryColor
-                                : Colors.grey[300],
                           ),
                         );
                       },

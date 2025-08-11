@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gastcallde/core/const/app_colors.dart';
 
 class EditFoodScreen extends StatelessWidget {
   const EditFoodScreen({super.key});
@@ -17,7 +18,7 @@ class EditFoodScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0,
+        elevation: 1,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
           onPressed: () {
@@ -138,7 +139,7 @@ class EditFoodScreen extends StatelessWidget {
   Widget _buildEditPictureCard() {
     return Card(
       color: Colors.white,
-      elevation: 4,
+      elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -182,7 +183,7 @@ class EditFoodScreen extends StatelessWidget {
   Widget _buildAddDescriptionCard() {
     return Card(
       color: Colors.white,
-      elevation: 4,
+      elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -200,7 +201,15 @@ class EditFoodScreen extends StatelessWidget {
               maxLines: null, // Allows multiline input
               style: const TextStyle(fontSize: 16, color: Colors.grey),
               decoration: const InputDecoration(
-                border: OutlineInputBorder(), // Add border for clarity
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey, width: 0.5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: AppColors.primaryColor, // Highlight color
+                    width: 2.0,
+                  ),
+                ), // Add border for clarity
                 hintText: 'Enter description...',
                 contentPadding: EdgeInsets.all(12),
               ),

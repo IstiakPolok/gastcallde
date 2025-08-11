@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gastcallde/core/global_widegts/custom_button.dart';
 import 'package:gastcallde/feature/dashboard/screens/dashboard.dart';
-import 'package:gastcallde/feature/dashboard/widgets/RestaurantOverview.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/const/app_colors.dart';
-import '../../../../core/const/gradientButton.dart';
 import '../../forgetPass/screens/forgetpassScreen.dart';
 import '../../signUp/screens/signScreen.dart';
-import '../controller/loginController.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -149,19 +145,18 @@ class LoginScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Divider "Or"
-                  Center(child: Text('Or', style: GoogleFonts.inter())),
-                  const SizedBox(height: 24),
+                  // Center(child: Text('Or', style: GoogleFonts.inter())),
+                  // const SizedBox(height: 24),
 
-                  // Social login buttons
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width > 600 ? 200 : 200,
-                    child: _buildSocialButton(
-                      icon: FontAwesomeIcons.google,
-                      text: 'Sign in with Google',
-                      onPressed: () {},
-                    ),
-                  ),
-
+                  // // Social login buttons
+                  // SizedBox(
+                  //   width: MediaQuery.of(context).size.width > 600 ? 200 : 200,
+                  //   child: _buildSocialButton(
+                  //     icon: FontAwesomeIcons.google,
+                  //     text: 'Sign in with Google',
+                  //     onPressed: () {},
+                  //   ),
+                  // ),
                   const SizedBox(height: 24),
 
                   // "Have an account? Log In"

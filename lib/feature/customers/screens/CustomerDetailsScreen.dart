@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CustomerDetailsScreen extends StatefulWidget {
-  CustomerDetailsScreen({super.key});
+  const CustomerDetailsScreen({super.key});
 
   @override
   _CustomerDetailsScreenState createState() => _CustomerDetailsScreenState();
@@ -386,13 +386,25 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
               Expanded(flex: 2, child: Text(total)),
               Expanded(
                 flex: 1,
-                child: IconButton(
-                  icon: const Icon(Icons.remove_red_eye_outlined, size: 20),
-                  color: Colors.grey[600],
+                child: TextButton.icon(
                   onPressed: () {
-                    // Toggle expansion to show/hide the details for this specific order
-                    _toggleExpansion(index); // Toggling for the specific index
+                    _toggleExpansion(index);
                   },
+                  icon: Icon(
+                    Icons.remove_red_eye_outlined,
+                    size: 20,
+                    color: Colors.grey[600],
+                  ),
+                  label: Text(
+                    'View',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding:
+                        EdgeInsets.zero, // optional: reduce padding if you want
+                    minimumSize: Size(50, 30), // optional: control button size
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                 ),
               ),
             ],

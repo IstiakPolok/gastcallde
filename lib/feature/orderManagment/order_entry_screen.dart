@@ -255,13 +255,19 @@ class OrderEntryScreen extends StatelessWidget {
             ),
           ),
           // Right side: Current order summary
+          // Right side: Current order summary
           Expanded(
             flex: 1,
             child: Container(
               color: Colors.grey[100],
               padding: const EdgeInsets.all(16.0),
-              child: Obx(
-                () => Column(
+              child: Obx(() {
+                double total = orderEntryController.orderItems.fold(
+                  0.0,
+                  (sum, item) => sum + (item.price * item.quantity),
+                );
+
+                return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
@@ -289,6 +295,29 @@ class OrderEntryScreen extends StatelessWidget {
                         },
                       ),
                     ),
+                    const SizedBox(height: 10),
+
+                    // Total amount display
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Total:",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          "\$${total.toStringAsFixed(2)}",
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: orderEntryController.createOrder,
@@ -300,8 +329,8 @@ class OrderEntryScreen extends StatelessWidget {
                       child: const Text('Create Order'),
                     ),
                   ],
-                ),
-              ),
+                );
+              }),
             ),
           ),
         ],

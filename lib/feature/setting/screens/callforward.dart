@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // For Clipboard
+import 'package:flutter/services.dart';
+import 'package:gastcallde/core/const/app_colors.dart'; // For Clipboard
 
 class CallForwardingScreen extends StatefulWidget {
   const CallForwardingScreen({super.key});
@@ -108,42 +109,42 @@ class _CallForwardingScreenState extends State<CallForwardingScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildTextField(
-                    controller: _immediateForwardingController,
-                    labelText: 'Immediate Forwarding',
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildTextField(
-                    controller: _whenBusyController,
-                    labelText: 'When Busy',
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildTextField(
-                    controller: _whenNotAnsweringController,
-                    labelText: 'When Not Answering',
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildTextField(
-                    controller: _allForwardingsController,
-                    labelText: 'All Forwardings',
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
+            // Row(
+            //   children: [
+            //     Expanded(
+            //       child: _buildTextField(
+            //         controller: _immediateForwardingController,
+            //         labelText: 'Immediate Forwarding',
+            //       ),
+            //     ),
+            //     const SizedBox(width: 16),
+            //     Expanded(
+            //       child: _buildTextField(
+            //         controller: _whenBusyController,
+            //         labelText: 'When Busy',
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            // const SizedBox(height: 16),
+            // Row(
+            //   children: [
+            //     Expanded(
+            //       child: _buildTextField(
+            //         controller: _whenNotAnsweringController,
+            //         labelText: 'When Not Answering',
+            //       ),
+            //     ),
+            //     const SizedBox(width: 16),
+            //     Expanded(
+            //       child: _buildTextField(
+            //         controller: _allForwardingsController,
+            //         labelText: 'All Forwardings',
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            // const SizedBox(height: 24),
 
             // Forwarding Mode section
             const Text(
@@ -268,7 +269,7 @@ class _CallForwardingScreenState extends State<CallForwardingScreen> {
                     title: 'Schedule callback',
                     description:
                         'The AI collects customer data & schedules a callback. You process these later via the call overview.',
-                    isSwitch: false,
+                    isSwitch: true,
                   ),
                 ),
               ],
@@ -303,7 +304,31 @@ class _CallForwardingScreenState extends State<CallForwardingScreen> {
             fillColor: Colors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide.none,
+              borderSide: BorderSide(
+                color: Colors.grey,
+              ), // default border color
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+              borderSide: BorderSide(
+                color: AppColors.primaryColor, // Active border color (focused)
+                width: 2.0,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+              borderSide: BorderSide(
+                color: Colors
+                    .red, // Border color when there's an error but not focused
+                width: 2.0,
+              ),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+              borderSide: BorderSide(
+                color: Colors.redAccent, // Border color when error and focused
+                width: 2.0,
+              ),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
@@ -330,7 +355,7 @@ class _CallForwardingScreenState extends State<CallForwardingScreen> {
           _forwardingMode = newValue;
         });
       },
-      activeColor: Colors.blue, // Matching the blue radio button
+      activeColor: AppColors.primaryColor, // Matching the blue radio button
       contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
       controlAffinity: ListTileControlAffinity.leading,
     );

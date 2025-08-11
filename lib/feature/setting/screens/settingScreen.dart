@@ -83,7 +83,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   String _callTransferText = '';
   String _specialPromotionsText = '';
   String _selectedVoice = 'Alisaya'; // Initial voice selection
-  List<String> _voiceOptions = [
+  final List<String> _voiceOptions = [
     'Alisaya',
     'Sophia',
     'John',
@@ -111,7 +111,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         backgroundColor: Colors.white,
         elevation: 0,
         flexibleSpace: Padding(
-          padding: const EdgeInsets.only(left: 16.0, top: 50.0),
+          padding: const EdgeInsets.only(left: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -257,26 +257,26 @@ class _SettingsScreenState extends State<SettingsScreen>
           ],
         ),
         const SizedBox(height: 16),
-        _buildCard(
-          children: [
-            _buildSettingRow(
-              'Ambient noise',
-              'Live Overview of your restaurant\'s',
-              Slider(
-                value: _ambientNoise,
-                min: 0.0,
-                max: 1.0,
-                activeColor: AppColors.primaryColor,
-                inactiveColor: Colors.grey[300],
-                onChanged: (newValue) {
-                  setState(() {
-                    _ambientNoise = newValue;
-                  });
-                },
-              ),
-            ),
-          ],
-        ),
+        // _buildCard(
+        //   children: [
+        //     _buildSettingRow(
+        //       'Ambient noise',
+        //       'Live Overview of your restaurant\'s',
+        //       Slider(
+        //         value: _ambientNoise,
+        //         min: 0.0,
+        //         max: 1.0,
+        //         activeColor: AppColors.primaryColor,
+        //         inactiveColor: Colors.grey[300],
+        //         onChanged: (newValue) {
+        //           setState(() {
+        //             _ambientNoise = newValue;
+        //           });
+        //         },
+        //       ),
+        //     ),
+        //   ],
+        // ),
         const SizedBox(height: 24),
 
         // Call Transfer Section

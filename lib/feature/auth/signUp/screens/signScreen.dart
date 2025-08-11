@@ -4,9 +4,6 @@ import 'package:gastcallde/feature/auth/login/screens/loginScreen.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/const/app_colors.dart';
-import '../../../../core/const/gradientButton.dart';
-import '../controller/signController.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class signScreen extends StatelessWidget {
   const signScreen({super.key});
@@ -129,35 +126,39 @@ class signScreen extends StatelessWidget {
                     width: MediaQuery.of(context).size.width > 600
                         ? 300
                         : double.infinity,
-                    child: CustomButton(title: "Sign up", onPress: () {}),
+                    child: CustomButton(
+                      title: "Sign up",
+                      onPress: () {
+                        Get.to(LoginScreen());
+                      },
+                    ),
                   ),
                   const SizedBox(height: 24),
 
                   // Divider "Or"
-                  Center(child: Text('Or', style: GoogleFonts.inter())),
-                  const SizedBox(height: 24),
+                  // Center(child: Text('Or', style: GoogleFonts.inter())),
+                  // const SizedBox(height: 24),
 
-                  // Social login buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildSocialButton(
-                          icon: FontAwesomeIcons.google,
-                          text: 'Sign in with Google',
-                          onPressed: () {},
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildSocialButton(
-                          icon: FontAwesomeIcons.apple,
-                          text: 'Sign in with Apple',
-                          onPressed: () {},
-                        ),
-                      ),
-                    ],
-                  ),
-
+                  // // Social login buttons
+                  // Row(
+                  //   children: [
+                  //     Expanded(
+                  //       child: _buildSocialButton(
+                  //         icon: FontAwesomeIcons.google,
+                  //         text: 'Sign in with Google',
+                  //         onPressed: () {},
+                  //       ),
+                  //     ),
+                  //     const SizedBox(width: 16),
+                  //     Expanded(
+                  //       child: _buildSocialButton(
+                  //         icon: FontAwesomeIcons.apple,
+                  //         text: 'Sign in with Apple',
+                  //         onPressed: () {},
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
                   const SizedBox(height: 24),
 
                   // "Have an account? Log In"

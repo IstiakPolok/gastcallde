@@ -2,17 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/core/global_widegts/CustomDrawer.dart';
 import 'package:gastcallde/core/global_widegts/CustomNavigationRail.dart';
-import 'package:gastcallde/feature/calls/widgets/calldetaildilog.dart';
-import 'package:gastcallde/feature/orderManagment/controllers/order_controller.dart';
-import 'package:gastcallde/feature/orderManagment/models/order_model.dart';
 import 'package:gastcallde/feature/orderManagment/order_entry_screen.dart';
 import 'package:gastcallde/feature/orderManagment/orders_dashboard.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/src/root/get_material_app.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
-import 'package:get/get_state_manager/src/simple/get_controllers.dart';
-import 'package:intl/intl.dart';
 
 class orderManagmentscreen extends StatelessWidget {
   orderManagmentscreen({super.key});
@@ -26,9 +18,7 @@ class orderManagmentscreen extends StatelessWidget {
     final isMobile = screenWidth < breakpoint;
 
     return Scaffold(
-      appBar: isMobile
-          ? AppBar(title: const Text('Restaurant Overview'))
-          : null,
+      appBar: isMobile ? AppBar(title: const Text(' S')) : null,
       drawer: isMobile
           ? ValueListenableBuilder<int>(
               valueListenable: _selectedIndexNotifier,
@@ -92,8 +82,8 @@ class orderManagmentscreen extends StatelessWidget {
           // Navigate to the OrderEntryScreen
           Get.to(() => OrderEntryScreen());
         },
-        child: const Icon(Icons.add),
         tooltip: 'Add new order',
+        child: const Icon(Icons.add),
       ),
     );
   }

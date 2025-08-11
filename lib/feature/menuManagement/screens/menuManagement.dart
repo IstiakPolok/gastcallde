@@ -6,7 +6,6 @@ import 'package:gastcallde/feature/menuManagement/screens/EditFoodScreen.dart';
 import 'package:gastcallde/feature/menuManagement/screens/FoodDetailsScreen.dart';
 import 'package:gastcallde/feature/menuManagement/screens/UploadFoodMenuScreen.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 class menuManagement extends StatelessWidget {
   menuManagement({super.key});
@@ -20,9 +19,7 @@ class menuManagement extends StatelessWidget {
     final isMobile = screenWidth < breakpoint;
 
     return Scaffold(
-      appBar: isMobile
-          ? AppBar(title: const Text('Restaurant Overview'))
-          : null,
+      appBar: isMobile ? AppBar(title: const Text('Menu Management')) : null,
       drawer: isMobile
           ? ValueListenableBuilder<int>(
               valueListenable: _selectedIndexNotifier,
@@ -124,12 +121,6 @@ class ItemsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context); // Go back
-          },
-        ),
         title: const Text(
           'Items',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
@@ -201,9 +192,12 @@ class ItemsScreen extends StatelessWidget {
                   children: [
                     Expanded(
                       flex: 3,
-                      child: Text(
-                        'Item',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      child: Padding(
+                        padding: EdgeInsets.only(left: 8.0),
+                        child: Text(
+                          'Item',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
                     Expanded(
@@ -294,42 +288,39 @@ class ItemsScreen extends StatelessWidget {
             Expanded(flex: 1, child: Text(item.price)),
             Expanded(
               flex: 2,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.visibility_outlined,
-                          size: 20,
-                          color: Colors.grey,
-                        ),
-                        onPressed: () {
-                          Get.to(FoodDetailsScreen(item: item));
-                        },
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.visibility_outlined,
+                        size: 20,
+                        color: Colors.grey,
                       ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.edit_outlined,
-                          size: 20,
-                          color: Colors.grey,
-                        ),
-                        onPressed: () {
-                          Get.to(EditFoodScreen());
-                        },
+                      onPressed: () {
+                        Get.to(FoodDetailsScreen(item: item));
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.edit_outlined,
+                        size: 20,
+                        color: Colors.grey,
                       ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.delete_outline,
-                          size: 20,
-                          color: Colors.red,
-                        ),
-                        onPressed: () {},
+                      onPressed: () {
+                        Get.to(EditFoodScreen());
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        size: 20,
+                        color: Colors.red,
                       ),
-                    ],
-                  ),
+                      onPressed: () {},
+                    ),
+                  ],
                 ),
               ),
             ),

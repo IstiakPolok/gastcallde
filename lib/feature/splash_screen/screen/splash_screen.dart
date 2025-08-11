@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../core/const/app_colors.dart';
-import '../../../core/style/global_text_style.dart';
 import '../controller/splash_screen_controller.dart';
 
 class SplashScreen extends StatelessWidget {

@@ -5,8 +5,6 @@ import 'package:gastcallde/core/global_widegts/CustomNavigationRail.dart';
 import 'package:gastcallde/feature/reservastion/widgets/ReservationForm.dart';
 import 'package:gastcallde/feature/reservastion/widgets/gridViewTableView.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:intl/intl.dart';
 
 class ReservationScreen extends StatelessWidget {
   ReservationScreen({super.key});
@@ -21,7 +19,7 @@ class ReservationScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: isMobile
-          ? AppBar(title: const Text('Restaurant Overview'))
+          ? AppBar(title: const Text('Reservations Overview'))
           : null,
       drawer: isMobile
           ? ValueListenableBuilder<int>(
@@ -121,6 +119,16 @@ class RestaurantDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primaryColor,
+        foregroundColor: Colors.white,
+        onPressed: () {
+          // Navigate to the OrderEntryScreen
+          Get.to(ReservationFormPage());
+        },
+        tooltip: 'Add new order',
+        child: const Icon(Icons.add),
+      ),
       backgroundColor: const Color(0xFFF7F7F7),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -197,14 +205,6 @@ class RestaurantDashboard extends StatelessWidget {
                               onPressed: () {
                                 isListView.value = true; // Set to ListView
                               },
-                              child: Text(
-                                'List View',
-                                style: TextStyle(
-                                  color: isListViewActive
-                                      ? Colors.white
-                                      : Colors.black,
-                                ),
-                              ),
                               style: ElevatedButton.styleFrom(
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
@@ -212,6 +212,19 @@ class RestaurantDashboard extends StatelessWidget {
                                 backgroundColor: isListViewActive
                                     ? AppColors.primaryColor
                                     : Colors.grey[300],
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 30.0,
+                                ),
+                                child: Text(
+                                  'List View',
+                                  style: TextStyle(
+                                    color: isListViewActive
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
+                                ),
                               ),
                             );
                           },
@@ -224,15 +237,6 @@ class RestaurantDashboard extends StatelessWidget {
                               onPressed: () {
                                 isListView.value = false; // Set to GridView
                               },
-
-                              child: Text(
-                                'Grid View',
-                                style: TextStyle(
-                                  color: !isListViewActive
-                                      ? Colors.white
-                                      : Colors.black,
-                                ),
-                              ),
                               style: ElevatedButton.styleFrom(
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
@@ -240,6 +244,20 @@ class RestaurantDashboard extends StatelessWidget {
                                 backgroundColor: !isListViewActive
                                     ? AppColors.primaryColor
                                     : Colors.grey[300],
+                              ),
+
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 30.0,
+                                ),
+                                child: Text(
+                                  'Grid View',
+                                  style: TextStyle(
+                                    color: !isListViewActive
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
+                                ),
                               ),
                             );
                           },
@@ -358,25 +376,25 @@ class RestaurantDashboard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  SizedBox(height: 10),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Get.to(ReservationFormPage());
-                    },
-                    icon: const Icon(Icons.add, size: 20),
-                    label: const Text('Add Reservation'),
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: AppColors.primaryColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
+                  // SizedBox(height: 10),
+                  // ElevatedButton.icon(
+                  //   onPressed: () {
+                  //     Get.to(ReservationFormPage());
+                  //   },
+                  //   icon: const Icon(Icons.add, size: 20),
+                  //   label: const Text('Add Reservation'),
+                  //   style: ElevatedButton.styleFrom(
+                  //     foregroundColor: Colors.white,
+                  //     backgroundColor: AppColors.primaryColor,
+                  //     shape: RoundedRectangleBorder(
+                  //       borderRadius: BorderRadius.circular(10),
+                  //     ),
+                  //     padding: const EdgeInsets.symmetric(
+                  //       horizontal: 16,
+                  //       vertical: 12,
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             ],
@@ -444,24 +462,24 @@ class RestaurantDashboard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Get.to(ReservationFormPage());
-                    },
-                    icon: const Icon(Icons.add, size: 20),
-                    label: const Text('Add Reservation'),
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: AppColors.primaryColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
+                  // ElevatedButton.icon(
+                  //   onPressed: () {
+                  //     Get.to(ReservationFormPage());
+                  //   },
+                  //   icon: const Icon(Icons.add, size: 20),
+                  //   label: const Text('Add Reservation'),
+                  //   style: ElevatedButton.styleFrom(
+                  //     foregroundColor: Colors.white,
+                  //     backgroundColor: AppColors.primaryColor,
+                  //     shape: RoundedRectangleBorder(
+                  //       borderRadius: BorderRadius.circular(10),
+                  //     ),
+                  //     padding: const EdgeInsets.symmetric(
+                  //       horizontal: 16,
+                  //       vertical: 12,
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             ],

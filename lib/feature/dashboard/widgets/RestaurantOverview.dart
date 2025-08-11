@@ -236,7 +236,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                     children: [
                       Expanded(
                         child: InfoCard(
-                          title: 'Revenue from Orders',
+                          title: 'Revenue from     \Orders',
                           value: infoData['revenueOrders']!,
                           subText: _selectedFilter,
                         ),
@@ -524,11 +524,11 @@ class InfoCard extends StatelessWidget {
   final String subText;
 
   const InfoCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.value,
     required this.subText,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -575,12 +575,12 @@ class SmallInfoCard extends StatelessWidget {
   final String title;
   final String value;
 
-  const SmallInfoCard({Key? key, required this.title, required this.value})
-    : super(key: key);
+  const SmallInfoCard({super.key, required this.title, required this.value});
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -618,8 +618,7 @@ class ChartCard extends StatelessWidget {
   final String title;
   final List<Widget> children;
 
-  const ChartCard({Key? key, required this.title, required this.children})
-    : super(key: key);
+  const ChartCard({super.key, required this.title, required this.children});
 
   @override
   Widget build(BuildContext context) {

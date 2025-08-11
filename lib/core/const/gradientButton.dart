@@ -10,15 +10,14 @@ class GradientButton extends StatelessWidget {
   final TextStyle? textStyle;
 
   const GradientButton({
-    Key? key,
+    super.key,
     required this.text,
     required this.onPressed,
     this.height = 55.0,
     this.borderRadius = 30.0,
-    this.gradientColors = const [Color(0xFF009038),
-      Color(0xFF15C258)],
+    this.gradientColors = const [Color(0xFF009038), Color(0xFF15C258)],
     this.textStyle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -47,9 +46,9 @@ class GradientButton extends StatelessWidget {
           child: Center(
             child: Text(
               text,
-              style: textStyle ??
-                 GoogleFonts.roboto(
-
+              style:
+                  textStyle ??
+                  GoogleFonts.roboto(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,

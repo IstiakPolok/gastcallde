@@ -177,6 +177,7 @@ class OrderListColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isTablet = MediaQuery.of(context).size.width > 600;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -191,8 +192,13 @@ class OrderListColumn extends StatelessWidget {
           child: Obx(
             () => ListView.builder(
               itemCount: orders.length,
+
               itemBuilder: (context, index) {
                 final order = orders[index];
+                final orderTotal = order.foodItems.fold<double>(
+                  0,
+                  (sum, item) => sum + (item.price * item.quantity),
+                );
                 return Card(
                   color: Colors.white,
                   elevation: 2,
@@ -201,20 +207,18 @@ class OrderListColumn extends StatelessWidget {
                     padding: const EdgeInsets.all(16.0),
                     child: isTablet
                         ? Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('Customer: ${order.customerName}'),
                               Text('Phone: ${order.customernumber}'),
                               const SizedBox(height: 8),
                               // Iterate over the food items and display their details
                               for (var foodItem in order.foodItems) ...[
-                                Center(
-                                  child: Image.asset(
-                                    'assets/image/${foodItem.name.toLowerCase().replaceAll(' ', '_')}.png', // Assuming your images are named based on food item names
-                                    width: 100,
-                                    //height: 50,
-                                    fit: BoxFit.cover,
-                                  ),
+                                Image.asset(
+                                  'assets/image/${foodItem.name.toLowerCase().replaceAll(' ', '_')}.png', // Assuming your images are named based on food item names
+                                  width: 100,
+                                  //height: 50,
+                                  fit: BoxFit.cover,
                                 ),
                                 Row(
                                   children: [
@@ -252,6 +256,13 @@ class OrderListColumn extends StatelessWidget {
                                   showDeleteButton) ...[
                                 Column(
                                   children: [
+                                    Text(
+                                      'Order Total: \$${orderTotal.toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
                                     if (onButtonPressed != null)
                                       ElevatedButton(
                                         onPressed: () =>

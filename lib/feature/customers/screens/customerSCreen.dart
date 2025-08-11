@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/core/global_widegts/CustomDrawer.dart';
 import 'package:gastcallde/core/global_widegts/CustomNavigationRail.dart';
 import 'package:gastcallde/feature/customers/screens/CustomerDetailsScreen.dart';
-import 'package:gastcallde/feature/menuManagement/screens/EditFoodScreen.dart';
-import 'package:gastcallde/feature/menuManagement/screens/FoodDetailsScreen.dart';
-import 'package:gastcallde/feature/menuManagement/screens/UploadFoodMenuScreen.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 class Customerscreen extends StatelessWidget {
   Customerscreen({super.key});
@@ -21,9 +16,7 @@ class Customerscreen extends StatelessWidget {
     final isMobile = screenWidth < breakpoint;
 
     return Scaffold(
-      appBar: isMobile
-          ? AppBar(title: const Text('Restaurant Overview'))
-          : null,
+      appBar: isMobile ? AppBar(title: const Text(' ')) : null,
       drawer: isMobile
           ? ValueListenableBuilder<int>(
               valueListenable: _selectedIndexNotifier,
@@ -428,46 +421,38 @@ class CustomerSectionScreen extends StatelessWidget {
                               ),
                               Expanded(
                                 flex: 1,
-                                child: Align(
-                                  alignment: Alignment.centerRight,
-                                  child: Align(
-                                    alignment: Alignment.centerRight,
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        Get.to(CustomerDetailsScreen());
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor: Colors.teal,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            8.0,
-                                          ),
-                                          side: const BorderSide(
-                                            color: Colors.teal,
-                                          ),
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 5,
-                                        ),
-                                        elevation: 0,
-                                      ),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: const [
-                                          Icon(
-                                            Icons.remove_red_eye_outlined,
-                                            size: 18,
-                                          ),
-                                          SizedBox(height: 4),
-                                          Text(
-                                            'View',
-                                            style: TextStyle(fontSize: 12),
-                                          ),
-                                        ],
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    Get.to(CustomerDetailsScreen());
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: Colors.teal,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      side: const BorderSide(
+                                        color: Colors.teal,
                                       ),
                                     ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 5,
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: const [
+                                      Icon(
+                                        Icons.remove_red_eye_outlined,
+                                        size: 18,
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        'View',
+                                        style: TextStyle(fontSize: 12),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
