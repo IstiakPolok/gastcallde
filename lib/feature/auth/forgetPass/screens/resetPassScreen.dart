@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:gastcallde/core/global_widegts/custom_button.dart';
 import 'package:gastcallde/feature/auth/login/screens/loginScreen.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pin_input_text_field/pin_input_text_field.dart';
 
 import '../../../../core/const/app_colors.dart';
-import '../../../../core/const/gradientButton.dart';
-import '../../signUp/screens/signScreen.dart';
 import '../controller/resetPassController.dart';
 
 class resetPassScreen extends StatelessWidget {
@@ -168,7 +164,12 @@ class resetPassScreen extends StatelessWidget {
                     width: MediaQuery.of(context).size.width > 600
                         ? 300
                         : double.infinity,
-                    child: CustomButton(title: "Done", onPress: () {}),
+                    child: CustomButton(
+                      title: "Done",
+                      onPress: () {
+                        Get.to(LoginScreen());
+                      },
+                    ),
                   ),
                   const SizedBox(height: 24),
 

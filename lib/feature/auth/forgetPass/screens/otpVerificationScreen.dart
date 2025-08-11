@@ -7,8 +7,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pin_input_text_field/pin_input_text_field.dart';
 
 import '../../../../core/const/app_colors.dart';
-import '../../../../core/const/gradientButton.dart';
-import '../../signUp/screens/signScreen.dart';
 
 class otpVerificationScreen extends StatelessWidget {
   const otpVerificationScreen({super.key});

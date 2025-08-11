@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gastcallde/core/global_widegts/custom_button.dart';
 import 'package:gastcallde/feature/auth/login/screens/loginScreen.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/const/app_colors.dart';
-import '../../../../core/const/gradientButton.dart';
-import '../../signUp/screens/signScreen.dart';
 import 'otpVerificationScreen.dart';
 
 class forgetpassScreen extends StatelessWidget {

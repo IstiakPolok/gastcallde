@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gastcallde/feature/calls/screens/callScreen.dart';
+import 'package:gastcallde/feature/customers/screens/customerSCreen.dart';
 import 'package:gastcallde/feature/dashboard/screens/dashboard.dart';
 
-import 'package:gastcallde/feature/dashboard/widgets/RestaurantOverview.dart';
+import 'package:gastcallde/feature/menuManagement/screens/menuManagement.dart';
+import 'package:gastcallde/feature/orderManagment/orderManagmentscreen.dart';
+import 'package:gastcallde/feature/reservastion/screens/reservationScreen.dart';
+import 'package:gastcallde/feature/setting/screens/settingScreen.dart';
 
 class CustomDrawer extends StatelessWidget {
   final int selectedIndex;
@@ -101,15 +105,15 @@ class CustomDrawer extends StatelessWidget {
       case 1:
         return callScreen();
       case 2:
-        return Center(child: Container(color: Colors.green));
+        return orderManagmentscreen();
       case 3:
-        return Center(child: Container(color: Colors.blue));
+        return ReservationScreen();
       case 4:
-        return Center(child: Container(color: Colors.orange));
+        return menuManagement();
       case 5:
-        return Center(child: Container(color: Colors.purple));
+        return Customerscreen();
       case 6:
-        return Center(child: Container(color: Colors.green));
+        return settingScreen();
 
       default:
         return Dashboard();

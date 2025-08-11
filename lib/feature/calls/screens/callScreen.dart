@@ -17,9 +17,7 @@ class callScreen extends StatelessWidget {
     final isMobile = screenWidth < breakpoint;
 
     return Scaffold(
-      appBar: isMobile
-          ? AppBar(title: const Text('Restaurant Overview'))
-          : null,
+      appBar: isMobile ? AppBar(title: const Text('Calls Overview')) : null,
       drawer: isMobile
           ? ValueListenableBuilder<int>(
               valueListenable: _selectedIndexNotifier,
@@ -276,51 +274,92 @@ class _callDashboardState extends State<callDashboard> {
     bool isTablet = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: const Text(
-          'Calls',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.chevron_left),
-                onPressed: _onPreviousDay, // Go to the previous day
-              ),
-              const Text(
-                'Today',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              IconButton(
-                icon: const Icon(Icons.chevron_right),
-                onPressed: _onNextDay, // Go to the next day
-              ),
-
-              // Display the current date
-              Text(
-                _formatDate(_currentDate),
-                style: const TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(width: 16),
-            ],
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(20.0),
-          child: Container(
-            alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: const Text('Live Overview of your restaurant\'s'),
-          ),
-        ),
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              children: [
+                const Text(
+                  'Calls',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                ),
+                Spacer(),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Get screen width to decide layout
+                    final screenWidth = MediaQuery.of(context).size.width;
+                    final isCompact = screenWidth < 400;
+
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.chevron_left),
+                            onPressed: _onPreviousDay,
+                            constraints: const BoxConstraints(),
+                            padding: EdgeInsets.zero,
+                          ),
+                          const Text(
+                            'Today',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.chevron_right),
+                            onPressed: _onNextDay,
+                            constraints: const BoxConstraints(),
+                            padding: EdgeInsets.zero,
+                          ),
+
+                          // Conditionally show full date + icon on wider screens
+                          if (!isCompact) ...[
+                            Text(
+                              _formatDate(_currentDate),
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 11,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            const Icon(
+                              Icons.calendar_today_outlined,
+                              color: Colors.grey,
+                              size: 20,
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+
+            Row(
+              children: [
+                Container(
+                  alignment: Alignment.centerLeft,
+
+                  child: const Text(
+                    'Live Overview of your restaurant\'s',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+
             // Call Type Tabs
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 8.0),
@@ -412,6 +451,7 @@ class _callDashboardState extends State<callDashboard> {
         // Display the filtered call logs
         ...filteredLogs.map((entry) {
           return Card(
+            color: Colors.black.withOpacity(0.02),
             margin: const EdgeInsets.symmetric(vertical: 4.0),
             elevation: 0,
             shape: RoundedRectangleBorder(
@@ -425,7 +465,7 @@ class _callDashboardState extends State<callDashboard> {
                   : _buildPhoneColumn(entry),
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -439,8 +479,8 @@ class _callDashboardState extends State<callDashboard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('${entry.date}'),
-              Text('${entry.time}', style: const TextStyle(color: Colors.grey)),
+              Text(entry.date),
+              Text(entry.time, style: const TextStyle(color: Colors.grey)),
             ],
           ),
         ),
@@ -465,31 +505,30 @@ class _callDashboardState extends State<callDashboard> {
                     : Colors.orange.shade800,
                 fontWeight: FontWeight.bold,
               ),
-              textAlign: TextAlign.center,
             ),
           ),
         ),
         Expanded(flex: 2, child: Text(entry.duration)),
         Expanded(
-          flex: 0,
-          child: TextButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (_) => CallDetailsDialog(entry),
-              );
-            },
-            child: Text(
-              'Details',
-              style: TextStyle(
-                color: AppColors.primaryColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
+          flex: 1,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: IconButton(
+              tooltip: 'View Details',
+              icon: Icon(
+                Icons.visibility_outlined,
+                color: AppColors.primaryColor, // match your theme
+                size: 20,
               ),
-              // This prevents text from wrapping
-              maxLines: 1, // Ensure it stays in one line
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => CallDetailsDialog(entry),
+                );
+              },
             ),
           ),
+          // Instead of Expanded(flex: 1, ...)
         ),
       ],
     );
