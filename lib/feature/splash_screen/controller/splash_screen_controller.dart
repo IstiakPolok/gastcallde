@@ -19,7 +19,7 @@ class SplashScreenController extends GetxController {
         Get.offAll(BottomNavbar());
       } else {
         // Redirect to the Welcome Screen if no token is found
-        Get.offAll(Dashboard());
+        Get.offAll(onBoardind());
       }
     });
   }

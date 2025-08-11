@@ -277,42 +277,60 @@ class _callDashboardState extends State<callDashboard> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.grey.shade100,
         title: const Text(
           'Calls',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.chevron_left),
-                onPressed: _onPreviousDay, // Go to the previous day
-              ),
-              const Text(
-                'Today',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              IconButton(
-                icon: const Icon(Icons.chevron_right),
-                onPressed: _onNextDay, // Go to the next day
-              ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              //color: Colors.black12,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.grey.shade300),
+              boxShadow: const [],
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  onPressed: _onPreviousDay, // Go to the previous day
+                ),
+                const Text(
+                  'Today',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  onPressed: _onNextDay, // Go to the next day
+                ),
 
-              // Display the current date
-              Text(
-                _formatDate(_currentDate),
-                style: const TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(width: 16),
-            ],
+                // Display the current date
+                Text(
+                  _formatDate(_currentDate),
+                  style: const TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(width: 10),
+                Icon(
+                  Icons.calendar_today_outlined,
+                  color: Colors.grey,
+                  size: 20,
+                ),
+              ],
+            ),
           ),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(20.0),
-          child: Container(
-            alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: const Text('Live Overview of your restaurant\'s'),
+          child: Column(
+            children: [
+              Container(
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: const Text('Live Overview of your restaurant\'s'),
+              ),
+            ],
           ),
         ),
       ),
@@ -412,6 +430,7 @@ class _callDashboardState extends State<callDashboard> {
         // Display the filtered call logs
         ...filteredLogs.map((entry) {
           return Card(
+            color: Colors.black.withOpacity(0.02),
             margin: const EdgeInsets.symmetric(vertical: 4.0),
             elevation: 0,
             shape: RoundedRectangleBorder(
