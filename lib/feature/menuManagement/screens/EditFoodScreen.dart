@@ -44,22 +44,22 @@ class EditFoodScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Top section: Edit Picture and Add Description
-                isTwoColumn
-                    ? Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(flex: 1, child: _buildEditPictureCard()),
-                          const SizedBox(width: 16),
-                          Expanded(flex: 1, child: _buildAddDescriptionCard()),
-                        ],
-                      )
-                    : Column(
-                        children: [
-                          _buildEditPictureCard(),
-                          const SizedBox(height: 16),
-                          _buildAddDescriptionCard(),
-                        ],
-                      ),
+                // isTwoColumn
+                //     ? Row(
+                //         crossAxisAlignment: CrossAxisAlignment.start,
+                //         children: [
+                //           Expanded(flex: 1, child: _buildEditPictureCard()),
+                //           const SizedBox(width: 16),
+                //           Expanded(flex: 1, child: _buildAddDescriptionCard()),
+                //         ],
+                //       )
+                //     : Column(
+                //         children: [
+                //           _buildEditPictureCard(),
+                //           const SizedBox(height: 16),
+                //           _buildAddDescriptionCard(),
+                //         ],
+                //       ),
                 const SizedBox(height: 20),
 
                 // Input fields section: Name, Price, Category, Product, Status
@@ -136,48 +136,48 @@ class EditFoodScreen extends StatelessWidget {
   }
 
   // Helper function to build the "Edit Picture" card
-  Widget _buildEditPictureCard() {
-    return Card(
-      color: Colors.white,
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Edit Picture',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                'https://greatrangebison.com/wp-content/uploads/2023/07/caramelized-onion-burger-featured-image.jpg', // Placeholder image
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: 200, // Adjusted height for better fit
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 150,
-                    color: Colors.grey[300],
-                    child: const Center(
-                      child: Icon(
-                        Icons.broken_image,
-                        size: 50,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget _buildEditPictureCard() {
+  //   return Card(
+  //     color: Colors.white,
+  //     elevation: 1,
+  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  //     child: Padding(
+  //       padding: const EdgeInsets.all(16.0),
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           const Text(
+  //             'Edit Picture',
+  //             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  //           ),
+  //           const SizedBox(height: 10),
+  //           ClipRRect(
+  //             borderRadius: BorderRadius.circular(8),
+  //             child: Image.network(
+  //               'https://greatrangebison.com/wp-content/uploads/2023/07/caramelized-onion-burger-featured-image.jpg', // Placeholder image
+  //               fit: BoxFit.cover,
+  //               width: double.infinity,
+  //               height: 200, // Adjusted height for better fit
+  //               errorBuilder: (context, error, stackTrace) {
+  //                 return Container(
+  //                   height: 150,
+  //                   color: Colors.grey[300],
+  //                   child: const Center(
+  //                     child: Icon(
+  //                       Icons.broken_image,
+  //                       size: 50,
+  //                       color: Colors.grey,
+  //                     ),
+  //                   ),
+  //                 );
+  //               },
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   // Helper function to build the "Add Description" card
   Widget _buildAddDescriptionCard() {

@@ -1,6 +1,6 @@
 class Urls {
-  static const String baseUrl = 'https://whatsapp-api-znz5.onrender.com/api/v1';
-  static const String login = '$baseUrl/auth/login';
+  static const String baseUrl = 'http://10.10.13.26:9002';
+  static const String login = '$baseUrl/login';
   static const String updateProfile = '$baseUrl/auth/profile';
   static const String updateProfileImage = '$baseUrl/auth/update/profile-image';
   static const String getProfile = '$baseUrl/auth/profile';

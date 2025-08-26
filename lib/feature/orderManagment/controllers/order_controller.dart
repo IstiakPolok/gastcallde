@@ -9,8 +9,27 @@ class OrderController extends GetxController {
   final outForDeliveryOrders = <Order>[].obs;
   final completedOrders = <Order>[].obs;
 
+  void reverseOrderStatus(Order order) {
+    if (order.status == 'In Preparation') {
+      inPreparationOrders.remove(order);
+      addOrder(order);
+    } else if (order.status == 'Out for Delivery') {
+      outForDeliveryOrders.remove(order);
+      moveToPreparation(order);
+    } else if (order.status == 'Completed') {
+      completedOrders.remove(order);
+      moveToDelivery(order);
+    }
+  }
+
   void addOrder(Order order) {
     incomingOrders.add(order);
+  }
+
+  void moveToIncoming(Order order) {
+    incomingOrders.remove(order);
+    order.status = 'Incoming';
+    // inPreparationOrders.add(order);
   }
 
   void moveToPreparation(Order order) {

@@ -37,7 +37,7 @@ class FoodDetailsScreen extends StatelessWidget {
                 ? Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildImageSection(isTablet: isTablet),
+                      //    _buildImageSection(isTablet: isTablet),
                       const SizedBox(width: 20),
                       _buildStatusCard(isTablet: isTablet),
                     ],
@@ -45,7 +45,7 @@ class FoodDetailsScreen extends StatelessWidget {
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildImageSection(isTablet: isTablet),
+                      //     _buildImageSection(isTablet: isTablet),
                       const SizedBox(height: 20),
                       _buildStatusCard(isTablet: isTablet),
                     ],
@@ -59,34 +59,34 @@ class FoodDetailsScreen extends StatelessWidget {
   }
 
   // Image section
-  Widget _buildImageSection({required bool isTablet}) {
-    return Expanded(
-      flex: isTablet ? 5 : 0,
-      child: Card(
-        color: Colors.white,
-        elevation: 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.network(
-            item.imageUrl,
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: isTablet ? 300 : 200,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                height: 200,
-                color: Colors.grey[300],
-                child: const Center(
-                  child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _buildImageSection({required bool isTablet}) {
+  //   return Expanded(
+  //     flex: isTablet ? 5 : 0,
+  //     child: Card(
+  //       color: Colors.white,
+  //       elevation: 1,
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  //       child: ClipRRect(
+  //         borderRadius: BorderRadius.circular(12),
+  //         child: Image.network(
+  //           item.imageUrl,
+  //           fit: BoxFit.cover,
+  //           width: double.infinity,
+  //           height: isTablet ? 300 : 200,
+  //           errorBuilder: (context, error, stackTrace) {
+  //             return Container(
+  //               height: 200,
+  //               color: Colors.grey[300],
+  //               child: const Center(
+  //                 child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
+  //               ),
+  //             );
+  //           },
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   // Status Card section
   Widget _buildStatusCard({required bool isTablet}) {

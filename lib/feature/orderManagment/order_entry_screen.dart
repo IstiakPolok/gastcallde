@@ -95,13 +95,13 @@ class OrderEntryScreen extends StatelessWidget {
     FoodMenuItemData(
       name: 'burger',
       price: 12.99,
-      imagePath: 'assets/image/burger.png',
+      //imagePath: 'assets/image/burger.png',
       category: 'Burger',
     ),
     FoodMenuItemData(
       name: 'Pizza',
       price: 15.50,
-      imagePath: 'assets/image/pizza.png',
+      // imagePath: 'assets/image/pizza.png',
       category: 'Pizza',
     ),
     // Add more items as needed
@@ -237,7 +237,7 @@ class OrderEntryScreen extends StatelessWidget {
                         return FoodMenuItem(
                           name: foodItem.name,
                           price: foodItem.price,
-                          imagePath: foodItem.imagePath,
+                          // imagePath: foodItem.imagePath,
                           onAdd: () {
                             orderEntryController.addFoodItem(
                               FoodItem(
@@ -366,13 +366,13 @@ class FilterButton extends StatelessWidget {
 class FoodMenuItemData {
   final String name;
   final double price;
-  final String imagePath;
+  //final String imagePath;
   final String category; // This will hold the category for filtering
 
   FoodMenuItemData({
     required this.name,
     required this.price,
-    required this.imagePath,
+    // required this.imagePath,
     required this.category,
   });
 }
@@ -380,14 +380,14 @@ class FoodMenuItemData {
 class FoodMenuItem extends StatefulWidget {
   final String name;
   final double price;
-  final String imagePath;
+  //final String imagePath;
   final VoidCallback onAdd;
 
   const FoodMenuItem({
     super.key,
     required this.name,
     required this.price,
-    required this.imagePath,
+    //required this.imagePath,
     required this.onAdd,
   });
 
@@ -493,10 +493,10 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Image.asset(widget.imagePath, width: 60, height: 60),
-        ),
+        // Align(
+        //   alignment: Alignment.centerLeft,
+        //   child: Image.asset(widget.imagePath, width: 60, height: 60),
+        // ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           child: Text(
@@ -527,7 +527,7 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
   Widget _buildDesktopLayout() {
     return Row(
       children: [
-        Image.asset(widget.imagePath, width: 60, height: 60),
+        //Image.asset(widget.imagePath, width: 60, height: 60),
         const SizedBox(width: 10),
         Expanded(
           child: Column(

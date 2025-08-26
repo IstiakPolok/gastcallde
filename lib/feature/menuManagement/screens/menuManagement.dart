@@ -65,7 +65,7 @@ class menuManagement extends StatelessWidget {
 }
 
 class Item {
-  final String imageUrl;
+  //final String imageUrl;
   final String name;
   final String availability;
   final String category;
@@ -73,7 +73,7 @@ class Item {
   final String description; // Added description field
 
   Item({
-    required this.imageUrl,
+    // required this.imageUrl,
     required this.name,
     required this.availability,
     required this.category,
@@ -87,8 +87,8 @@ class ItemsScreen extends StatelessWidget {
 
   final List<Item> _items = [
     Item(
-      imageUrl:
-          'https://cdn.sanity.io/images/czqk28jt/prod_plk_us/84bbcd43ce0d00ab85cc40e4c23f007e19501d21-2000x1333.png?q=70&auto=format',
+      // imageUrl:
+      //     'https://cdn.sanity.io/images/czqk28jt/prod_plk_us/84bbcd43ce0d00ab85cc40e4c23f007e19501d21-2000x1333.png?q=70&auto=format',
       name: 'Chicken Popeyes',
       availability: 'In Stock',
       category: 'Junk',
@@ -96,8 +96,8 @@ class ItemsScreen extends StatelessWidget {
       description: 'Delicious fried chicken with a crispy coating.',
     ),
     Item(
-      imageUrl:
-          'https://greatrangebison.com/wp-content/uploads/2023/07/caramelized-onion-burger-featured-image.jpg',
+      // imageUrl:
+      // 'https://greatrangebison.com/wp-content/uploads/2023/07/caramelized-onion-burger-featured-image.jpg',
       name: 'Bison Burgers',
       availability: 'In Stock',
       category: 'Dessert',
@@ -105,7 +105,7 @@ class ItemsScreen extends StatelessWidget {
       description: 'Juicy bison patty served on a toasted bun.',
     ),
     Item(
-      imageUrl: 'https://static.toiimg.com/photo/54714340.cms',
+      //imageUrl: 'https://static.toiimg.com/photo/54714340.cms',
       name: 'Grill Sandwich',
       availability: 'In Stock',
       category: 'Junk',
@@ -263,15 +263,15 @@ class ItemsScreen extends StatelessWidget {
               flex: 3,
               child: Row(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Image.network(
-                      item.imageUrl,
-                      width: 40,
-                      height: 40,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+                  // ClipRRect(
+                  //   borderRadius: BorderRadius.circular(8.0),
+                  //   child: Image.network(
+                  //     item.imageUrl,
+                  //     width: 40,
+                  //     height: 40,
+                  //     fit: BoxFit.cover,
+                  //   ),
+                  // ),
                   const SizedBox(width: 10),
                   Text(item.name),
                 ],
@@ -344,15 +344,15 @@ class ItemsScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: Image.network(
-                    item.imageUrl,
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
-                  ),
-                ),
+                // ClipRRect(
+                //   borderRadius: BorderRadius.circular(8.0),
+                //   child: Image.network(
+                //     item.imageUrl,
+                //     width: 60,
+                //     height: 60,
+                //     fit: BoxFit.cover,
+                //   ),
+                // ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
