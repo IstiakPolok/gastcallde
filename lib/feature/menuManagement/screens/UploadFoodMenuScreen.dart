@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
+import 'package:gastcallde/feature/auth/signUp/screens/UploadFilesScreen.dart';
+import 'package:gastcallde/feature/menuManagement/screens/UploadFiles.dart';
 import 'package:gastcallde/feature/menuManagement/screens/uploadMenually.dart';
 
 class UploadFoodMenuScreen extends StatefulWidget {
@@ -293,66 +295,68 @@ class _UploadFoodMenuScreenState extends State<UploadFoodMenuScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          GestureDetector(
-            onTap: _pickPdfFile,
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey, width: 1.5),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: EdgeInsets.all(isTablet ? 40 : 20),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.cloud_upload,
-                      size: isTablet ? 60 : 48,
-                      color: Colors.grey[400],
-                    ),
-                    const SizedBox(height: 16),
-                    if (_selectedFile == null)
-                      RichText(
-                        textAlign: TextAlign.center,
-                        text: TextSpan(
-                          style: TextStyle(
-                            fontSize: isTablet ? 16 : 14,
-                            color: Colors.grey[700],
-                          ),
-                          children: <TextSpan>[
-                            const TextSpan(text: 'Drop your files here or '),
-                            TextSpan(
-                              text: 'Click to upload',
-                              style: TextStyle(
-                                color: const Color(0xFF00BFA5),
-                                fontWeight: FontWeight.bold,
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    else
-                      Text(
-                        _selectedFile!.name,
-                        style: TextStyle(
-                          fontSize: isTablet ? 16 : 14,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'PDF (max. 10MB)',
-                      style: TextStyle(
-                        fontSize: isTablet ? 13 : 11,
-                        color: Colors.grey[500],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+          UploadFileswidget(),
+
+          // GestureDetector(
+          //   onTap: _pickPdfFile,
+          //   child: Container(
+          //     decoration: BoxDecoration(
+          //       border: Border.all(color: Colors.grey, width: 1.5),
+          //       borderRadius: BorderRadius.circular(12),
+          //     ),
+          //     padding: EdgeInsets.all(isTablet ? 40 : 20),
+          //     child: Center(
+          //       child: Column(
+          //         mainAxisAlignment: MainAxisAlignment.center,
+          //         children: [
+          //           Icon(
+          //             Icons.cloud_upload,
+          //             size: isTablet ? 60 : 48,
+          //             color: Colors.grey[400],
+          //           ),
+          //           const SizedBox(height: 16),
+          //           if (_selectedFile == null)
+          //             RichText(
+          //               textAlign: TextAlign.center,
+          //               text: TextSpan(
+          //                 style: TextStyle(
+          //                   fontSize: isTablet ? 16 : 14,
+          //                   color: Colors.grey[700],
+          //                 ),
+          //                 children: <TextSpan>[
+          //                   const TextSpan(text: 'Drop your files here or '),
+          //                   TextSpan(
+          //                     text: 'Click to upload',
+          //                     style: TextStyle(
+          //                       color: const Color(0xFF00BFA5),
+          //                       fontWeight: FontWeight.bold,
+          //                       decoration: TextDecoration.underline,
+          //                     ),
+          //                   ),
+          //                 ],
+          //               ),
+          //             )
+          //           else
+          //             Text(
+          //               _selectedFile!.name,
+          //               style: TextStyle(
+          //                 fontSize: isTablet ? 16 : 14,
+          //                 color: Colors.black87,
+          //               ),
+          //             ),
+          //           const SizedBox(height: 8),
+          //           Text(
+          //             'PDF (max. 10MB)',
+          //             style: TextStyle(
+          //               fontSize: isTablet ? 13 : 11,
+          //               color: Colors.grey[500],
+          //             ),
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );

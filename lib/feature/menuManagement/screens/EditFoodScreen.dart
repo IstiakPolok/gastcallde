@@ -1,20 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
+import 'package:gastcallde/feature/menuManagement/controllers/manusManagmentController.dart';
+import 'package:gastcallde/feature/menuManagement/screens/menuManagement.dart';
 
 class EditFoodScreen extends StatelessWidget {
-  const EditFoodScreen({super.key});
+  EditFoodScreen({super.key, required this.item});
+
+  final Item item;
+
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController priceController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController categoryController = TextEditingController();
+  final TextEditingController statusController = TextEditingController();
+  final TextEditingController preparationTimeController =
+      TextEditingController();
+  final TextEditingController discountController = TextEditingController();
+  final TextEditingController imageController = TextEditingController();
 
   // Placeholder values for dropdowns
-  final List<String> categories = const ['Junk', 'Healthy', 'Dessert'];
-  final List<String> products = const ['Popular', 'New', 'Seasonal'];
-  final List<String> statuses = const [
-    'Available',
-    'Out of Stock',
-    'Coming Soon',
-  ];
+  // final List<String> categories = const ['Junk', 'Healthy', 'Dessert'];
+  // final List<String> products = const ['Popular', 'New', 'Seasonal'];
+  // final List<String> statuses = const [
+  //   'Available',
+  //   'Out of Stock',
+  //   'Coming Soon',
+  // ];
 
   @override
   Widget build(BuildContext context) {
+    nameController.text = item.name;
+    priceController.text = item.price;
+    descriptionController.text = item.description;
+    categoryController.text = item.category;
+    statusController.text = item.status;
+    preparationTimeController.text = item.preparationTime;
+    discountController.text = item.discount ?? '';
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -44,22 +66,22 @@ class EditFoodScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Top section: Edit Picture and Add Description
-                isTwoColumn
-                    ? Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(flex: 1, child: _buildEditPictureCard()),
-                          const SizedBox(width: 16),
-                          Expanded(flex: 1, child: _buildAddDescriptionCard()),
-                        ],
-                      )
-                    : Column(
-                        children: [
-                          _buildEditPictureCard(),
-                          const SizedBox(height: 16),
-                          _buildAddDescriptionCard(),
-                        ],
-                      ),
+                // isTwoColumn
+                //     ? Row(
+                //         crossAxisAlignment: CrossAxisAlignment.start,
+                //         children: [
+                //           Expanded(flex: 1, child: _buildEditPictureCard()),
+                //           const SizedBox(width: 16),
+                //           Expanded(flex: 1, child: _buildAddDescriptionCard()),
+                //         ],
+                //       )
+                //     : Column(
+                //         children: [
+                //           _buildEditPictureCard(),
+                //           const SizedBox(height: 16),
+                //           _buildAddDescriptionCard(),
+                //         ],
+                //       ),
                 const SizedBox(height: 20),
 
                 // Input fields section: Name, Price, Category, Product, Status
@@ -70,17 +92,13 @@ class EditFoodScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                child: _buildInputField(
-                                  'Name',
-                                  'Chicken Burger',
-                                ),
+                                child: _buildInputField('Name', nameController),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
                                 child: _buildInputField(
                                   'Price',
-                                  'Type here',
-                                  keyboardType: TextInputType.number,
+                                  priceController,
                                 ),
                               ),
                             ],
@@ -90,43 +108,133 @@ class EditFoodScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                child: _buildDropdownField(
+                                child: _buildInputField(
                                   'Category',
-                                  categories,
-                                  'Junk',
+                                  categoryController,
                                 ),
+                                // child: _buildDropdownField(
+                                //   'Category',
+                                //   categories,
+                                //   'Junk',
+                                // ),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
-                                child: _buildDropdownField(
-                                  'Product',
-                                  products,
-                                  'Popular',
+                                child: _buildInputField(
+                                  'status',
+                                  statusController,
+                                ),
+                                //   child: _buildDropdownField(
+                                //     'Product',
+                                //     products,
+                                //     'Popular',
+                                //   ),
+                                // ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: _buildInputField(
+                                  'Description',
+                                  descriptionController,
+                                ),
+                                // child: _buildDropdownField(
+                                //   'Category',
+                                //   categories,
+                                //   'Junk',
+                                // ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _buildInputField(
+                                  'PreparationTime',
+                                  preparationTimeController,
+                                ),
+                                //   child: _buildDropdownField(
+                                //     'Product',
+                                //     products,
+                                //     'Popular',
+                                //   ),
+                                // ),
+                              ),
+                              Expanded(
+                                child: _buildInputField(
+                                  'Discount',
+                                  discountController,
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 16),
-                          _buildDropdownField('Status', statuses, 'Available'),
                         ],
                       )
                     : Column(
                         children: [
-                          _buildInputField('Name', 'Chicken Burger'),
+                          _buildInputField('Name', nameController),
                           const SizedBox(height: 16),
                           _buildInputField(
                             'Price',
-                            'Type here',
-                            keyboardType: TextInputType.number,
+                            priceController,
+                            // keyboardType: TextInputType.number,
                           ),
                           const SizedBox(height: 16),
-                          _buildDropdownField('Category', categories, 'Junk'),
+                          _buildInputField('Category', categoryController),
                           const SizedBox(height: 16),
-                          _buildDropdownField('Product', products, 'Popular'),
+                          _buildInputField('Status', statusController),
                           const SizedBox(height: 16),
-                          _buildDropdownField('Status', statuses, 'Available'),
+                          _buildInputField(
+                            'Description',
+                            descriptionController,
+                          ),
+
+                          const SizedBox(height: 16),
+                          _buildInputField(
+                            'Preparation Time',
+                            preparationTimeController,
+                          ),
+                          _buildInputField('Discount', discountController),
                         ],
                       ),
+                Align(
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        EasyLoading.show(status: 'Updating...');
+                        final result = await updateFoodItem(
+                          itemId: item.id,
+                          itemName: nameController.text,
+                          status: statusController.text,
+                          description: descriptionController.text,
+                          price: priceController.text,
+                          category: categoryController.text,
+                          preparationTime: preparationTimeController.text,
+                          discount: discountController.text.isNotEmpty
+                              ? discountController.text
+                              : null,
+                        );
+                        EasyLoading.dismiss();
+
+                        // If updateFoodItem returns void, just show a success message
+                        EasyLoading.showSuccess('Item updated successfully');
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Save Changes'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             );
           },
@@ -136,48 +244,48 @@ class EditFoodScreen extends StatelessWidget {
   }
 
   // Helper function to build the "Edit Picture" card
-  Widget _buildEditPictureCard() {
-    return Card(
-      color: Colors.white,
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Edit Picture',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                'https://greatrangebison.com/wp-content/uploads/2023/07/caramelized-onion-burger-featured-image.jpg', // Placeholder image
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: 200, // Adjusted height for better fit
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 150,
-                    color: Colors.grey[300],
-                    child: const Center(
-                      child: Icon(
-                        Icons.broken_image,
-                        size: 50,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget _buildEditPictureCard() {
+  //   return Card(
+  //     color: Colors.white,
+  //     elevation: 1,
+  //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  //     child: Padding(
+  //       padding: const EdgeInsets.all(16.0),
+  //       child: Column(
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           const Text(
+  //             'Edit Picture',
+  //             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  //           ),
+  //           const SizedBox(height: 10),
+  //           ClipRRect(
+  //             borderRadius: BorderRadius.circular(8),
+  //             child: Image.network(
+  //               'https://greatrangebison.com/wp-content/uploads/2023/07/caramelized-onion-burger-featured-image.jpg', // Placeholder image
+  //               fit: BoxFit.cover,
+  //               width: double.infinity,
+  //               height: 200, // Adjusted height for better fit
+  //               errorBuilder: (context, error, stackTrace) {
+  //                 return Container(
+  //                   height: 150,
+  //                   color: Colors.grey[300],
+  //                   child: const Center(
+  //                     child: Icon(
+  //                       Icons.broken_image,
+  //                       size: 50,
+  //                       color: Colors.grey,
+  //                     ),
+  //                   ),
+  //                 );
+  //               },
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   // Helper function to build the "Add Description" card
   Widget _buildAddDescriptionCard() {
@@ -227,9 +335,12 @@ class EditFoodScreen extends StatelessWidget {
   // Helper function to build an input text field
   Widget _buildInputField(
     String label,
-    String initialValue, {
-    TextInputType keyboardType = TextInputType.text,
-  }) {
+    TextEditingController controller,
+    //   String initialValue, {
+    //   TextInputType keyboardType = TextInputType.text,
+
+    // }
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -241,8 +352,8 @@ class EditFoodScreen extends StatelessWidget {
           ),
         ),
         TextField(
-          controller: TextEditingController(text: initialValue),
-          keyboardType: keyboardType,
+          controller: controller,
+
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white,

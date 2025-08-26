@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/core/global_widegts/custom_button.dart';
+import 'package:gastcallde/feature/reservastion/controllers/tableApiController.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 
 class ReservationFormPage extends StatefulWidget {
   const ReservationFormPage({super.key});
@@ -18,11 +21,33 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
 
   final List<bool> _selectedFromTime = List.generate(10, (_) => false);
   final List<bool> _selectedToTime = List.generate(10, (_) => false);
-
+  List<Map<String, dynamic>> tableList = [];
+  bool isLoading = false;
+  final TableApiController _tableApiController = TableApiController();
   @override
   void initState() {
     super.initState();
     _dateController.text = '14 July 2025, Friday';
+    _fetchTables();
+  }
+
+  Future<void> _fetchTables() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final tables = await _tableApiController.fetchTables();
+      setState(() {
+        tableList = tables;
+      });
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to fetch tables: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -68,6 +93,29 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
               child: const Text('Confirm now'),
             ),
           ),
+          const SizedBox(height: 16),
+          if (isLoading)
+            const CircularProgressIndicator()
+          else
+            Column(
+              children: [
+                const Text(
+                  'Available Tables:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: tableList.length,
+                  itemBuilder: (context, index) {
+                    final table = tableList[index];
+                    return ListTile(
+                      title: Text(table['table_name']),
+                      subtitle: Text('Seats: ${table['total_set']}'),
+                    );
+                  },
+                ),
+              ],
+            ),
         ],
       ),
     );
@@ -89,7 +137,109 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
                   children: [
                     _buildSummarySection(),
                     const SizedBox(height: 24),
-                    CustomButton(title: 'Confirm now', onPress: () {}),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () async {
+                        try {
+                          final api = ReservationApiController();
+
+                          // extract selected "from" & "to" time
+                          String fromTime = "";
+                          String toTime = "";
+                          final times = [
+                            '06:00:00',
+                            '07:00:00',
+                            '08:00:00',
+                            '09:00:00',
+                            '10:00:00',
+                            '11:00:00',
+                            '12:00:00',
+                            '13:00:00',
+                            '14:00:00',
+                            '15:00:00',
+                          ];
+                          int fromIndex = _selectedFromTime.indexWhere(
+                            (e) => e,
+                          );
+                          int toIndex = _selectedToTime.indexWhere((e) => e);
+                          if (fromIndex != -1) fromTime = times[fromIndex];
+                          if (toIndex != -1) toTime = times[toIndex];
+
+                          // dummy pick first table (or let user choose later)
+                          final int selectedTable = tableList.isNotEmpty
+                              ? tableList[0]['id']
+                              : 0;
+
+                          final result = await api.createReservation(
+                            customerName: _nameController.text,
+                            phoneNumber: _phoneController.text,
+                            guestNo: int.tryParse(_peopleController.text) ?? 1,
+                            date: _dateController
+                                .text, // make sure this is formatted as yyyy-MM-dd
+                            fromTime: fromTime,
+                            toTime: toTime,
+                            tableId: selectedTable,
+                            email: _emailController.text,
+                          );
+
+                          Get.snackbar(
+                            "Success",
+                            "Reservation Created: ID ${result['id']}",
+                          );
+                        } catch (e) {
+                          Get.snackbar("Error", e.toString());
+                        }
+                      },
+                      child: const Text('Confirm now'),
+                    ),
+
+                    if (isLoading)
+                      const CircularProgressIndicator()
+                    else
+                      Column(
+                        children: [
+                          SizedBox(height: 30),
+                          const Text(
+                            'Available Tables:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 15),
+                          SizedBox(
+                            height: 300, // Adjust as you want
+                            child: Container(
+                              padding: const EdgeInsets.all(
+                                16.0,
+                              ), // Add padding for internal spacing
+                              decoration: BoxDecoration(
+                                color: Colors
+                                    .grey[100], // Set background color (light grey in this case)
+                                borderRadius: BorderRadius.circular(
+                                  12,
+                                ), // Rounded corners
+                                border: Border.all(
+                                  color: Colors.grey, // Border color
+                                  width: 2, // Border width
+                                ),
+                              ),
+                              child: ListView.builder(
+                                itemCount: tableList.length,
+                                itemBuilder: (context, index) {
+                                  final table = tableList[index];
+                                  return ListTile(
+                                    title: Text(table['table_name']),
+                                    subtitle: Text(
+                                      'Seats: ${table['total_set']}',
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),
@@ -289,8 +439,6 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          // Use a breakpoint to decide between phone and tablet layout
-          // Here, 700.0 is used as the breakpoint for demonstration
           if (constraints.maxWidth > 700) {
             return _buildTabletLayout();
           } else {

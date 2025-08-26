@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
+import 'package:gastcallde/feature/setting/controllers/TableController.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 
 class ReservationSettingsScreen extends StatefulWidget {
-  const ReservationSettingsScreen({super.key});
+  ReservationSettingsScreen({super.key});
+  final TableController tableController = Get.put(TableController());
+  // Properly initializing the controller
 
   @override
   State<ReservationSettingsScreen> createState() =>
@@ -18,12 +23,15 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
       TextEditingController();
   final TextEditingController _maxGuestsPerReservationController =
       TextEditingController();
-  final List<Map<String, TextEditingController>> _tables = [];
+
+  final List<TableForm> _tables = [];
+  var tableList = <TableModel>[].obs;
 
   @override
   void initState() {
     super.initState();
     _addTable(); // Add initial table row
+    widget.tableController.fetchTables(); // Fetch tables from the API
   }
 
   @override
@@ -31,28 +39,92 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
     _numberOfTablesController.dispose();
     _perTableCapacityController.dispose();
     _maxGuestsPerReservationController.dispose();
-    for (var table in _tables) {
-      table['name']?.dispose();
-      table['capacity']?.dispose();
-    }
     super.dispose();
   }
 
+  // void _addTable() {
+  //   setState(() {
+  //     _tables.add({
+  //       'name': TextEditingController(),
+  //       'capacity': TextEditingController(),
+  //       'status': 'active', // default
+  //       'reservation_status': 'available', // default
+  //     });
+  //   });
+  // }
+
   void _addTable() {
     setState(() {
-      _tables.add({
-        'name': TextEditingController(),
-        'capacity': TextEditingController(),
-      });
+      _tables.add(
+        TableForm(
+          name: TextEditingController(),
+          capacity: TextEditingController(),
+        ),
+      );
     });
   }
 
   void _removeTable(int index) {
     setState(() {
-      _tables[index]['name']?.dispose();
-      _tables[index]['capacity']?.dispose();
+      _tables[index].dispose();
       _tables.removeAt(index);
     });
+  }
+
+  // void _removeTable(int index) {
+  //   setState(() {
+  //     _tables[index]['name']?.dispose();
+  //     _tables[index]['capacity']?.dispose();
+  //     _tables.removeAt(index);
+  //   });
+  // }
+
+  Widget _buildTableList() {
+    return Obx(() {
+      if (widget.tableController.tables.isEmpty) {
+        return const CircularProgressIndicator();
+      }
+      return SizedBox(
+        height: 200, // Set this to whatever height fits your design
+        child: ListView.builder(
+          itemCount: widget.tableController.tables.length,
+          itemBuilder: (context, index) {
+            final table = widget.tableController.tables[index];
+            return ListTile(
+              title: Text(table.name),
+              subtitle: Text(
+                'Capacity: ${table.capacity}, Status: ${table.status}, Reservation Status: ${table.reservationStatus}',
+              ),
+            );
+          },
+        ),
+      );
+    });
+  }
+
+  InputDecoration _dropdownDecoration() {
+    return InputDecoration(
+      labelStyle: const TextStyle(color: Color(0xFF94A3B8)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(
+          color: const Color(0xFFE2E8F0),
+          width: 1,
+        ), // Default border color
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: AppColors.primaryColor, width: 1.5),
+      ),
+      filled: true, // Enable filling of the background color
+      fillColor: const Color(0xFFF8FAFC),
+      // Set the background color
+    );
   }
 
   @override
@@ -128,7 +200,11 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
               ),
               const SizedBox(height: 32),
 
-              // Add Table section
+              // Display fetched table list before the add table section
+              _buildSectionTitle('Existing Tables', Icons.table_chart),
+              const SizedBox(height: 16),
+              _buildTableList(),
+              const SizedBox(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -140,23 +216,23 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                       color: Color(0xFF1E293B),
                     ),
                   ),
-                  InkWell(
-                    onTap: _addTable,
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color:
-                            AppColors.primaryColor, // Blue color for add button
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Icon(
-                        Icons.add,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
+                  // InkWell(
+                  //   onTap: _addTable,
+                  //   borderRadius: BorderRadius.circular(20),
+                  //   child: Container(
+                  //     padding: const EdgeInsets.all(4),
+                  //     decoration: BoxDecoration(
+                  //       color:
+                  //           AppColors.primaryColor, // Blue color for add button
+                  //       borderRadius: BorderRadius.circular(20),
+                  //     ),
+                  //     child: const Icon(
+                  //       Icons.add,
+                  //       color: Colors.white,
+                  //       size: 20,
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -208,32 +284,116 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                       itemBuilder: (context, index) {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Row(
+                          child: Column(
                             children: [
-                              Expanded(
-                                child: _buildSmallTextField(
-                                  'Table ${index + 1}',
-                                  _tables[index]['name']!,
-                                ),
+                              Row(
+                                children: [
+                                  // Table Name
+                                  Expanded(
+                                    child: _buildSmallTextField(
+                                      'Table ${index + 1}',
+                                      _tables[index].name,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+
+                                  // Capacity
+                                  Expanded(
+                                    child: _buildSmallTextField(
+                                      'Capacity',
+                                      _tables[index].capacity,
+                                      keyboardType: TextInputType.number,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+
+                                  // Remove button
+                                  InkWell(
+                                    onTap: () => _removeTable(index),
+                                    child: const Icon(
+                                      Icons.close,
+                                      color: Color(0xFF94A3B8),
+                                      size: 20,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildSmallTextField(
-                                  'Capacity',
-                                  _tables[index]['capacity']!,
-                                  keyboardType: TextInputType.number,
-                                ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: const [
+                                  Expanded(
+                                    child: Text(
+                                      'Status',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 16),
+                                  Expanded(
+                                    child: Text(
+                                      'Reservation Status',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 24), // For the remove icon
+                                ],
                               ),
-                              const SizedBox(width: 8),
-                              InkWell(
-                                onTap: () => _removeTable(index),
-                                child: const Icon(
-                                  Icons.close,
-                                  color: Color(
-                                    0xFF94A3B8,
-                                  ), // Greyish color for close icon
-                                  size: 20,
-                                ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: DropdownButtonFormField<String>(
+                                      value: _tables[index].status,
+                                      items: ['active', 'inactive']
+                                          .map(
+                                            (val) => DropdownMenuItem(
+                                              value: val,
+                                              child: Text(val),
+                                            ),
+                                          )
+                                          .toList(),
+                                      onChanged: (val) {
+                                        setState(() {
+                                          _tables[index].status = val!;
+                                        });
+                                      },
+                                      decoration: _dropdownDecoration(),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+
+                                  Expanded(
+                                    child: DropdownButtonFormField<String>(
+                                      value: _tables[index].reservationStatus,
+                                      items:
+                                          [
+                                                'available',
+                                                'unavailable', // <-- lowercase version
+                                              ]
+                                              .map(
+                                                (val) => DropdownMenuItem(
+                                                  value: val,
+                                                  child: Text(val),
+                                                ),
+                                              )
+                                              .toList(),
+                                      onChanged: (val) {
+                                        setState(() {
+                                          _tables[index].reservationStatus =
+                                              val!;
+                                        });
+                                      },
+                                      decoration: _dropdownDecoration(),
+                                    ),
+                                  ),
+
+                                  // Reservation Status Dropdown
+                                  const SizedBox(width: 8),
+                                ],
                               ),
                             ],
                           ),
@@ -250,24 +410,44 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(20.0),
         child: ElevatedButton(
-          onPressed: () {
-            // Handle save action
-            print('Save button pressed!');
-            print('Automatic Table Assignment: $_automaticTableAssignment');
-            print(
-              'Manage Table Assignment Manually: $_manageTableAssignmentManually',
+          onPressed: () async {
+            await widget.tableController.saveTables(
+              _tables.map((t) => t.toModel()).toList(),
             );
-            print('Number of Tables: ${_numberOfTablesController.text}');
-            print('Per Table Capacity: ${_perTableCapacityController.text}');
-            print(
-              'Maximum Guests Per Reservation: ${_maxGuestsPerReservationController.text}',
-            );
-            for (int i = 0; i < _tables.length; i++) {
-              print(
-                'Table ${i + 1} Name: ${_tables[i]['name']?.text}, Capacity: ${_tables[i]['capacity']?.text}',
-              );
+
+            // Clear all table fields after saving
+            for (var table in _tables) {
+              table.name.clear();
+              table.capacity.clear();
+              table.status = 'active';
+              table.reservationStatus = 'available';
             }
+            setState(() {
+              _tables.clear();
+              _addTable(); // Optionally add a fresh empty row
+            });
+
+            print('Save button pressed!');
           },
+
+          // onPressed: () async {
+          //   await tableController.saveTables;
+          //   print('Save button pressed!');
+          //   print('Automatic Table Assignment: $_automaticTableAssignment');
+          //   print(
+          //     'Manage Table Assignment Manually: $_manageTableAssignmentManually',
+          //   );
+          //   print('Number of Tables: ${_numberOfTablesController.text}');
+          //   print('Per Table Capacity: ${_perTableCapacityController.text}');
+          //   print(
+          //     'Maximum Guests Per Reservation: ${_maxGuestsPerReservationController.text}',
+          //   );
+          //   for (int i = 0; i < _tables.length; i++) {
+          //     print(
+          //       'Table ${i + 1} Name: ${_tables[i]['name']?.text}, Capacity: ${_tables[i]['capacity']?.text}',
+          //     );
+          //   }
+          // },
           style: ElevatedButton.styleFrom(
             backgroundColor:
                 AppColors.primaryColor, // Blue color for save button
@@ -468,5 +648,33 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
         style: const TextStyle(color: Color(0xFF1E293B)),
       ),
     );
+  }
+}
+
+class TableForm {
+  final TextEditingController name;
+  final TextEditingController capacity;
+  String status;
+  String reservationStatus;
+
+  TableForm({
+    required this.name,
+    required this.capacity,
+    this.status = 'active',
+    this.reservationStatus = 'available',
+  });
+
+  TableModel toModel() {
+    return TableModel(
+      name: name.text,
+      capacity: capacity.text,
+      status: status,
+      reservationStatus: reservationStatus,
+    );
+  }
+
+  void dispose() {
+    name.dispose();
+    capacity.dispose();
   }
 }

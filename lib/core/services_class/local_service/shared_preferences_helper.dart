@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'dart:ui';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPreferencesHelper {
@@ -7,6 +10,26 @@ class SharedPreferencesHelper {
   static const String _categoriesKey = "categories";
   static const String _isWelcomeDialogShownKey =
       'isDriverVerificationDialogShown';
+
+  static Future<void> saveLanguage(String code) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('language_code', code);
+    print('Saved language: $code'); // 🔹 Debug print
+  }
+
+  // Load language at app start
+  static Future<void> loadSavedLanguage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final code = prefs.getString('language_code') ?? 'en';
+    print('Loaded saved language: $code'); // 🔹 Debug print
+    if (code == 'de') {
+      Get.updateLocale(const Locale('de', 'DE'));
+      print('Locale set to Deutsch'); // 🔹 Debug print
+    } else {
+      Get.updateLocale(const Locale('en', 'US'));
+      print('Locale set to English'); // 🔹 Debug print
+    }
+  }
 
   // Save categories (id and name only)
   static Future<void> saveCategories(
@@ -27,6 +50,7 @@ class SharedPreferencesHelper {
     return [];
   }
 
+  // Save access token
   // Save access token
   static Future<void> saveToken(String token) async {
     try {
@@ -117,6 +141,7 @@ class SharedPreferencesHelper {
 
   static Future<void> logoutUser() async {
     await clearAllData();
+    print('User logged out and data cleared');
     // Get.offAll(() => LoginView());
   }
 

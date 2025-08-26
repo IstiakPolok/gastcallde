@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:gastcallde/core/global_widegts/LanguageToggleWidget.dart';
 import 'package:gastcallde/core/global_widegts/custom_button.dart';
+import 'package:gastcallde/feature/auth/login/controller/loginController.dart';
 import 'package:gastcallde/feature/dashboard/screens/dashboard.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -12,9 +15,10 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // You'd typically use a stateful widget or a state management solution (like GetX) for this,
-    // but for a stateless widget, a ValueNotifier can be used for a single-property state.
+    final LoginController loginController = Get.put(LoginController());
     final RxBool isPasswordVisible = false.obs;
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -31,7 +35,12 @@ class LoginScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Logo and Header
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: LanguageToggleButton(),
+                  ),
+
+                  //const LanguageToggleWidget(),
                   Center(
                     child: Image.asset(
                       'assets/icons/logo.png',
@@ -40,27 +49,27 @@ class LoginScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Welcome back!',
+                    'welcome'.tr,
                     style: GoogleFonts.inter(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    'Request for restaurant dashboard',
-                    style: GoogleFonts.inter(fontSize: 16),
-                  ),
+                  Text('subtitle'.tr, style: GoogleFonts.inter(fontSize: 16)),
                   const SizedBox(height: 32),
 
-                  // Form Fields
-                  _buildTextField('Email address', 'Enter your email'),
+                  _buildTextField(
+                    'email'.tr,
+                    'enter_email'.tr,
+                    emailController,
+                  ),
+                  const SizedBox(height: 20),
 
-                  // Password Field with Visibility Toggle
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Password',
+                      'password'.tr,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -70,9 +79,10 @@ class LoginScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Obx(
                     () => TextFormField(
+                      controller: passwordController,
                       obscureText: !isPasswordVisible.value,
                       decoration: InputDecoration(
-                        hintText: 'Type password',
+                        hintText: 'type_password'.tr,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
@@ -118,12 +128,8 @@ class LoginScreen extends StatelessWidget {
                         Get.to(forgetpassScreen());
                       },
                       child: Text(
-                        'Forgot Password',
-                        style: TextStyle(
-                          color: AppColors.primaryColor,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        'forgot_password'.tr,
+                        style: TextStyle(color: AppColors.primaryColor),
                       ),
                     ),
                   ),
@@ -135,10 +141,12 @@ class LoginScreen extends StatelessWidget {
                         ? 300
                         : double.infinity,
                     child: CustomButton(
-                      title: "Login",
+                      title: "login".tr,
                       onPress: () {
-                        //Get.offAll(RestaurantOverviewPage());
-                        Get.offAll(Dashboard());
+                        loginController.login(
+                          emailController.text,
+                          passwordController.text,
+                        );
                       },
                     ),
                   ),
@@ -164,15 +172,15 @@ class LoginScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Don’t have an account?',
+                        'signup_question'.tr,
                         style: TextStyle(color: Colors.black54),
                       ),
                       TextButton(
                         onPressed: () {
-                          Get.off(signScreen());
+                          Get.to(RegistrationScreen());
                         },
                         child: Text(
-                          'Sign up',
+                          'signup'.tr,
                           style: TextStyle(color: AppColors.primaryColor),
                         ),
                       ),
@@ -187,7 +195,12 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(String label, String hint) {
+  Widget _buildTextField(
+    String label,
+    String hint,
+    TextEditingController controller, {
+    bool obscureText = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -200,6 +213,8 @@ class LoginScreen extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         TextFormField(
+          controller: controller,
+          obscureText: obscureText,
           decoration: InputDecoration(
             hintText: hint,
             border: OutlineInputBorder(
@@ -219,7 +234,6 @@ class LoginScreen extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 16),
       ],
     );
   }

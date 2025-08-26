@@ -1,5 +1,6 @@
 // lib/feature/calls/orders_dashboard.dart
 import 'package:flutter/material.dart';
+import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/feature/orderManagment/controllers/order_controller.dart';
 import 'package:gastcallde/feature/orderManagment/models/order_model.dart';
 import 'package:get/get.dart';
@@ -163,6 +164,8 @@ class OrderListColumn extends StatelessWidget {
   final String buttonText;
   final Color buttonColor;
   final bool showDeleteButton;
+  final bool
+  showBackButton; // New parameter to control whether the back button is visible
 
   const OrderListColumn({
     super.key,
@@ -172,6 +175,7 @@ class OrderListColumn extends StatelessWidget {
     this.buttonText = '',
     this.buttonColor = Colors.grey,
     this.showDeleteButton = true,
+    this.showBackButton = true, // Default to true
   });
 
   @override
@@ -192,7 +196,6 @@ class OrderListColumn extends StatelessWidget {
           child: Obx(
             () => ListView.builder(
               itemCount: orders.length,
-
               itemBuilder: (context, index) {
                 final order = orders[index];
                 final orderTotal = order.foodItems.fold<double>(
@@ -214,17 +217,8 @@ class OrderListColumn extends StatelessWidget {
                               const SizedBox(height: 8),
                               // Iterate over the food items and display their details
                               for (var foodItem in order.foodItems) ...[
-                                Image.asset(
-                                  'assets/image/${foodItem.name.toLowerCase().replaceAll(' ', '_')}.png', // Assuming your images are named based on food item names
-                                  width: 100,
-                                  //height: 50,
-                                  fit: BoxFit.cover,
-                                ),
                                 Row(
                                   children: [
-                                    // Display the image for each food item
-                                    const SizedBox(width: 12),
-                                    // Display the food item details (name, price, quantity, total price)
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
@@ -253,7 +247,8 @@ class OrderListColumn extends StatelessWidget {
                                 const Divider(),
                               ],
                               if (onButtonPressed != null ||
-                                  showDeleteButton) ...[
+                                  showDeleteButton ||
+                                  showBackButton) ...[
                                 Column(
                                   children: [
                                     Text(
@@ -263,6 +258,9 @@ class OrderListColumn extends StatelessWidget {
                                         fontSize: 14,
                                       ),
                                     ),
+                                    SizedBox(height: 20),
+
+                                    // Back button
                                     if (onButtonPressed != null)
                                       ElevatedButton(
                                         onPressed: () =>
@@ -278,20 +276,43 @@ class OrderListColumn extends StatelessWidget {
                                         ),
                                       ),
 
-                                    if (showDeleteButton) ...[
-                                      // This adds some space between buttons
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.delete_outline_sharp,
-                                          color: Colors.red,
-                                        ),
-                                        onPressed: () {
-                                          final controller =
-                                              Get.find<OrderController>();
-                                          controller.deleteOrder(order);
-                                        },
-                                      ),
-                                    ],
+                                    // Delete button
+                                    Row(
+                                      children: [
+                                        // Inside the Row where the back button is shown
+                                        if (showBackButton &&
+                                            title !=
+                                                'Incoming') // <-- Hide when Incoming
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.arrow_back_ios,
+                                              color: AppColors.primaryColor,
+                                            ),
+                                            onPressed: () {
+                                              final controller =
+                                                  Get.find<OrderController>();
+                                              controller.reverseOrderStatus(
+                                                order,
+                                              );
+                                            },
+                                          ),
+
+                                        Spacer(),
+                                        if (showDeleteButton) ...[
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.delete_outline_sharp,
+                                              color: Colors.red,
+                                            ),
+                                            onPressed: () {
+                                              final controller =
+                                                  Get.find<OrderController>();
+                                              controller.deleteOrder(order);
+                                            },
+                                          ),
+                                        ],
+                                      ],
+                                    ),
                                   ],
                                 ),
                               ],
@@ -311,7 +332,6 @@ class OrderListColumn extends StatelessWidget {
                                       child: Image.asset(
                                         'assets/image/${foodItem.name.toLowerCase().replaceAll(' ', '_')}.png', // Assuming your images are named based on food item names
                                         width: 100,
-                                        //height: 50,
                                         fit: BoxFit.cover,
                                       ),
                                     ),
@@ -345,9 +365,24 @@ class OrderListColumn extends StatelessWidget {
                                 const Divider(),
                               ],
                               if (onButtonPressed != null ||
-                                  showDeleteButton) ...[
+                                  showDeleteButton ||
+                                  showBackButton) ...[
                                 Row(
                                   children: [
+                                    if (showBackButton)
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.arrow_back_ios,
+                                          color: Colors.blue,
+                                        ),
+                                        onPressed: () {
+                                          final controller =
+                                              Get.find<OrderController>();
+                                          controller.reverseOrderStatus(
+                                            order,
+                                          ); // Reverse order status when back button is pressed
+                                        },
+                                      ),
                                     if (onButtonPressed != null)
                                       ElevatedButton(
                                         onPressed: () =>
@@ -363,9 +398,7 @@ class OrderListColumn extends StatelessWidget {
                                         ),
                                       ),
                                     Spacer(),
-
                                     if (showDeleteButton) ...[
-                                      // This adds some space between buttons
                                       IconButton(
                                         icon: const Icon(
                                           Icons.delete_outline_sharp,

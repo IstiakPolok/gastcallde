@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/global_widegts/custom_button.dart';
+import 'package:gastcallde/feature/auth/forgetPass/controller/ForgetPasswordController.dart';
 import 'package:gastcallde/feature/auth/login/screens/loginScreen.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,6 +10,10 @@ import 'otpVerificationScreen.dart';
 class forgetpassScreen extends StatelessWidget {
   forgetpassScreen({super.key});
   final RxBool isPasswordVisible = false.obs;
+  final ForgetPasswordController controller = Get.put(
+    ForgetPasswordController(),
+  );
+  final TextEditingController _emailController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +38,7 @@ class forgetpassScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Forgot Password',
+                    'forgot_password'.tr,
                     style: GoogleFonts.inter(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -41,35 +46,51 @@ class forgetpassScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'To catch you follow the proccess',
+                    'to_catch_you_follow_the_process'.tr, // Use translation key
                     style: GoogleFonts.inter(fontSize: 16),
                   ),
                   const SizedBox(height: 32),
 
                   // Form Fields
-                  _buildTextField('Email address', 'Enter your email'),
+                  _buildTextField(
+                    'email_address'.tr,
+                    'enter_your_email'.tr,
+                  ), // Use translation keys
 
                   const SizedBox(height: 50),
 
-                  // Sign up button
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width > 600
-                        ? 300
-                        : double.infinity,
-                    child: CustomButton(
-                      title: "Send Code",
-                      onPress: () {
-                        Get.to(otpVerificationScreen());
-                      },
-                    ),
-                  ),
+                  // Send Code button
+                  Obx(() {
+                    return SizedBox(
+                      width: MediaQuery.of(context).size.width > 600
+                          ? 300
+                          : double.infinity,
+                      child: CustomButton(
+                        title: controller.isLoading.value
+                            ? "sending".tr
+                            : "send_code".tr,
+                        onPress: () {
+                          String email = _emailController.text;
+                          if (email.isEmpty) {
+                            Get.snackbar(
+                              "error".tr, // Use translation key
+                              "please_enter_email".tr, // Use translation key
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
+                          } else {
+                            controller.sendOtp(email); // Call sendOtp method
+                          }
+                        },
+                      ),
+                    );
+                  }),
                   const SizedBox(height: 24),
 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Remember Password ?',
+                        'remember_password'.tr,
                         style: TextStyle(color: Colors.black54),
                       ),
                       TextButton(
@@ -77,7 +98,7 @@ class forgetpassScreen extends StatelessWidget {
                           Get.offAll(LoginScreen());
                         },
                         child: Text(
-                          'Login',
+                          'login'.tr,
                           style: TextStyle(color: AppColors.primaryColor),
                         ),
                       ),
@@ -105,6 +126,7 @@ class forgetpassScreen extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         TextFormField(
+          controller: _emailController,
           decoration: InputDecoration(
             hintText: hint,
             border: OutlineInputBorder(

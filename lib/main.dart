@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:gastcallde/core/localization/localization.dart';
 import 'package:gastcallde/feature/orderManagment/controllers/order_controller.dart';
 import 'package:gastcallde/route/app_routes.dart';
 import 'package:get/get.dart';
@@ -38,9 +39,12 @@ class MyApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (context, child) => GetMaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Tha Bridge',
+        title: 'Gast Call de',
         getPages: AppRoute.routes,
         initialRoute: AppRoute.splashScreen,
+        translations: AppTranslations(),
+        locale: const Locale('en', 'US'),
+        fallbackLocale: const Locale('en', 'US'),
         theme: ThemeData(
           scaffoldBackgroundColor: Colors.white,
           appBarTheme: const AppBarTheme(

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:gastcallde/core/global_widegts/LanguageToggleWidget.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -135,15 +137,15 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
   }
 
   // Helper function to create the non-interactive chart filter "buttons"
-  Widget _buildChartFilterButton(String text, {bool isSelected = false}) {
+  Widget _buildChartFilterButton(String text, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Text(
         text,
         style: GoogleFonts.inter(
           fontSize: 12,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isSelected ? Colors.black87 : Colors.grey.shade600,
+          fontWeight: FontWeight.bold,
+          color: color,
         ),
       ),
     );
@@ -169,7 +171,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Restaurant Overview',
+                    'restaurant_overview'.tr,
                     style: GoogleFonts.inter(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -177,7 +179,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                     ),
                   ),
                   Text(
-                    "Live Overview of your Restaurant's",
+                    'live_overview'.tr,
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       color: Colors.grey.shade600,
@@ -187,24 +189,30 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
               ),
             )
           : AppBar(
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Restaurant Overview',
-                    style: GoogleFonts.inter(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'restaurant_overview'.tr,
+                        style: GoogleFonts.inter(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      Text(
+                        'live_overview'.tr,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    "Live Overview of your Restaurant's",
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
+                  LanguageToggleButton(),
                 ],
               ),
             ),
@@ -236,7 +244,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                     children: [
                       Expanded(
                         child: InfoCard(
-                          title: 'Revenue from     \Orders',
+                          title: 'revenue_orders'.tr,
                           value: infoData['revenueOrders']!,
                           subText: _selectedFilter,
                         ),
@@ -244,7 +252,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: InfoCard(
-                          title: 'Revenue from Reservation',
+                          title: 'revenue_reservation'.tr,
                           value: infoData['revenueReservation']!,
                           subText: _selectedFilter,
                         ),
@@ -252,7 +260,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: InfoCard(
-                          title: 'Total Call Duration(in min)',
+                          title: 'total_call_duration'.tr,
                           value: infoData['callDuration']!,
                           subText: _selectedFilter,
                         ),
@@ -264,7 +272,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       SizedBox(
                         width: double.infinity,
                         child: InfoCard(
-                          title: 'Revenue from Orders',
+                          title: 'revenue_orders'.tr,
                           value: infoData['revenueOrders']!,
                           subText: _selectedFilter,
                         ),
@@ -273,7 +281,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       SizedBox(
                         width: double.infinity,
                         child: InfoCard(
-                          title: 'Revenue from Reservation',
+                          title: 'revenue_reservation'.tr,
                           value: infoData['revenueReservation']!,
                           subText: _selectedFilter,
                         ),
@@ -282,7 +290,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       SizedBox(
                         width: double.infinity,
                         child: InfoCard(
-                          title: 'Total Call Duration(in min)',
+                          title: 'total_call_duration'.tr,
                           value: infoData['callDuration']!,
                           subText: _selectedFilter,
                         ),
@@ -302,17 +310,17 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                         child: Column(
                           children: [
                             SmallInfoCard(
-                              title: 'Number of Calls',
+                              title: 'num_calls'.tr,
                               value: smallInfoData['numCalls']!,
                             ),
                             const SizedBox(height: 16),
                             SmallInfoCard(
-                              title: 'Num of New Customers',
+                              title: 'num_new_customers'.tr,
                               value: smallInfoData['numNewCustomers']!,
                             ),
                             const SizedBox(height: 16),
                             SmallInfoCard(
-                              title: 'Num of Return Customers',
+                              title: 'num_return_customers'.tr,
                               value: smallInfoData['numReturnCustomers']!,
                             ),
                           ],
@@ -325,17 +333,17 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                         child: Column(
                           children: [
                             SmallInfoCard(
-                              title: 'Number of Orders',
+                              title: 'num_orders'.tr,
                               value: smallInfoData['numOrders']!,
                             ),
                             const SizedBox(height: 16),
                             SmallInfoCard(
-                              title: 'Num of Return Customers',
+                              title: 'num_return_customers'.tr,
                               value: smallInfoData['numReturnCustomers']!,
                             ),
                             const SizedBox(height: 16),
                             SmallInfoCard(
-                              title: 'AI to human staff total call',
+                              title: 'ai_to_human'.tr,
                               value: smallInfoData['aiToHuman']!,
                             ),
                           ],
@@ -346,18 +354,25 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       Expanded(
                         flex: 2,
                         child: ChartCard(
-                          title: 'All call',
+                          title: 'all_call'.tr,
                           children: [
                             // Chart filter buttons (non-interactive)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildChartFilterButton(
-                                  'All call',
-                                  isSelected: true,
+                                  'all_call'.tr,
+                                  Colors.purple,
                                 ),
-                                _buildChartFilterButton('Total Order'),
-                                _buildChartFilterButton('Total reservation'),
+                                _buildChartFilterButton(
+                                  'total_order'.tr,
+                                  Colors.green,
+                                ),
+                                _buildChartFilterButton(
+                                  'total_reservation'.tr,
+                                  Colors.blue,
+                                ),
                               ],
                             ),
                             const SizedBox(height: 8),
@@ -375,14 +390,14 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                         children: [
                           Flexible(
                             child: SmallInfoCard(
-                              title: 'Number of Calls',
+                              title: 'num_calls'.tr,
                               value: smallInfoData['numCalls']!,
                             ),
                           ),
                           const SizedBox(width: 16),
                           Flexible(
                             child: SmallInfoCard(
-                              title: 'Number of Orders',
+                              title: 'num_orders'.tr,
                               value: smallInfoData['numOrders']!,
                             ),
                           ),
@@ -394,14 +409,14 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                         children: [
                           Flexible(
                             child: SmallInfoCard(
-                              title: 'Num of New Customers',
+                              title: 'num_new_customers'.tr,
                               value: smallInfoData['numNewCustomers']!,
                             ),
                           ),
                           const SizedBox(width: 16),
                           Flexible(
                             child: SmallInfoCard(
-                              title: 'Num of Return Customers',
+                              title: 'num_return_customers'.tr,
                               value: smallInfoData['numReturnCustomers']!,
                             ),
                           ),
@@ -409,22 +424,28 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       ),
                       const SizedBox(height: 16),
                       SmallInfoCard(
-                        title: 'AI to human staff total call',
+                        title: 'ai_to_human'.tr,
                         value: smallInfoData['aiToHuman']!,
                       ),
                       const SizedBox(height: 24),
                       ChartCard(
-                        title: 'All call',
+                        title: 'all_call'.tr,
                         children: [
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               _buildChartFilterButton(
-                                'All call',
-                                isSelected: true,
+                                'all_call'.tr,
+                                Colors.purple,
                               ),
-                              _buildChartFilterButton('Total Order'),
-                              _buildChartFilterButton('Total reservation'),
+                              _buildChartFilterButton(
+                                'total_order'.tr,
+                                Colors.green,
+                              ),
+                              _buildChartFilterButton(
+                                'total_reservation'.tr,
+                                Colors.blue,
+                              ),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -439,9 +460,9 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
             isTablet
                 ? Row(
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: ChartCard(
-                          title: 'Total Revenue Trends',
+                          title: 'total_order_quantity'.tr,
                           children: [
                             Text(
                               '\$125,000',
@@ -458,7 +479,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: ChartCard(
-                          title: 'Total Order Quantity',
+                          title: 'total_order_quantity'.tr,
                           children: [
                             Text(
                               '1,220',
@@ -479,8 +500,8 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                   )
                 : Column(
                     children: [
-                      const ChartCard(
-                        title: 'Total Revenue Trends',
+                      ChartCard(
+                        title: 'total_order_quantity'.tr,
                         children: [
                           Text(
                             '\$125,000',
@@ -495,7 +516,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       ),
                       const SizedBox(height: 16),
                       ChartCard(
-                        title: 'Total Order Quantity',
+                        title: 'total_order_quantity'.tr,
                         children: [
                           const Text(
                             '1,220',
@@ -684,19 +705,19 @@ class callsLineChart extends StatelessWidget {
                 );
                 switch (value.toInt()) {
                   case 0:
-                    return Text('Day 1', style: style);
+                    return Text('day_1'.tr, style: style); // Translates "Day 1"
                   case 1:
-                    return Text('Day 2', style: style);
+                    return Text('day_2'.tr, style: style); // Translates "Day 2"
                   case 2:
-                    return Text('Day 3', style: style);
+                    return Text('day_3'.tr, style: style); // Translates "Day 3"
                   case 3:
-                    return Text('Day 4', style: style);
+                    return Text('day_4'.tr, style: style); // Translates "Day 4"
                   case 4:
-                    return Text('Day 5', style: style);
+                    return Text('day_5'.tr, style: style); // Translates "Day 5"
                   case 5:
-                    return Text('Day 6', style: style);
+                    return Text('day_6'.tr, style: style); // Translates "Day 6"
                   case 6:
-                    return Text('Day 7', style: style);
+                    return Text('day_7'.tr, style: style); // Translates "Day 7"
                   default:
                     return const SizedBox();
                 }
@@ -820,30 +841,30 @@ class RevenueLineChart extends StatelessWidget {
                 String text;
                 switch (value.toInt()) {
                   case 0:
-                    text = 'Day 1';
+                    text = 'day_1'.tr; // Translates "Day 1"
                     break;
                   case 1:
-                    text = 'Day 2';
+                    text = 'day_2'.tr; // Translates "Day 2"
                     break;
                   case 2:
-                    text = 'Day 3';
+                    text = 'day_3'.tr; // Translates "Day 3"
                     break;
                   case 3:
-                    text = 'Day 4';
+                    text = 'day_4'.tr; // Translates "Day 4"
                     break;
                   case 4:
-                    text = 'Day 5';
+                    text = 'day_5'.tr; // Translates "Day 5"
                     break;
                   case 5:
-                    text = 'Day 6';
+                    text = 'day_6'.tr; // Translates "Day 6"
                     break;
                   case 6:
-                    text = 'Day 7';
+                    text = 'day_7'.tr; // Translates "Day 7"
                     break;
                   default:
                     return Container();
                 }
-                return Text(text, style: style);
+                return Text(text, style: style); // Display the translated text
               },
             ),
           ),

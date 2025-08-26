@@ -10,6 +10,13 @@ import '../controller/resetPassController.dart';
 class resetPassScreen extends StatelessWidget {
   resetPassScreen({super.key});
   final RxBool isPasswordVisible = false.obs;
+  final String email = Get.arguments;
+
+  final resetPassController controller = Get.put(resetPassController());
+
+  final TextEditingController newPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +45,7 @@ class resetPassScreen extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    'Reset Password',
+                    'reset_password'.tr,
                     style: GoogleFonts.inter(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -46,7 +53,7 @@ class resetPassScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Please enter a new password',
+                    'enter_new_password'.tr,
                     style: GoogleFonts.inter(fontSize: 16),
                   ),
                   const SizedBox(height: 32),
@@ -55,7 +62,7 @@ class resetPassScreen extends StatelessWidget {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Enter New Password',
+                      'enter_new_password_label'.tr,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -65,9 +72,10 @@ class resetPassScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Obx(
                     () => TextFormField(
-                      obscureText: !isPasswordVisible.value,
+                      controller: newPasswordController,
+                      obscureText: !controller.isPasswordVisible.value,
                       decoration: InputDecoration(
-                        hintText: 'New password',
+                        hintText: 'enter_new_password_hint'.tr,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
@@ -107,7 +115,7 @@ class resetPassScreen extends StatelessWidget {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Confirm New Password',
+                      'confirm_new_password_label'.tr,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -117,9 +125,10 @@ class resetPassScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Obx(
                     () => TextFormField(
-                      obscureText: !isPasswordVisible.value,
+                      controller: confirmPasswordController,
+                      obscureText: !controller.isPasswordVisible.value,
                       decoration: InputDecoration(
-                        hintText: 'New password',
+                        hintText: 'confirm_new_password_hint'.tr,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
@@ -143,13 +152,14 @@ class resetPassScreen extends StatelessWidget {
                         ),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            isPasswordVisible.value
+                            controller.isPasswordVisible.value
                                 ? Icons.visibility
                                 : Icons.visibility_off,
                             color: AppColors.primaryColor,
                           ),
                           onPressed: () {
-                            isPasswordVisible.value = !isPasswordVisible.value;
+                            controller.isPasswordVisible.value =
+                                !controller.isPasswordVisible.value;
                           },
                         ),
                       ),
@@ -165,9 +175,13 @@ class resetPassScreen extends StatelessWidget {
                         ? 300
                         : double.infinity,
                     child: CustomButton(
-                      title: "Done",
+                      title: "done".tr,
                       onPress: () {
-                        Get.to(LoginScreen());
+                        controller.resetPasswordApi(
+                          email,
+                          newPasswordController.text,
+                          confirmPasswordController.text,
+                        );
                       },
                     ),
                   ),

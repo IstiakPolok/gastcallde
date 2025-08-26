@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/core/global_widegts/CustomDrawer.dart';
 import 'package:gastcallde/core/global_widegts/CustomNavigationRail.dart';
+import 'package:gastcallde/feature/menuManagement/controllers/manusManagmentController.dart';
 import 'package:gastcallde/feature/menuManagement/screens/EditFoodScreen.dart';
 import 'package:gastcallde/feature/menuManagement/screens/FoodDetailsScreen.dart';
 import 'package:gastcallde/feature/menuManagement/screens/UploadFoodMenuScreen.dart';
@@ -65,54 +67,44 @@ class menuManagement extends StatelessWidget {
 }
 
 class Item {
-  final String imageUrl;
+  final int id;
   final String name;
-  final String availability;
+  final String status;
+  final String description;
   final String category;
   final String price;
-  final String description; // Added description field
+  final String preparationTime;
+  final String? discount;
 
   Item({
-    required this.imageUrl,
+    required this.id,
     required this.name,
-    required this.availability,
+    required this.status,
+    required this.description,
     required this.category,
     required this.price,
-    required this.description, // Added to constructor
+    required this.preparationTime,
+    required this.discount,
   });
+
+  factory Item.fromJson(Map<String, dynamic> json) {
+    return Item(
+      id: json['id'] ?? '',
+      name: json['item_name'] ?? '',
+      status: json['status'] ?? '',
+      description: json['descriptions'] ?? '',
+      category: json['category'] ?? '',
+      price: json['price'] ?? '',
+      preparationTime: json['preparation_time'] ?? '',
+      discount: json['discount'] ?? '',
+    );
+  }
 }
 
 class ItemsScreen extends StatelessWidget {
   ItemsScreen({super.key});
 
-  final List<Item> _items = [
-    Item(
-      imageUrl:
-          'https://cdn.sanity.io/images/czqk28jt/prod_plk_us/84bbcd43ce0d00ab85cc40e4c23f007e19501d21-2000x1333.png?q=70&auto=format',
-      name: 'Chicken Popeyes',
-      availability: 'In Stock',
-      category: 'Junk',
-      price: '\$30.00',
-      description: 'Delicious fried chicken with a crispy coating.',
-    ),
-    Item(
-      imageUrl:
-          'https://greatrangebison.com/wp-content/uploads/2023/07/caramelized-onion-burger-featured-image.jpg',
-      name: 'Bison Burgers',
-      availability: 'In Stock',
-      category: 'Dessert',
-      price: '\$40.00',
-      description: 'Juicy bison patty served on a toasted bun.',
-    ),
-    Item(
-      imageUrl: 'https://static.toiimg.com/photo/54714340.cms',
-      name: 'Grill Sandwich',
-      availability: 'In Stock',
-      category: 'Junk',
-      price: '\$20.00',
-      description: 'Classic grilled cheese sandwich with a golden crust.',
-    ),
-  ];
+  final ValueNotifier<int> _selectedIndexNotifier = ValueNotifier<int>(0);
 
   @override
   Widget build(BuildContext context) {
@@ -178,71 +170,105 @@ class ItemsScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 20),
-            // Table Headers for tablet, labels for mobile
-            if (isTablet)
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  border: Border(
-                    bottom: BorderSide(color: Colors.grey[300]!, width: 1.0),
-                  ),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 12.0),
-                child: const Row(
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: Padding(
-                        padding: EdgeInsets.only(left: 8.0),
-                        child: Text(
-                          'Item',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        'Availability',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        'Category',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Text(
-                        'Price',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        'Action',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            // Item List
             Expanded(
-              child: ListView.builder(
-                itemCount: _items.length,
-                itemBuilder: (context, index) {
-                  final item = _items[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: isTablet
-                        ? _buildTabletItemRow(item)
-                        : _buildMobileItemCard(item),
+              child: FutureBuilder<List<Item>>(
+                future: fetchItems(), // API call
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  }
+
+                  final items = snapshot.data ?? [];
+
+                  // Table Headers for tablet, labels for mobile
+                  if (isTablet) {
+                    return Column(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            border: Border(
+                              bottom: BorderSide(
+                                color: Colors.grey[300]!,
+                                width: 1.0,
+                              ),
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          child: const Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: Padding(
+                                  padding: EdgeInsets.only(left: 8.0),
+                                  child: Text(
+                                    'Item',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  'Status',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  'Category',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Text(
+                                  'Price',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  'Action',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Item List
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: items.length,
+                            itemBuilder: (context, index) {
+                              final item = items[index];
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0,
+                                ),
+                                child: _buildTabletItemRow(item, context),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+
+                  return ListView.builder(
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      return _buildMobileItemCard(item, context);
+                    },
                   );
                 },
               ),
@@ -254,7 +280,7 @@ class ItemsScreen extends StatelessWidget {
   }
 
   /// Tablet view: Row layout
-  Widget _buildTabletItemRow(Item item) {
+  Widget _buildTabletItemRow(Item item, BuildContext context) {
     return Column(
       children: [
         Row(
@@ -263,15 +289,15 @@ class ItemsScreen extends StatelessWidget {
               flex: 3,
               child: Row(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Image.network(
-                      item.imageUrl,
-                      width: 40,
-                      height: 40,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+                  // ClipRRect(
+                  //   borderRadius: BorderRadius.circular(8.0),
+                  //   child: Image.network(
+                  //     item.imageUrl,
+                  //     width: 40,
+                  //     height: 40,
+                  //     fit: BoxFit.cover,
+                  //   ),
+                  // ),
                   const SizedBox(width: 10),
                   Text(item.name),
                 ],
@@ -280,7 +306,7 @@ class ItemsScreen extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Text(
-                item.availability,
+                item.status,
                 style: const TextStyle(color: Colors.green),
               ),
             ),
@@ -309,7 +335,7 @@ class ItemsScreen extends StatelessWidget {
                         color: Colors.grey,
                       ),
                       onPressed: () {
-                        Get.to(EditFoodScreen());
+                        Get.to(EditFoodScreen(item: item));
                       },
                     ),
                     IconButton(
@@ -318,7 +344,9 @@ class ItemsScreen extends StatelessWidget {
                         size: 20,
                         color: Colors.red,
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        _showDeleteConfirmationDialog(item.id, context);
+                      },
                     ),
                   ],
                 ),
@@ -332,7 +360,7 @@ class ItemsScreen extends StatelessWidget {
   }
 
   /// Mobile view: Card layout
-  Widget _buildMobileItemCard(Item item) {
+  Widget _buildMobileItemCard(Item item, BuildContext context) {
     return Card(
       color: Colors.white,
       elevation: 2,
@@ -344,15 +372,15 @@ class ItemsScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: Image.network(
-                    item.imageUrl,
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
-                  ),
-                ),
+                // ClipRRect(
+                //   borderRadius: BorderRadius.circular(8.0),
+                //   child: Image.network(
+                //     item.imageUrl,
+                //     width: 60,
+                //     height: 60,
+                //     fit: BoxFit.cover,
+                //   ),
+                // ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -367,7 +395,7 @@ class ItemsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              'Availability: ${item.availability}',
+              'Availability: ${item.status}',
               style: const TextStyle(color: Colors.green),
             ),
             Text('Category: ${item.category}'),
@@ -388,17 +416,53 @@ class ItemsScreen extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.edit_outlined, color: Colors.grey),
                   onPressed: () {
-                    Get.to(EditFoodScreen());
+                    Get.to(EditFoodScreen(item: item));
                   },
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline, color: Colors.red),
-                  onPressed: () {},
+                  onPressed: () {
+                    _showDeleteConfirmationDialog(item.id, context);
+                  },
                 ),
               ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmationDialog(int itemId, BuildContext context) {
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: Colors.white,
+        title: const Text('Are you sure you want to delete this item?'),
+        content: const Text('This action cannot be undone.'),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () {
+              Get.back(); // Close the dialog
+            },
+          ),
+          TextButton(
+            child: const Text('Delete'),
+            onPressed: () async {
+              // Close the dialog
+              EasyLoading.show(status: 'Deleting...'); // Show loading indicator
+
+              try {
+                await deleteItem(itemId); // Call the delete method
+                EasyLoading.dismiss();
+                Get.snackbar('Success', 'Item deleted successfully');
+              } catch (error) {
+                EasyLoading.dismiss();
+                Get.snackbar('Error', 'Failed to delete item: $error');
+              }
+            },
+          ),
+        ],
       ),
     );
   }

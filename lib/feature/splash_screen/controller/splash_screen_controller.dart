@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:gastcallde/feature/dashboard/screens/dashboard.dart';
 import 'package:get/get.dart';
 
 import '../../../core/services_class/local_service/shared_preferences_helper.dart';
@@ -15,7 +16,8 @@ class SplashScreenController extends GetxController {
       // If token exists, the user is logged in
       if (token != null && token.isNotEmpty) {
         // Redirect to the main screen (e.g., Bottom Navbar or Home)
-        Get.offAll(BottomNavbar());
+        Get.offAll(Dashboard());
+        print(token);
       } else {
         // Redirect to the Welcome Screen if no token is found
         Get.offAll(onBoardind());
