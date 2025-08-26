@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/core/global_widegts/CustomDrawer.dart';
 import 'package:gastcallde/core/global_widegts/CustomNavigationRail.dart';
+import 'package:gastcallde/feature/Subscription/SubscriptionPlansController.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 
 class SubscriptionPlans extends StatelessWidget {
   SubscriptionPlans({super.key});
@@ -68,6 +71,8 @@ class SubscriptionPlansScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final SubscriptionController controller = Get.put(SubscriptionController());
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -80,86 +85,49 @@ class SubscriptionPlansScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              "Live Overview of your restaurant's",
+              "Choose the best plan for your restaurant",
               style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 40),
             Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  double maxWidth = constraints.maxWidth;
+              child: Obx(() {
+                if (controller.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                  // Decide card width based on available space
-                  double cardWidth = maxWidth > 900
-                      ? (maxWidth / 3) -
-                            20 // 3 columns
-                      : maxWidth > 600
-                      ? (maxWidth / 2) -
-                            20 // 2 columns
-                      : maxWidth; // 1 column (mobile)
+                if (controller.plans.isEmpty) {
+                  return const Center(child: Text("No plans available"));
+                }
 
-                  return SingleChildScrollView(
-                    child: Wrap(
-                      spacing: 20,
-                      runSpacing: 20,
-                      children: [
-                        _buildPlanCard(
-                          width: cardWidth,
-                          title: 'Free',
-                          price: '\$0',
-                          duration: '10 days',
-                          features: [
-                            'Unlimited tasks',
-                            'Unlimited members',
-                            'Unlimited projects',
-                            'Unlimited storage',
-                            'Unlimited tasks',
-                            'Unlimited members',
-                          ],
-                          isPopular: false,
-                          onGetStarted: () =>
-                              print('Get Started with Free plan'),
-                        ),
-                        _buildPlanCard(
-                          width: cardWidth,
-                          title: 'Pro',
-                          price: '\$10',
-                          duration: 'per month',
-                          features: [
-                            'Unlimited tasks',
-                            'Unlimited members',
-                            'Unlimited projects',
-                            'Unlimited storage',
-                            'Advanced reporting',
-                            'Priority support',
-                          ],
-                          isPopular: true,
-                          onGetStarted: () =>
-                              print('Get Started with Pro plan'),
-                        ),
-                        _buildPlanCard(
-                          width: cardWidth,
-                          title: 'Business',
-                          price: '\$15',
-                          duration: 'per month',
-                          features: [
-                            'Unlimited tasks',
-                            'Unlimited members',
-                            'Unlimited projects',
-                            'Unlimited storage',
-                            'Advanced reporting',
-                            'Priority support',
-                            'Dedicated account manager',
-                          ],
-                          isPopular: false,
-                          onGetStarted: () =>
-                              print('Get Started with Business plan'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    double maxWidth = constraints.maxWidth;
+                    double cardWidth = maxWidth > 900
+                        ? (maxWidth / 3) - 20
+                        : maxWidth > 600
+                        ? (maxWidth / 2) - 20
+                        : maxWidth;
+
+                    return SingleChildScrollView(
+                      child: Wrap(
+                        spacing: 20,
+                        runSpacing: 20,
+                        children: controller.plans
+                            .map(
+                              (plan) => _buildPlanCard(
+                                width: cardWidth,
+                                plan: plan,
+                                onGetStarted: () {
+                                  Get.snackbar("Selected", plan.name);
+                                },
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    );
+                  },
+                );
+              }),
             ),
           ],
         ),
@@ -169,16 +137,13 @@ class SubscriptionPlansScreen extends StatelessWidget {
 
   Widget _buildPlanCard({
     required double width,
-    required String title,
-    required String price,
-    required String duration,
-    required List<String> features,
-    required bool isPopular,
+    required SubscriptionPlan plan,
     required VoidCallback onGetStarted,
   }) {
     return SizedBox(
       width: width,
       child: Card(
+        color: Colors.grey[50],
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: const BorderSide(color: Colors.grey, width: 0.5),
@@ -194,13 +159,13 @@ class SubscriptionPlansScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    title,
+                    plan.name,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  if (isPopular)
+                  if (plan.status == "active")
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -211,7 +176,7 @@ class SubscriptionPlansScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: const Text(
-                        'Most Popular',
+                        'Active',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -228,7 +193,7 @@ class SubscriptionPlansScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    price,
+                    "\$${plan.amount / 100}", // cents → dollars
                     style: const TextStyle(
                       fontSize: 48,
                       fontWeight: FontWeight.w600,
@@ -238,7 +203,7 @@ class SubscriptionPlansScreen extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
                     child: Text(
-                      duration,
+                      "per ${plan.billingInterval}",
                       style: const TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   ),
@@ -267,29 +232,12 @@ class SubscriptionPlansScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Features
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: features
-                    .map((feature) => _buildFeatureItem(feature))
-                    .toList(),
-              ),
+              // Description
+              if (plan.description.isNotEmpty)
+                Text(plan.description, style: const TextStyle(fontSize: 16)),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildFeatureItem(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Row(
-        children: [
-          const Icon(Icons.check, color: AppColors.primaryColor, size: 20),
-          const SizedBox(width: 8),
-          Expanded(child: Text(text, style: const TextStyle(fontSize: 16))),
-        ],
       ),
     );
   }

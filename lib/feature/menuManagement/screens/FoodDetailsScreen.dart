@@ -109,6 +109,10 @@ class FoodDetailsScreen extends StatelessWidget {
                 ),
               ),
               const Divider(height: 20, thickness: 1),
+
+              _buildDetailRow('Name', item.name),
+
+              const Divider(height: 10, thickness: 0.5),
               _buildDetailRow(
                 'Category',
                 item.category,
@@ -117,13 +121,13 @@ class FoodDetailsScreen extends StatelessWidget {
               ),
               _buildDetailRow(
                 'Status',
-                item.availability,
+                item.status,
                 isChip: true,
                 chipColor: Colors.blue[100],
                 textColor: Colors.blue[800],
               ),
               _buildDetailRow('Price', item.price),
-              _buildDetailRow('Prep. time', '25 mins'),
+              _buildDetailRow('Prep. time', item.preparationTime),
               _buildDetailRow(
                 'Product',
                 'Popular',

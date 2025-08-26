@@ -16,7 +16,7 @@ class LanguageToggleButton extends StatelessWidget {
       onPressed: () async {
         if (Get.locale?.languageCode == 'en') {
           Get.updateLocale(const Locale('de', 'DE'));
-          await SharedPreferencesHelper.saveLanguage('DN'); // Save Deutsch
+          await SharedPreferencesHelper.saveLanguage('DE'); // Save Deutsch
           print('Language changed to Deutsch'); // 🔹 Debug print
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(

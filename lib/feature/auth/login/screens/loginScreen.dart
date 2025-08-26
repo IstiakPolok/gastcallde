@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gastcallde/core/global_widegts/LanguageToggleWidget.dart';
 import 'package:gastcallde/core/global_widegts/custom_button.dart';
 import 'package:gastcallde/feature/auth/login/controller/loginController.dart';
@@ -63,8 +64,8 @@ class LoginScreen extends StatelessWidget {
                     'enter_email'.tr,
                     emailController,
                   ),
+                  const SizedBox(height: 20),
 
-                  // Password Field with Visibility Toggle
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(

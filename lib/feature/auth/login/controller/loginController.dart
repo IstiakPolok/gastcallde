@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gastcallde/core/network_caller/endpoints.dart';
 import 'package:gastcallde/core/services_class/local_service/shared_preferences_helper.dart';
 import 'package:gastcallde/feature/dashboard/screens/dashboard.dart';
@@ -32,6 +33,8 @@ class LoginController extends GetxController {
       return;
     }
 
+    EasyLoading.show();
+
     final prefs = await SharedPreferences.getInstance();
     final code = prefs.getString('language_code') ?? 'en';
     print("selected language : $code");
@@ -43,7 +46,7 @@ class LoginController extends GetxController {
     print('Loading state set to true');
 
     // Prepare the multipart request
-    var uri = Uri.parse('http://10.10.13.26:9002/login/?lean=$code');
+    var uri = Uri.parse('${Urls.login}$code');
     print('Request URI: $uri');
     var request = http.MultipartRequest('POST', uri)
       ..fields['email'] = email
@@ -62,6 +65,7 @@ class LoginController extends GetxController {
 
       if (response.statusCode == 200) {
         // Parse the response
+        Get.snackbar('Login Successful', 'Welcome back!');
         var responseData = jsonDecode(responseString);
         String accessToken = responseData['access'];
         String refreshToken = responseData['refresh'];
@@ -73,9 +77,10 @@ class LoginController extends GetxController {
 
         print(await SharedPreferencesHelper.getAccessToken());
 
-        // Navigate to Dashboard or other screen
+        EasyLoading.dismiss();
         Get.to(Dashboard());
-      } else {
+      } else if (response.statusCode == 401) {
+        Get.snackbar('Login Failed', 'Invalid email or password');
         errorMessage.value = 'Login failed: ${response.reasonPhrase}';
         print(
           'Error: Login failed with status: ${response.statusCode}, ${response.reasonPhrase}',
@@ -88,5 +93,6 @@ class LoginController extends GetxController {
       isLoading.value = false;
       print('Loading state set to false');
     }
+    EasyLoading.dismiss();
   }
 }
