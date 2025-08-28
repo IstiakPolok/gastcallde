@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
-import 'package:gastcallde/feature/menuManagement/controllers/manusManagmentController.dart';
+import 'package:gastcallde/feature/menuManagement/controllers/menuManagmentController.dart';
 import 'package:gastcallde/feature/menuManagement/screens/menuManagement.dart';
 
 class EditFoodScreen extends StatelessWidget {
