@@ -16,6 +16,19 @@ class UploadFoodMenuScreen extends StatefulWidget {
 
 class _UploadFoodMenuScreenState extends State<UploadFoodMenuScreen> {
   PlatformFile? _selectedFile;
+  late ValueNotifier<bool> isListView;
+
+  @override
+  void initState() {
+    super.initState();
+    isListView = ValueNotifier<bool>(true);
+  }
+
+  @override
+  void dispose() {
+    isListView.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickPdfFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -35,7 +48,7 @@ class _UploadFoodMenuScreenState extends State<UploadFoodMenuScreen> {
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isTablet = screenWidth > 600;
-    final ValueNotifier<bool> isListView = ValueNotifier<bool>(true);
+    //final ValueNotifier<bool> isListView = ValueNotifier<bool>(true);
 
     return Scaffold(
       appBar: AppBar(

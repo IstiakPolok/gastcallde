@@ -6,8 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:slide_to_act/slide_to_act.dart';
 
-class onBoardind extends StatelessWidget {
-  const onBoardind({super.key});
+class OnBoarding extends StatelessWidget {
+  const OnBoarding({super.key});
 
   @override
   Widget build(BuildContext context) {

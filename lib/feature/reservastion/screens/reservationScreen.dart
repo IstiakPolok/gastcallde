@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/core/global_widegts/CustomDrawer.dart';
 import 'package:gastcallde/core/global_widegts/CustomNavigationRail.dart';
+import 'package:gastcallde/feature/reservastion/controllers/reservationDashController.dart';
 import 'package:gastcallde/feature/reservastion/widgets/ReservationForm.dart';
 import 'package:gastcallde/feature/reservastion/widgets/gridViewTableView.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class ReservationScreen extends StatelessWidget {
   ReservationScreen({super.key});
@@ -65,56 +67,54 @@ class ReservationScreen extends StatelessWidget {
   }
 }
 
-class RestaurantDashboard extends StatelessWidget {
+class RestaurantDashboard extends StatefulWidget {
   RestaurantDashboard({super.key});
 
+  @override
+  _RestaurantDashboardState createState() => _RestaurantDashboardState();
+}
+
+class _RestaurantDashboardState extends State<RestaurantDashboard> {
+  late Future<List<Reservation>> reservations;
+  late Future<List<TableStatus>> tableStatuses;
+  late Future<Map<String, dynamic>>
+  reservationStats; // Ensure this is initialized
   final ValueNotifier<bool> isListView = ValueNotifier<bool>(true);
+  DateTime selectedDate = DateTime.now();
 
-  final List<String> dataList = List.generate(20, (index) => 'Item $index');
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   String todayDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+  //   reservations = fetchReservations(todayDate); // Fetch reservations for today
+  // }
 
-  // Mock data for the table
-  static const List<Map<String, dynamic>> _tableData = [
-    {
-      'table': 'Table01',
-      'time': '6:30 pm - 8:00 pm',
-      'person': 5,
-      'name': 'Rash Marchant',
-      'phone': '+98 7478 33',
-      'status': 'Walk-in',
-    },
-    {
-      'table': 'Table02',
-      'time': '6:30 pm - 8:00 pm',
-      'person': 5,
-      'name': 'Toma kdfhg',
-      'phone': '+98 7478 33',
-      'status': 'Reserved',
-    },
-    {
-      'table': 'Table03',
-      'time': '6:30 pm - 8:00 pm',
-      'person': 5,
-      'name': 'Thfkj ksgfiu',
-      'phone': '+98 7478 33',
-      'status': 'Cancel',
-    },
-    {
-      'table': 'Table03',
-      'time': '6:30 pm - 8:00 pm',
-      'person': 5,
-      'name': 'Rjhbflud Biusefriu',
-      'phone': '+98 7478 33',
-      'status': 'Finished',
-    },
-    {
-      'table': 'Table03',
-      'time': '6:30 pm - 8:00 pm',
-      'person': 5,
-      'name': 'Ehsofn Gsjkf',
-      'phone': '+98 7478 33',
-      'status': 'Walk-in',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    String todayDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    reservationStats = fetchReservationStats(
+      DateFormat('yyyy-MM-dd').format(selectedDate),
+    );
+    reservations = fetchReservations(
+      DateFormat('yyyy-MM-dd').format(selectedDate),
+    );
+    tableStatuses = fetchTableStatus(
+      DateFormat('yyyy-MM-dd').format(DateTime.now()),
+    );
+  }
+
+  void changeDate(int dayOffset) {
+    setState(() {
+      selectedDate = selectedDate.add(Duration(days: dayOffset));
+      reservationStats = fetchReservationStats(
+        DateFormat('yyyy-MM-dd').format(selectedDate),
+      );
+      reservations = fetchReservations(
+        DateFormat('yyyy-MM-dd').format(selectedDate),
+      ); // Re-fetch reservations for the new date
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,46 +137,111 @@ class RestaurantDashboard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header Section
-              _buildHeader(context),
+              _HeaderSection(
+                selectedDate: selectedDate, // Pass the parent's selectedDate
+                onDateChange: changeDate,
+              ), // Pass the `changeDate` callback to update the date
               const SizedBox(height: 20),
 
               // Responsive Summary Cards
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  if (constraints.maxWidth > 600) {
-                    // Tablet layout: cards in a row
-                    return const Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: _SummaryCard(
-                            title: 'Total Guests',
-                            value: '84',
-                          ),
-                        ),
-                        SizedBox(width: 20),
-                        Expanded(
-                          child: _SummaryCard(
-                            title: 'Reservation',
-                            value: '12',
-                          ),
-                        ),
-                        SizedBox(width: 20),
-                        Expanded(
-                          child: _SummaryCard(title: 'Walk-In', value: '10'),
-                        ),
-                      ],
+              FutureBuilder<Map<String, dynamic>>(
+                future: reservationStats,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator(); // Show loading indicator while fetching data
+                  } else if (snapshot.hasData) {
+                    final data = snapshot.data!;
+                    return LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth > 600) {
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: _SummaryCard(
+                                  title: 'Total Guests',
+                                  value: data['total_guests'].toString(),
+                                ),
+                              ),
+                              const SizedBox(width: 20),
+                              Expanded(
+                                child: _SummaryCard(
+                                  title: 'Reservations',
+                                  value: data['total_reservations'].toString(),
+                                ),
+                              ),
+                              const SizedBox(width: 20),
+                              Expanded(
+                                child: _SummaryCard(
+                                  title: 'Walk-Ins',
+                                  value: data['total_walk_in'].toString(),
+                                ),
+                              ),
+                            ],
+                          );
+                        } else {
+                          return Column(
+                            children: [
+                              _SummaryCard(
+                                title: 'Total Guests',
+                                value: data['total_guests'].toString(),
+                              ),
+                              const SizedBox(height: 16),
+                              _SummaryCard(
+                                title: 'Reservations',
+                                value: data['total_reservations'].toString(),
+                              ),
+                              const SizedBox(height: 16),
+                              _SummaryCard(
+                                title: 'Walk-Ins',
+                                value: data['total_walk_in'].toString(),
+                              ),
+                            ],
+                          );
+                        }
+                      },
                     );
                   } else {
-                    // Mobile layout: cards in a column
-                    return const Column(
-                      children: [
-                        _SummaryCard(title: 'Total Guests', value: '84'),
-                        SizedBox(height: 16),
-                        _SummaryCard(title: 'Reservation', value: '12'),
-                        SizedBox(height: 16),
-                        _SummaryCard(title: 'Walk-In', value: '10'),
-                      ],
+                    return LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth > 600) {
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: _SummaryCard(
+                                  title: 'Total Guests',
+                                  value: '0',
+                                ),
+                              ),
+                              const SizedBox(width: 20),
+                              Expanded(
+                                child: _SummaryCard(
+                                  title: 'Reservations',
+                                  value: '0',
+                                ),
+                              ),
+                              const SizedBox(width: 20),
+                              Expanded(
+                                child: _SummaryCard(
+                                  title: 'Walk-Ins',
+                                  value: '0',
+                                ),
+                              ),
+                            ],
+                          );
+                        } else {
+                          return Column(
+                            children: [
+                              _SummaryCard(title: 'Total Guests', value: '0'),
+                              const SizedBox(height: 16),
+                              _SummaryCard(title: 'Reservations', value: '0'),
+                              const SizedBox(height: 16),
+                              _SummaryCard(title: 'Walk-Ins', value: '0'),
+                            ],
+                          );
+                        }
+                      },
                     );
                   }
                 },
@@ -270,37 +335,75 @@ class RestaurantDashboard extends StatelessWidget {
                     valueListenable: isListView,
                     builder: (context, isListViewActive, child) {
                       return Container(
-                        // Adjust container height
-                        // Green when GridView is active
                         child: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              // First text to show which view is active
-
-                              // Conditional Column: Different content for ListView vs GridView
                               if (isListViewActive)
                                 SingleChildScrollView(
                                   child: Column(
                                     children: [
-                                      // _buildTableView(),
                                       const SizedBox(height: 20),
-
-                                      _buildTableStatus(),
+                                      FutureBuilder<List<TableStatus>>(
+                                        future: tableStatuses,
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return const CircularProgressIndicator();
+                                          } else if (snapshot.hasError) {
+                                            return Text(
+                                              'Error: ${snapshot.error}',
+                                            );
+                                          } else if (snapshot.hasData) {
+                                            final tableStatuses =
+                                                snapshot.data!;
+                                            return _buildTableStatus(
+                                              tableStatuses,
+                                            ); // Display the table status
+                                          } else {
+                                            return const Text(
+                                              'No table status data found',
+                                            );
+                                          }
+                                        },
+                                      ),
                                       const SizedBox(height: 20),
-
-                                      // Search bar and 'All Status' button
-                                      _buildSearchBar(context),
-                                      const SizedBox(height: 20),
-
-                                      // Responsive Table
-                                      _buildDataTable(context),
+                                      // Fetch and display the data
+                                      FutureBuilder<List<Reservation>>(
+                                        future: reservations,
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return const CircularProgressIndicator();
+                                          } else if (snapshot.hasError) {
+                                            return Text(
+                                              'Error: ${snapshot.error}',
+                                            );
+                                          } else if (snapshot.hasData) {
+                                            List<Reservation> data =
+                                                snapshot.data!;
+                                            return _buildDataTable(data);
+                                          } else {
+                                            return const Text(
+                                              'No reservations found',
+                                            );
+                                          }
+                                        },
+                                      ),
                                     ],
                                   ),
                                 )
                               else
-                                Column(children: [TableReservationGrid()]),
+                                SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      TableReservationGrid(
+                                        selectedDate: selectedDate,
+                                      ),
+                                    ],
+                                  ),
+                                ),
                             ],
                           ),
                         ),
@@ -309,8 +412,6 @@ class RestaurantDashboard extends StatelessWidget {
                   ),
                 ],
               ),
-
-              // View toggle and Table Status
             ],
           ),
         ),
@@ -319,172 +420,6 @@ class RestaurantDashboard extends StatelessWidget {
   }
 
   // Helper method to build the main header
-  Widget _buildHeader(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    const double breakpoint = 600;
-    final isMobile = screenWidth < breakpoint;
-    return isMobile
-        ? Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Reservations & Walk-Ins',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    "Live Overview of your restaurant's",
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
-                  SizedBox(height: 10),
-
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: const [],
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.chevron_left, color: Colors.grey),
-                        SizedBox(width: 8),
-                        Text(
-                          'Today',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(width: 8),
-                        Icon(Icons.chevron_right, color: Colors.grey),
-                        SizedBox(width: 8),
-                        Text(
-                          '15 July, 2025',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                        SizedBox(width: 8),
-                        Icon(
-                          Icons.calendar_today_outlined,
-                          color: Colors.grey,
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                  // SizedBox(height: 10),
-                  // ElevatedButton.icon(
-                  //   onPressed: () {
-                  //     Get.to(ReservationFormPage());
-                  //   },
-                  //   icon: const Icon(Icons.add, size: 20),
-                  //   label: const Text('Add Reservation'),
-                  //   style: ElevatedButton.styleFrom(
-                  //     foregroundColor: Colors.white,
-                  //     backgroundColor: AppColors.primaryColor,
-                  //     shape: RoundedRectangleBorder(
-                  //       borderRadius: BorderRadius.circular(10),
-                  //     ),
-                  //     padding: const EdgeInsets.symmetric(
-                  //       horizontal: 16,
-                  //       vertical: 12,
-                  //     ),
-                  //   ),
-                  // ),
-                ],
-              ),
-            ],
-          )
-        : Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Reservations & Walk-Ins',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    "Live Overview of your restaurant's",
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 5,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.chevron_left, color: Colors.grey),
-                        SizedBox(width: 8),
-                        Text(
-                          'Today',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(width: 8),
-                        Icon(Icons.chevron_right, color: Colors.grey),
-                        SizedBox(width: 8),
-                        Text(
-                          '15 July, 2025',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                        SizedBox(width: 8),
-                        Icon(
-                          Icons.calendar_today_outlined,
-                          color: Colors.grey,
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  // ElevatedButton.icon(
-                  //   onPressed: () {
-                  //     Get.to(ReservationFormPage());
-                  //   },
-                  //   icon: const Icon(Icons.add, size: 20),
-                  //   label: const Text('Add Reservation'),
-                  //   style: ElevatedButton.styleFrom(
-                  //     foregroundColor: Colors.white,
-                  //     backgroundColor: AppColors.primaryColor,
-                  //     shape: RoundedRectangleBorder(
-                  //       borderRadius: BorderRadius.circular(10),
-                  //     ),
-                  //     padding: const EdgeInsets.symmetric(
-                  //       horizontal: 16,
-                  //       vertical: 12,
-                  //     ),
-                  //   ),
-                  // ),
-                ],
-              ),
-            ],
-          );
-  }
 
   // Helper method to build the view toggle and table status
   Widget _buildTableView() {
@@ -528,13 +463,10 @@ class RestaurantDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildTableStatus() {
+  Widget _buildTableStatus(List<TableStatus> tableStatuses) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // List/Grid view toggle
-
-        // Table Status row
         const Text(
           'Table Status',
           style: TextStyle(
@@ -547,127 +479,118 @@ class RestaurantDashboard extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              for (var i = 1; i <= 10; i++)
-                _TableStatusTag(label: 'Table $i', isActive: i <= 2),
+              for (var tableStatus in tableStatuses)
+                _TableStatusTag(
+                  label: tableStatus.tableName,
+                  isActive: tableStatus.status == 'active',
+                  reservationStatus: tableStatus.reservationStatus,
+                ),
             ],
           ),
         ),
       ],
     );
   }
+}
 
-  // Helper method to build search bar and filter button
-  Widget _buildSearchBar(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 5,
-                  offset: const Offset(0, 3),
-                ),
+// Helper method to build search bar and filter button
+Widget _buildSearchBar(BuildContext context) {
+  return Row(
+    children: [
+      Expanded(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 5,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: const TextField(
+            decoration: InputDecoration(
+              hintText: 'Search',
+              border: InputBorder.none,
+              prefixIcon: Icon(Icons.search, color: Colors.grey),
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(width: 10),
+      ElevatedButton.icon(
+        onPressed: () {},
+        icon: const Icon(Icons.sort_by_alpha, size: 20),
+        label: const Text('All Status'),
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.white,
+          backgroundColor: AppColors.primaryColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+      ),
+    ],
+  );
+}
+
+// Helper method to build the responsive data table
+Widget _buildDataTable(List<Reservation> data) {
+  return Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth > 600) {
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              columns: const [
+                DataColumn(label: Text('Table')),
+                DataColumn(label: Text('Time')),
+                DataColumn(label: Text('Person')),
+                DataColumn(label: Text('Name')),
+                DataColumn(label: Text('Phone')),
+                DataColumn(label: Text('Status')),
               ],
+              rows: data.map((reservation) {
+                return DataRow(
+                  cells: [
+                    DataCell(Text(reservation.tableName)),
+                    DataCell(
+                      Text('${reservation.fromTime} - ${reservation.toTime}'),
+                    ),
+                    DataCell(Text(reservation.guestNo.toString())),
+                    DataCell(Text(reservation.customerName)),
+                    DataCell(Text(reservation.phoneNumber)),
+                    DataCell(_StatusTag(status: reservation.status)),
+                  ],
+                );
+              }).toList(),
             ),
-            child: const TextField(
-              decoration: InputDecoration(
-                hintText: 'Search',
-                border: InputBorder.none,
-                prefixIcon: Icon(Icons.search, color: Colors.grey),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        ElevatedButton.icon(
-          onPressed: () {},
-          icon: const Icon(Icons.sort_by_alpha, size: 20),
-          label: const Text('All Status'),
-          style: ElevatedButton.styleFrom(
-            foregroundColor: Colors.white,
-            backgroundColor: AppColors.primaryColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Helper method to build the responsive data table
-  Widget _buildDataTable(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // Adjust table layout based on screen width
-          if (constraints.maxWidth > 600) {
-            // Wider screen: use a DataTable
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                columns: const [
-                  DataColumn(label: Text('Table')),
-                  DataColumn(label: Text('Time')),
-                  DataColumn(label: Text('Person')),
-                  DataColumn(label: Text('Name')),
-                  DataColumn(label: Text('Phone')),
-                  DataColumn(label: Text('Status')),
-                ],
-                rows: _tableData.map((item) {
-                  return DataRow(
-                    cells: [
-                      DataCell(Text(item['table'] as String)),
-                      DataCell(Text(item['time'] as String)),
-                      DataCell(
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.person,
-                              color: Colors.grey,
-                              size: 16,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(item['person'].toString()),
-                          ],
-                        ),
-                      ),
-                      DataCell(Text(item['name'] as String)),
-                      DataCell(Text(item['phone'] as String)),
-                      DataCell(_StatusTag(status: item['status'] as String)),
-                    ],
-                  );
-                }).toList(),
-              ),
-            );
-          } else {
-            // Narrower screen: use a ListView of custom list items
-            return ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _tableData.length,
-              itemBuilder: (context, index) {
-                final item = _tableData[index];
-                return _MobileTableItem(item: item);
-              },
-            );
-          }
-        },
-      ),
-    );
-  }
+          );
+        } else {
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: data.length,
+            itemBuilder: (context, index) {
+              final reservation = data[index];
+              return _MobileTableItem(reservation: reservation);
+            },
+          );
+        }
+      },
+    ),
+  );
 }
 
 // A custom stateless widget for the summary cards
@@ -721,12 +644,32 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-// A custom stateless widget for the table status tags
 class _TableStatusTag extends StatelessWidget {
-  const _TableStatusTag({required this.label, required this.isActive});
+  const _TableStatusTag({
+    required this.label,
+    required this.isActive,
+    required this.reservationStatus,
+  });
 
   final String label;
   final bool isActive;
+  final String reservationStatus;
+
+  Color _getColor() {
+    if (reservationStatus == 'available') {
+      return AppColors.primaryColor; // Use primary color if available
+    } else {
+      return Colors.grey[200]!; // Default color if not available
+    }
+  }
+
+  Color _getTextColor() {
+    if (reservationStatus == 'available') {
+      return Colors.white; // White text for available
+    } else {
+      return Colors.black; // Black text for unavailable
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -734,13 +677,13 @@ class _TableStatusTag extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: Chip(
         label: Text(label),
-        backgroundColor: isActive ? AppColors.primaryColor : Colors.white,
+        backgroundColor: _getColor(),
         side: BorderSide(
           color: isActive
               ? AppColors.primaryColor
               : Colors.grey.withOpacity(0.3),
         ),
-        labelStyle: TextStyle(color: isActive ? Colors.white : Colors.black),
+        labelStyle: TextStyle(color: _getTextColor()),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
     );
@@ -801,9 +744,9 @@ class _StatusTag extends StatelessWidget {
 
 // Custom widget for mobile table view
 class _MobileTableItem extends StatelessWidget {
-  const _MobileTableItem({required this.item});
+  const _MobileTableItem({required this.reservation});
 
-  final Map<String, dynamic> item;
+  final Reservation reservation; // Changed to Reservation model
 
   @override
   Widget build(BuildContext context) {
@@ -819,29 +762,199 @@ class _MobileTableItem extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Table: ${item['table']}',
+                  'Table: ${reservation.tableName}', // Accessing reservation table name
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                _StatusTag(status: item['status'] as String),
+                _StatusTag(
+                  status: reservation.status,
+                ), // Accessing status from Reservation
               ],
             ),
             const SizedBox(height: 8),
-            Text('Time: ${item['time']}'),
+            Text(
+              'Time: ${reservation.fromTime} - ${reservation.toTime}',
+            ), // Accessing time range
             const SizedBox(height: 4),
-            Text('Name: ${item['name']}'),
+            Text(
+              'Name: ${reservation.customerName}',
+            ), // Accessing customer name
             const SizedBox(height: 4),
-            Text('Phone: ${item['phone']}'),
+            Text('Phone: ${reservation.phoneNumber}'), // Accessing phone number
             const SizedBox(height: 4),
             Row(
               children: [
                 const Icon(Icons.person, color: Colors.grey, size: 16),
                 const SizedBox(width: 4),
-                Text('Person: ${item['person']}'),
+                Text(
+                  'Person: ${reservation.guestNo}',
+                ), // Accessing number of guests
               ],
             ),
           ],
         ),
       ),
     );
+  }
+}
+
+class _HeaderSection extends StatelessWidget {
+  final Function(int) onDateChange;
+  final DateTime selectedDate;
+
+  const _HeaderSection({
+    super.key,
+    required this.onDateChange,
+    required this.selectedDate,
+  });
+
+  String get formattedDate {
+    return DateFormat('yyyy-MM-dd').format(selectedDate);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    const double breakpoint = 600;
+    final isMobile = screenWidth < breakpoint;
+
+    String displayDate =
+        (selectedDate.year == DateTime.now().year &&
+            selectedDate.month == DateTime.now().month &&
+            selectedDate.day == DateTime.now().day)
+        ? 'Today'
+        : formattedDate;
+
+    return isMobile
+        ? Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Reservations & Walk-Ins',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    "Live Overview of your restaurant's",
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: const [],
+                    ),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.chevron_left,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () {
+                            onDateChange(-1);
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          displayDate,
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.chevron_right,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () {
+                            onDateChange(1);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          )
+        : Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Reservations & Walk-Ins',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    "Live Overview of your restaurant's",
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.chevron_left,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () {
+                            onDateChange(-1);
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          displayDate,
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.chevron_right,
+                            color: Colors.grey,
+                          ),
+                          onPressed: () {
+                            onDateChange(1);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
   }
 }

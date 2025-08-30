@@ -36,7 +36,7 @@ class LoginController extends GetxController {
     EasyLoading.show();
 
     final prefs = await SharedPreferences.getInstance();
-    final code = prefs.getString('language_code') ?? 'en';
+    final code = prefs.getString('language_code') ?? 'EN';
     print("selected language : $code");
 
     print('Login attempt with email: $email');

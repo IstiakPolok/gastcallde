@@ -49,7 +49,7 @@ class SubscriptionController extends GetxController {
 
   Future<void> fetchPlans() async {
     final prefs = await SharedPreferences.getInstance();
-    final code = prefs.getString('language_code') ?? 'en';
+    final code = prefs.getString('language_code') ?? 'EN';
 
     // Build URL with selected language
     final String Url = "${Urls.getSubscriptionPlan}$code";

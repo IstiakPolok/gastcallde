@@ -3,7 +3,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/core/global_widegts/CustomDrawer.dart';
 import 'package:gastcallde/core/global_widegts/CustomNavigationRail.dart';
-import 'package:gastcallde/feature/menuManagement/controllers/manusManagmentController.dart';
+import 'package:gastcallde/feature/menuManagement/controllers/menuManagmentController.dart';
 import 'package:gastcallde/feature/menuManagement/screens/EditFoodScreen.dart';
 import 'package:gastcallde/feature/menuManagement/screens/FoodDetailsScreen.dart';
 import 'package:gastcallde/feature/menuManagement/screens/UploadFoodMenuScreen.dart';
@@ -299,7 +299,13 @@ class ItemsScreen extends StatelessWidget {
                   //   ),
                   // ),
                   const SizedBox(width: 10),
-                  Text(item.name),
+                  Flexible(
+                    child: Text(
+                      item.name,
+                      softWrap: true,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
                 ],
               ),
             ),

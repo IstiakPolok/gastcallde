@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/core/global_widegts/custom_button.dart';
-import 'package:gastcallde/feature/reservastion/controllers/tableApiController.dart';
+import 'package:gastcallde/feature/reservastion/controllers/addTableReservationController.dart';
+import 'package:gastcallde/feature/reservastion/screens/reservationScreen.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 
@@ -24,11 +26,49 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
   List<Map<String, dynamic>> tableList = [];
   bool isLoading = false;
   final TableApiController _tableApiController = TableApiController();
+  int? _selectedTableId;
+
   @override
   void initState() {
     super.initState();
-    _dateController.text = '14 July 2025, Friday';
+    final now = DateTime.now();
+
+    // ✅ Store as yyyy-MM-dd
+    _dateController.text =
+        "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+
     _fetchTables();
+  }
+
+  String _monthName(int month) {
+    const months = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+    return months[month - 1];
+  }
+
+  String _weekdayName(int weekday) {
+    const weekdays = [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ];
+    return weekdays[weekday - 1];
   }
 
   Future<void> _fetchTables() async {
@@ -69,8 +109,9 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
     );
     if (picked != null) {
       setState(() {
+        // ✅ Format as yyyy-MM-dd
         _dateController.text =
-            '${picked.day} ${'${picked.month}, ${picked.year}'}'; // A simple format
+            "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
       });
     }
   }
@@ -86,13 +127,7 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
           const SizedBox(height: 24),
           _buildSummarySection(),
           const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {},
-              child: const Text('Confirm now'),
-            ),
-          ),
+
           const SizedBox(height: 16),
           if (isLoading)
             const CircularProgressIndicator()
@@ -104,18 +139,34 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 ListView.builder(
-                  shrinkWrap: true,
                   itemCount: tableList.length,
                   itemBuilder: (context, index) {
                     final table = tableList[index];
+                    final isSelected = _selectedTableId == table['id'];
+
                     return ListTile(
                       title: Text(table['table_name']),
                       subtitle: Text('Seats: ${table['total_set']}'),
+                      tileColor: isSelected
+                          ? Colors.blue[100]
+                          : null, // highlight selection
+                      onTap: () {
+                        setState(() {
+                          _selectedTableId = table['id'];
+                        });
+                      },
                     );
                   },
                 ),
               ],
             ),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {},
+              child: const Text('Confirm now'),
+            ),
+          ),
         ],
       ),
     );
@@ -135,66 +186,8 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
                 flex: 1,
                 child: Column(
                   children: [
-                    _buildSummarySection(),
+                    //_buildSummarySection(),
                     const SizedBox(height: 24),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor,
-                        foregroundColor: Colors.white,
-                      ),
-                      onPressed: () async {
-                        try {
-                          final api = ReservationApiController();
-
-                          // extract selected "from" & "to" time
-                          String fromTime = "";
-                          String toTime = "";
-                          final times = [
-                            '06:00:00',
-                            '07:00:00',
-                            '08:00:00',
-                            '09:00:00',
-                            '10:00:00',
-                            '11:00:00',
-                            '12:00:00',
-                            '13:00:00',
-                            '14:00:00',
-                            '15:00:00',
-                          ];
-                          int fromIndex = _selectedFromTime.indexWhere(
-                            (e) => e,
-                          );
-                          int toIndex = _selectedToTime.indexWhere((e) => e);
-                          if (fromIndex != -1) fromTime = times[fromIndex];
-                          if (toIndex != -1) toTime = times[toIndex];
-
-                          // dummy pick first table (or let user choose later)
-                          final int selectedTable = tableList.isNotEmpty
-                              ? tableList[0]['id']
-                              : 0;
-
-                          final result = await api.createReservation(
-                            customerName: _nameController.text,
-                            phoneNumber: _phoneController.text,
-                            guestNo: int.tryParse(_peopleController.text) ?? 1,
-                            date: _dateController
-                                .text, // make sure this is formatted as yyyy-MM-dd
-                            fromTime: fromTime,
-                            toTime: toTime,
-                            tableId: selectedTable,
-                            email: _emailController.text,
-                          );
-
-                          Get.snackbar(
-                            "Success",
-                            "Reservation Created: ID ${result['id']}",
-                          );
-                        } catch (e) {
-                          Get.snackbar("Error", e.toString());
-                        }
-                      },
-                      child: const Text('Confirm now'),
-                    ),
 
                     if (isLoading)
                       const CircularProgressIndicator()
@@ -214,8 +207,7 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
                                 16.0,
                               ), // Add padding for internal spacing
                               decoration: BoxDecoration(
-                                color: Colors
-                                    .grey[100], // Set background color (light grey in this case)
+                                // Set background color (light grey in this case)
                                 borderRadius: BorderRadius.circular(
                                   12,
                                 ), // Rounded corners
@@ -228,15 +220,109 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
                                 itemCount: tableList.length,
                                 itemBuilder: (context, index) {
                                   final table = tableList[index];
+                                  final isSelected =
+                                      _selectedTableId == table['id'];
+
                                   return ListTile(
-                                    title: Text(table['table_name']),
+                                    title: Text(
+                                      table['table_name'],
+                                      style: TextStyle(
+                                        color: isSelected
+                                            ? Colors.white
+                                            : Colors.black,
+                                      ),
+                                    ),
                                     subtitle: Text(
                                       'Seats: ${table['total_set']}',
+                                      style: TextStyle(
+                                        color: isSelected
+                                            ? Colors.white
+                                            : Colors.black,
+                                      ),
                                     ),
+                                    tileColor: isSelected
+                                        ? AppColors.primaryColor
+                                        : null, // highlight selection
+                                    onTap: () {
+                                      print(
+                                        'Selected table: ${table['table_name']}',
+                                      );
+                                      setState(() {
+                                        _selectedTableId = table['id'];
+                                      });
+                                    },
                                   );
                                 },
                               ),
                             ),
+                          ),
+                          SizedBox(height: 40),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryColor,
+                              foregroundColor: Colors.white,
+                            ),
+                            onPressed: () async {
+                              EasyLoading.show();
+                              try {
+                                final api = ReservationApiController();
+
+                                // extract selected "from" & "to" time
+                                String fromTime = "";
+                                String toTime = "";
+                                final times = [
+                                  '06:00:00',
+                                  '07:00:00',
+                                  '08:00:00',
+                                  '09:00:00',
+                                  '10:00:00',
+                                  '11:00:00',
+                                  '12:00:00',
+                                  '13:00:00',
+                                  '14:00:00',
+                                  '15:00:00',
+                                ];
+                                int fromIndex = _selectedFromTime.indexWhere(
+                                  (e) => e,
+                                );
+                                int toIndex = _selectedToTime.indexWhere(
+                                  (e) => e,
+                                );
+                                if (fromIndex != -1)
+                                  fromTime = times[fromIndex];
+                                if (toIndex != -1) toTime = times[toIndex];
+
+                                // dummy pick first table (or let user choose later)
+                                final int selectedTable = tableList.isNotEmpty
+                                    ? tableList[0]['id']
+                                    : 0;
+
+                                final result = await api.createReservation(
+                                  customerName: _nameController.text,
+                                  phoneNumber: _phoneController.text,
+                                  guestNo:
+                                      int.tryParse(_peopleController.text) ?? 1,
+                                  date: _dateController
+                                      .text, // ensure yyyy-MM-dd when sending to API
+                                  fromTime: fromTime,
+                                  toTime: toTime,
+                                  tableId:
+                                      _selectedTableId ??
+                                      0, // use selected table
+                                  email: _emailController.text,
+                                );
+
+                                Get.snackbar(
+                                  "Success",
+                                  "Reservation Created: ID ${result['id']}",
+                                );
+                              } catch (e) {
+                                Get.snackbar("Error", e.toString());
+                              }
+                              EasyLoading.dismiss();
+                              Get.to(ReservationScreen());
+                            },
+                            child: const Text('Confirm now'),
                           ),
                         ],
                       ),

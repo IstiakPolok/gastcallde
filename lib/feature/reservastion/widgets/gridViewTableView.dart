@@ -1,202 +1,228 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:gastcallde/feature/reservastion/controllers/TableReservationGridcontroller.dart';
+import 'package:intl/intl.dart';
+
+// ...existing imports...
 
 class TableReservationGrid extends StatelessWidget {
-  const TableReservationGrid({super.key});
+  final DateTime selectedDate;
+  TableReservationGrid({super.key, required this.selectedDate});
 
-  Widget buildReservationCell({
-    required String name,
-    required int personCount,
-    required String status,
-  }) {
-    Color bgColor;
-    Color textColor = Colors.black;
-    Widget statusWidget;
+  String get formattedDate => DateFormat('yyyy-MM-dd').format(selectedDate);
 
+  // Helper function to get color based on status
+  Color getStatusColor(String status) {
     switch (status) {
       case 'Walk-In':
-        bgColor = Colors.blue[100]!;
-        statusWidget = Text('Walk-In', style: TextStyle(color: Colors.blue));
-        break;
+        return Colors.blue[100]!;
       case 'Res':
-        bgColor = Colors.teal[100]!;
-        statusWidget = Text('Res', style: TextStyle(color: Colors.teal));
-        break;
+        return Colors.teal[100]!;
       case 'Cancel':
-        bgColor = Colors.teal[100]!;
-        statusWidget = Text('Cancel', style: TextStyle(color: Colors.red));
-        break;
+        return Colors.red[100]!;
       default:
-        bgColor = Colors.grey[200]!;
-        statusWidget = const SizedBox();
+        return Colors.grey[200]!;
     }
+  }
 
-    return Container(
-      margin: const EdgeInsets.all(4),
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
-          Text("Person : $personCount"),
-          Align(alignment: Alignment.bottomRight, child: statusWidget),
-        ],
-      ),
+  // Helper to parse time string to DateTime (assumes format 'HH:mm:ss')
+  DateTime parseTime(String time) {
+    final parts = time.split(':');
+    return DateTime(0, 1, 1, int.parse(parts[0]), int.parse(parts[1]));
+  }
+
+  // Helper to get slot index for a given time
+  int getSlotIndex(String time, List<String> slots) {
+    for (int i = 0; i < slots.length; i++) {
+      if (slots[i] == time) return i;
+    }
+    return -1;
+  }
+
+  // Helper function to build a reservation cell
+  Widget buildReservationCell(
+    Reservation reservation,
+    int slotSpan,
+    double slotWidth,
+  ) {
+    String status = reservation.status;
+    int guestCount = reservation.guestNo;
+    String customerName = reservation.customerName;
+    String fromTime = reservation.fromTime;
+    String toTime = reservation.toTime;
+
+    return Stack(
+      children: [
+        Container(
+          width: slotWidth * slotSpan,
+          height: 70,
+          margin: const EdgeInsets.all(2),
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            // color: getStatusColor(status),
+            color: Colors.teal[100],
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  customerName.isNotEmpty ? customerName : 'N/A',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  '$guestCount guests',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 15),
+                ),
+                // Text(
+                //   status,
+                //   textAlign: TextAlign.center,
+                //   style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                // ),
+                // Text(
+                //   '$fromTime - $toTime',
+                //   textAlign: TextAlign.center,
+                //   style: const TextStyle(fontSize: 10),
+                // ),
+              ],
+            ),
+          ),
+        ),
+        Positioned(
+          top: 5,
+          right: 5,
+          child: Container(
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Text(status),
+            ),
+          ),
+        ),
+      ],
     );
+  }
+
+  // Generate time slots from 06:00 to 15:00
+  List<String> generateTimeSlots() {
+    List<String> slots = [];
+    for (int hour = 6; hour <= 15; hour++) {
+      slots.add('${hour.toString().padLeft(2, '0')}:00:00');
+    }
+    return slots;
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Table(
-        border: TableBorder.all(color: Colors.grey.shade300),
-        columnWidths: const {
-          0: FixedColumnWidth(100),
-          1: FixedColumnWidth(150),
-          2: FixedColumnWidth(150),
-          3: FixedColumnWidth(150),
-          4: FixedColumnWidth(150),
-        },
-        children: [
-          // Header Row
-          TableRow(
-            decoration: BoxDecoration(color: Colors.grey.shade200),
+    final timeSlots = generateTimeSlots();
+    const double slotWidth = 100;
+
+    return FutureBuilder<List<TableReservationItem>>(
+      future: fetchTableReservations(formattedDate),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No data found'));
+        }
+
+        final tableReservations = snapshot.data!;
+        final tableNames = tableReservations.map((t) => t.tableName).toList();
+
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Column(
             children: [
-              const Padding(
-                padding: EdgeInsets.all(8),
-                child: Text(
-                  "Tables",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+              // Time slots header for X-axis
+              Row(
+                children: [
+                  const SizedBox(width: 100), // Empty corner for table names
+                  ...timeSlots.map((time) {
+                    return Container(
+                      width: slotWidth,
+                      padding: const EdgeInsets.all(4),
+                      child: Center(
+                        child: Text(
+                          time,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    );
+                  }),
+                ],
               ),
-              for (int i = 0; i < 4; i++)
-                const Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Text(
-                    "11:00 am",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+              // Table rows
+              ...tableReservations.map((table) {
+                // Build a map of slot index to reservation
+                Map<int, Reservation> slotToReservation = {};
+                for (var res in table.reservations) {
+                  int start = getSlotIndex(res.fromTime, timeSlots);
+                  int end = getSlotIndex(res.toTime, timeSlots);
+                  if (start != -1 && end != -1) {
+                    for (int i = start; i <= end; i++) {
+                      slotToReservation[i] = res;
+                    }
+                  }
+                }
+
+                List<Widget> rowCells = [];
+                rowCells.add(
+                  Container(
+                    width: 100,
+                    padding: const EdgeInsets.all(4),
+                    child: Text(
+                      table.tableName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
-                ),
+                );
+
+                int i = 0;
+                while (i < timeSlots.length) {
+                  if (slotToReservation.containsKey(i)) {
+                    // Only show reservation info at the first slot of the reservation
+                    Reservation res = slotToReservation[i]!;
+                    int start = getSlotIndex(res.fromTime, timeSlots);
+                    int end = getSlotIndex(res.toTime, timeSlots);
+                    int span = end - start + 1;
+                    if (i == start) {
+                      rowCells.add(buildReservationCell(res, span, slotWidth));
+                      i += span;
+                    } else {
+                      // Skip cells covered by the reservation
+                      i++;
+                    }
+                  } else {
+                    rowCells.add(
+                      Container(
+                        width: slotWidth,
+                        height: 70,
+                        margin: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: getStatusColor('available'),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    );
+                    i++;
+                  }
+                }
+
+                return Row(children: rowCells);
+              }),
             ],
           ),
-          // Table 01
-          TableRow(
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(8),
-                child: Text(
-                  "Table 01\nPA : 9",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              buildReservationCell(
-                name: "Sandra Schmidt",
-                personCount: 3,
-                status: "Walk-In",
-              ),
-              const SizedBox(),
-              const SizedBox(),
-              const SizedBox(),
-            ],
-          ),
-          // Table 02
-          TableRow(
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(8),
-                child: Text(
-                  "Table 02\nPA : 3",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(),
-              const SizedBox(),
-              const SizedBox(),
-              const SizedBox(),
-            ],
-          ),
-          // Table 03
-          TableRow(
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(8),
-                child: Text(
-                  "Table 03\nPA : 6",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              buildReservationCell(
-                name: "Ara Schmidt",
-                personCount: 3,
-                status: "Res",
-              ),
-              const SizedBox(),
-              buildReservationCell(
-                name: "Sandra Schmidt",
-                personCount: 3,
-                status: "Res",
-              ),
-              const SizedBox(),
-            ],
-          ),
-          // Table 04
-          TableRow(
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(8),
-                child: Text(
-                  "Table 04\nPA : 2",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(),
-              const SizedBox(),
-              const SizedBox(),
-              const SizedBox(),
-            ],
-          ),
-          // Table 05
-          TableRow(
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(8),
-                child: Text(
-                  "Table 05\nPA : 2",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(),
-              buildReservationCell(
-                name: "Bmidt",
-                personCount: 3,
-                status: "Cancel",
-              ),
-              const SizedBox(),
-              const SizedBox(),
-            ],
-          ),
-          // Table 06
-          TableRow(
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(8),
-                child: Text(
-                  "Table 06\nPA : 3",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(),
-              const SizedBox(),
-              const SizedBox(),
-              const SizedBox(),
-            ],
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

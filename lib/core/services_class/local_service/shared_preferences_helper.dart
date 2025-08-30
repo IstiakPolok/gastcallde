@@ -20,7 +20,7 @@ class SharedPreferencesHelper {
   // Load language at app start
   static Future<void> loadSavedLanguage() async {
     final prefs = await SharedPreferences.getInstance();
-    final code = prefs.getString('language_code') ?? 'en';
+    final code = prefs.getString('language_code') ?? 'EN';
     print('Loaded saved language: $code'); // 🔹 Debug print
     if (code == 'de') {
       Get.updateLocale(const Locale('de', 'DE'));

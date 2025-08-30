@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart'; // for jsonDecode
 
 Future<List<Item>> fetchItems() async {
   final prefs = await SharedPreferences.getInstance();
-  final code = prefs.getString('language_code') ?? 'en';
+  final code = prefs.getString('language_code') ?? 'EN';
   final String url = '${Urls.baseUrl}/owner/items/?lean=$code';
 
   final String? token = await SharedPreferencesHelper.getAccessToken();

@@ -8,6 +8,15 @@ class Urls {
   static const String uploadmenu = '$baseUrl/owner/extract-menu/';
   static const String getSubscriptionPlan = '$baseUrl/packages/?lean=';
   static const String createTable = '$baseUrl/owner/table/create/?lean=';
+  static const String createReservation = '$baseUrl/owner/reservations/create/';
+  static const String tableList = '$baseUrl/owner/table/?lean=';
+  static const String getReservationList = '$baseUrl/owner/reservations/?date=';
+  static const String getReservationstats =
+      '$baseUrl/owner/reservation-stats/?date=';
+  static const String updateTableStatus =
+      '$baseUrl/owner/update-table-status/?date=';
+  static const String getTablegridReservations =
+      '$baseUrl/owner/table-reservations/?date=';
 
   static const String updateProfile = '$baseUrl/auth/profile';
   static const String updateProfileImage = '$baseUrl/auth/update/profile-image';

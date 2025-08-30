@@ -30,7 +30,7 @@ Future<bool> registerUser({
   required File? image,
 }) async {
   final prefs = await SharedPreferences.getInstance();
-  final code = prefs.getString('language_code') ?? 'en';
+  final code = prefs.getString('language_code') ?? 'EN';
 
   final uri = Uri.parse("${Urls.register}$code");
   final request = http.MultipartRequest('POST', uri);
