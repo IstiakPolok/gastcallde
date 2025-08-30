@@ -299,7 +299,13 @@ class ItemsScreen extends StatelessWidget {
                   //   ),
                   // ),
                   const SizedBox(width: 10),
-                  Text(item.name),
+                  Flexible(
+                    child: Text(
+                      item.name,
+                      softWrap: true,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
                 ],
               ),
             ),

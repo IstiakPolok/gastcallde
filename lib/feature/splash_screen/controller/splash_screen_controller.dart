@@ -10,17 +10,13 @@ import '../../welcome/view/onBoarding.dart';
 class SplashScreenController extends GetxController {
   void checkIsLogin() async {
     Timer(const Duration(seconds: 3), () async {
-      // Check if the token exists in shared preferences
       String? token = await SharedPreferencesHelper.getAccessToken();
 
-      // If token exists, the user is logged in
       if (token != null && token.isNotEmpty) {
-        // Redirect to the main screen (e.g., Bottom Navbar or Home)
         Get.offAll(Dashboard());
         print(token);
       } else {
-        // Redirect to the Welcome Screen if no token is found
-        Get.offAll(onBoardind());
+        Get.offAll(OnBoarding());
       }
     });
   }

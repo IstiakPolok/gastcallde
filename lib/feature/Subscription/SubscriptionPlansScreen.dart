@@ -193,9 +193,9 @@ class SubscriptionPlansScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    "\$${plan.amount / 100}", // cents → dollars
+                    "\$${plan.amount}", // cents → dollars
                     style: const TextStyle(
-                      fontSize: 48,
+                      fontSize: 40,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

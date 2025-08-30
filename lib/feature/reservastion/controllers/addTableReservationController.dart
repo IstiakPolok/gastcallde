@@ -17,7 +17,7 @@ class TableApiController {
   /// Fetch the table list from the API
   Future<List<Map<String, dynamic>>> fetchTables() async {
     final prefs = await SharedPreferences.getInstance();
-    final code = prefs.getString('language_code') ?? 'en';
+    final code = prefs.getString('language_code') ?? 'EN';
 
     final String? token = await SharedPreferencesHelper.getAccessToken();
 
@@ -79,7 +79,7 @@ class ReservationApiController {
     String status = "reserved", // default
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    // final code = prefs.getString('language_code') ?? 'en';
+    // final code = prefs.getString('language_code') ?? 'EN';
 
     final String? token = await SharedPreferencesHelper.getAccessToken();
     final url = Uri.parse(Urls.createReservation);

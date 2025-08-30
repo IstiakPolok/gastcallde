@@ -47,7 +47,7 @@ class TableController extends GetxController {
 
   Future<void> fetchTables() async {
     final prefs = await SharedPreferences.getInstance();
-    final code = prefs.getString('language_code') ?? 'en';
+    final code = prefs.getString('language_code') ?? 'EN';
     final String? token = await SharedPreferencesHelper.getAccessToken();
     try {
       print("Fetching tables from API...");
@@ -87,7 +87,7 @@ class TableController extends GetxController {
     print("Starting to save ${newTables.length} tables...");
     final String? token = await SharedPreferencesHelper.getAccessToken();
     final prefs = await SharedPreferences.getInstance();
-    final code = prefs.getString('language_code') ?? 'en';
+    final code = prefs.getString('language_code') ?? 'EN';
 
     for (var table in newTables) {
       print(

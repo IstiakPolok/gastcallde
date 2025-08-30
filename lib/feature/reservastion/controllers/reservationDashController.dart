@@ -76,7 +76,7 @@ class TableStatus {
 
 Future<List<Reservation>> fetchReservations(String date) async {
   final prefs = await SharedPreferences.getInstance();
-  final code = prefs.getString('language_code') ?? 'en';
+  final code = prefs.getString('language_code') ?? 'EN';
 
   final String? token = await SharedPreferencesHelper.getAccessToken();
 
