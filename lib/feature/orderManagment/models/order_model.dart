@@ -13,6 +13,6 @@ class Order {
     required this.customerName,
     required this.customernumber, // Initialize customer number
     required this.foodItems,
-    this.status = 'Incoming',
+    this.status = 'incoming',
   });
 }

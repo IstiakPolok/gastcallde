@@ -189,7 +189,7 @@ class AddFoodItemScreen extends StatelessWidget {
                       Expanded(
                         child: _buildDropdownSection(
                           'Status',
-                          ['Available', 'Not Available'],
+                          ['Available', 'Unavailable'],
                           isTablet,
                           statusController,
                         ),
@@ -382,6 +382,7 @@ class AddFoodItemScreen extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: isTablet ? 16 : 12),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
+              dropdownColor: Colors.white,
               isExpanded: true,
               value: controller.text,
               icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),

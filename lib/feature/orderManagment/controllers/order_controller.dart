@@ -28,7 +28,7 @@ class OrderController extends GetxController {
 
   void moveToIncoming(Order order) {
     incomingOrders.remove(order);
-    order.status = 'Incoming';
+    order.status = 'incoming';
     // inPreparationOrders.add(order);
   }
 

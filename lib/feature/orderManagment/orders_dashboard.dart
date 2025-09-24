@@ -14,7 +14,7 @@ class OrdersDashboard extends StatefulWidget {
 
 class _OrdersDashboardState extends State<OrdersDashboard> {
   final OrderController orderController = Get.find<OrderController>();
-  String selectedColumn = 'Incoming';
+  String selectedColumn = 'incoming';
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +43,7 @@ class _OrdersDashboardState extends State<OrdersDashboard> {
               },
               items:
                   <String>[
-                    'Incoming',
+                    'incoming',
                     'In Preparation',
                     'Out for Delivery',
                     'Completed',
@@ -64,7 +64,7 @@ class _OrdersDashboardState extends State<OrdersDashboard> {
                     children: [
                       Expanded(
                         child: OrderListColumn(
-                          title: 'Incoming',
+                          title: 'incoming',
                           orders: orderController.incomingOrders,
                           onButtonPressed: orderController.moveToPreparation,
                           buttonText: 'In Preparation',
@@ -107,10 +107,10 @@ class _OrdersDashboardState extends State<OrdersDashboard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Conditionally display the column based on the selected value
-                      if (selectedColumn == 'Incoming')
+                      if (selectedColumn == 'incoming')
                         Expanded(
                           child: OrderListColumn(
-                            title: 'Incoming',
+                            title: 'incoming',
                             orders: orderController.incomingOrders,
                             onButtonPressed: orderController.moveToPreparation,
                             buttonText: 'In Preparation',
@@ -282,7 +282,7 @@ class OrderListColumn extends StatelessWidget {
                                         // Inside the Row where the back button is shown
                                         if (showBackButton &&
                                             title !=
-                                                'Incoming') // <-- Hide when Incoming
+                                                'incoming') // <-- Hide when Incoming
                                           IconButton(
                                             icon: const Icon(
                                               Icons.arrow_back_ios,
