@@ -18,6 +18,9 @@ class Urls {
   static const String getTablegridReservations =
       '$baseUrl/owner/table-reservations/?date=';
 
+  static const String subscriptionUrl =
+      '$baseUrl/subscription/create-checkout-session/';
+
   static const String updateProfile = '$baseUrl/auth/profile';
   static const String updateProfileImage = '$baseUrl/auth/update/profile-image';
   static const String getProfile = '$baseUrl/auth/profile';

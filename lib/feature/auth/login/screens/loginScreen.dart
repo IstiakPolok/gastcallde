@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gastcallde/core/global_widegts/LanguageToggleWidget.dart';
 import 'package:gastcallde/core/global_widegts/custom_button.dart';
 import 'package:gastcallde/feature/auth/login/controller/loginController.dart';
-import 'package:gastcallde/feature/dashboard/screens/dashboard.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/const/app_colors.dart';
@@ -16,9 +14,6 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final LoginController loginController = Get.put(LoginController());
-    final RxBool isPasswordVisible = false.obs;
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController passwordController = TextEditingController();
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -39,15 +34,7 @@ class LoginScreen extends StatelessWidget {
                     alignment: Alignment.topRight,
                     child: LanguageToggleButton(),
                   ),
-
-                  //const LanguageToggleWidget(),
-                  Center(
-                    child: Image.asset(
-                      'assets/icons/logo.png',
-                      width: 200,
-                      height: 200,
-                    ),
-                  ),
+                  Image.asset('assets/icons/logo.png', width: 200, height: 200),
                   Text(
                     'welcome'.tr,
                     style: GoogleFonts.inter(
@@ -59,18 +46,20 @@ class LoginScreen extends StatelessWidget {
                   Text('subtitle'.tr, style: GoogleFonts.inter(fontSize: 16)),
                   const SizedBox(height: 32),
 
+                  // Email Field
                   _buildTextField(
                     'email'.tr,
                     'enter_email'.tr,
-                    emailController,
+                    loginController.emailController,
                   ),
                   const SizedBox(height: 20),
 
+                  // Password Field
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'password'.tr,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
@@ -79,8 +68,8 @@ class LoginScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Obx(
                     () => TextFormField(
-                      controller: passwordController,
-                      obscureText: !isPasswordVisible.value,
+                      controller: loginController.passwordController,
+                      obscureText: !loginController.isPasswordVisible.value,
                       decoration: InputDecoration(
                         hintText: 'type_password'.tr,
                         border: OutlineInputBorder(
@@ -102,31 +91,26 @@ class LoginScreen extends StatelessWidget {
                           borderSide: BorderSide(
                             color: AppColors.primaryColor,
                             width: 2,
-                          ), // Active color
+                          ),
                         ),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            isPasswordVisible.value
+                            loginController.isPasswordVisible.value
                                 ? Icons.visibility
                                 : Icons.visibility_off,
                             color: AppColors.primaryColor,
                           ),
-                          onPressed: () {
-                            isPasswordVisible.value = !isPasswordVisible.value;
-                          },
+                          onPressed: loginController.togglePasswordVisibility,
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  // Checkbox
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () {
-                        Get.to(forgetpassScreen());
-                      },
+                      onPressed: () => Get.to(() => forgetpassScreen()),
                       child: Text(
                         'forgot_password'.tr,
                         style: TextStyle(color: AppColors.primaryColor),
@@ -135,50 +119,26 @@ class LoginScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // Sign up button
                   SizedBox(
                     width: MediaQuery.of(context).size.width > 600
                         ? 300
                         : double.infinity,
                     child: CustomButton(
                       title: "login".tr,
-                      onPress: () {
-                        loginController.login(
-                          emailController.text,
-                          passwordController.text,
-                        );
-                      },
+                      onPress: loginController.login, // ✅ No need to pass text
                     ),
                   ),
                   const SizedBox(height: 24),
 
-                  // Divider "Or"
-                  // Center(child: Text('Or', style: GoogleFonts.inter())),
-                  // const SizedBox(height: 24),
-
-                  // // Social login buttons
-                  // SizedBox(
-                  //   width: MediaQuery.of(context).size.width > 600 ? 200 : 200,
-                  //   child: _buildSocialButton(
-                  //     icon: FontAwesomeIcons.google,
-                  //     text: 'Sign in with Google',
-                  //     onPressed: () {},
-                  //   ),
-                  // ),
-                  const SizedBox(height: 24),
-
-                  // "Have an account? Log In"
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         'signup_question'.tr,
-                        style: TextStyle(color: Colors.black54),
+                        style: const TextStyle(color: Colors.black54),
                       ),
                       TextButton(
-                        onPressed: () {
-                          Get.to(RegistrationScreen());
-                        },
+                        onPressed: () => Get.to(() => RegistrationScreen()),
                         child: Text(
                           'signup'.tr,
                           style: TextStyle(color: AppColors.primaryColor),
@@ -198,23 +158,18 @@ class LoginScreen extends StatelessWidget {
   Widget _buildTextField(
     String label,
     String hint,
-    TextEditingController controller, {
-    bool obscureText = false,
-  }) {
+    TextEditingController controller,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            label,
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-          ),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
-          obscureText: obscureText,
           decoration: InputDecoration(
             hintText: hint,
             border: OutlineInputBorder(
@@ -227,44 +182,11 @@ class LoginScreen extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: AppColors.primaryColor,
-                width: 2,
-              ), // Active color
+              borderSide: BorderSide(color: AppColors.primaryColor, width: 2),
             ),
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildSocialButton({
-    required IconData icon,
-    required String text,
-    required VoidCallback onPressed,
-  }) {
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.primaryColor, // For text/icon ripple color
-        side: BorderSide(color: AppColors.primaryColor, width: 1.5),
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: AppColors.primaryColor, size: 20),
-          const SizedBox(width: 10),
-          Text(
-            text,
-            style: GoogleFonts.inter(
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

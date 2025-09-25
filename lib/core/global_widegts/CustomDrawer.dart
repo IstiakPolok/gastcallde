@@ -13,7 +13,6 @@ import 'package:gastcallde/feature/orderManagment/orderManagmentscreen.dart';
 import 'package:gastcallde/feature/reservastion/screens/reservationScreen.dart';
 import 'package:gastcallde/feature/setting/screens/settingScreen.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 class CustomDrawer extends StatelessWidget {
   final int selectedIndex;

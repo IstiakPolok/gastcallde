@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gastcallde/core/global_widegts/custom_button.dart';
 import 'package:gastcallde/feature/auth/forgetPass/controller/OtpVerificationController.dart';
-import 'package:gastcallde/feature/auth/forgetPass/screens/resetPassScreen.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pin_input_text_field/pin_input_text_field.dart';

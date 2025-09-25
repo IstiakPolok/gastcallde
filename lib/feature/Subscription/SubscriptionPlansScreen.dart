@@ -4,7 +4,6 @@ import 'package:gastcallde/core/global_widegts/CustomDrawer.dart';
 import 'package:gastcallde/core/global_widegts/CustomNavigationRail.dart';
 import 'package:gastcallde/feature/Subscription/SubscriptionPlansController.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 class SubscriptionPlans extends StatelessWidget {
   SubscriptionPlans({super.key});
@@ -118,7 +117,17 @@ class SubscriptionPlansScreen extends StatelessWidget {
                                 width: cardWidth,
                                 plan: plan,
                                 onGetStarted: () {
-                                  Get.snackbar("Selected", plan.name);
+                                  if (plan.price_id != null &&
+                                      plan.price_id!.isNotEmpty) {
+                                    controller.createCheckoutSession(
+                                      price_id: plan.price_id,
+                                    );
+                                  } else {
+                                    Get.snackbar(
+                                      "Error",
+                                      "Price ID is missing for this plan",
+                                    );
+                                  }
                                 },
                               ),
                             )
@@ -212,24 +221,28 @@ class SubscriptionPlansScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: onGetStarted,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+              if (plan.status != "active")
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: onGetStarted,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Get Started',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  child: const Text(
-                    'Get Started',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
                 ),
-              ),
               const SizedBox(height: 24),
 
               // Description

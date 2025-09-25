@@ -3,8 +3,8 @@ import 'package:gastcallde/feature/auth/login/screens/loginScreen.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 
-class SubmissionCompleteScreen extends StatelessWidget {
-  const SubmissionCompleteScreen({super.key});
+class paymentCompleteScreen extends StatelessWidget {
+  const paymentCompleteScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

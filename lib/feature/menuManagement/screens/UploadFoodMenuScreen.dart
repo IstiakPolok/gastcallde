@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
-import 'package:gastcallde/feature/auth/signUp/screens/UploadFilesScreen.dart';
 import 'package:gastcallde/feature/menuManagement/screens/UploadFiles.dart';
 import 'package:gastcallde/feature/menuManagement/screens/uploadMenually.dart';
 

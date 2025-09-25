@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/core/services_class/local_service/shared_preferences_helper.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LanguageToggleButton extends StatelessWidget {
   const LanguageToggleButton({super.key});

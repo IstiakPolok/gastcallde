@@ -14,6 +14,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
 
 class UploadFileswidget extends StatefulWidget {
+  const UploadFileswidget({super.key});
+
   @override
   _UploadFileswidgetState createState() => _UploadFileswidgetState();
 }
@@ -21,7 +23,7 @@ class UploadFileswidget extends StatefulWidget {
 class _UploadFileswidgetState extends State<UploadFileswidget> {
   final List<File> selectedFiles = [];
   String? bearerToken;
-  final String apiUrl = "${Urls.uploadmenu}";
+  final String apiUrl = Urls.uploadmenu;
 
   @override
   void initState() {
@@ -34,10 +36,10 @@ class _UploadFileswidgetState extends State<UploadFileswidget> {
   }
 
   Future<void> _takePhoto() async {
-    final ImagePicker _picker = ImagePicker();
+    final ImagePicker picker = ImagePicker();
 
     // Pick an image from the camera
-    XFile? image = await _picker.pickImage(source: ImageSource.camera);
+    XFile? image = await picker.pickImage(source: ImageSource.camera);
 
     if (image != null) {
       setState(() {

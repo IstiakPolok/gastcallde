@@ -1,17 +1,11 @@
 // lib/feature/calls/order_entry_screen.dart
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
-import 'package:gastcallde/core/services_class/local_service/shared_preferences_helper.dart';
 import 'package:gastcallde/feature/orderManagment/models/food_item_model.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
-import '../../core/network_caller/endpoints.dart';
 import 'controllers/OrderEntryController.dart';
-import 'controllers/order_controller.dart';
 import 'controllers/MenuController.dart';
-import 'models/order_model.dart';
 
 class OrderEntryScreen extends StatelessWidget {
   OrderEntryScreen({super.key});

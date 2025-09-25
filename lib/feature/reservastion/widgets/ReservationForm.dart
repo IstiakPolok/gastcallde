@@ -288,8 +288,9 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
                                 int toIndex = _selectedToTime.indexWhere(
                                   (e) => e,
                                 );
-                                if (fromIndex != -1)
+                                if (fromIndex != -1) {
                                   fromTime = times[fromIndex];
+                                }
                                 if (toIndex != -1) toTime = times[toIndex];
 
                                 // dummy pick first table (or let user choose later)

@@ -79,7 +79,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   double _voiceSpeed = 0.5;
-  double _ambientNoise = 0.5;
+  final double _ambientNoise = 0.5;
   String _callTransferText = '';
   String _specialPromotionsText = '';
   String _selectedVoice = 'Alisaya'; // Initial voice selection

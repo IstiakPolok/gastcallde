@@ -15,6 +15,7 @@ class FoodItem {
     this.specialInstructions = "",
   });
 
+  // Calculate extra prices
   double get extrasPrice {
     double total = 0;
     for (var extra in extras) {
@@ -38,6 +39,7 @@ class FoodItem {
 
   double get totalPrice => price + extrasPrice;
 
+  // Convert to JSON for API
   Map<String, dynamic> toJson() {
     return {
       "item": id,
@@ -46,5 +48,22 @@ class FoodItem {
       "extras_price": extrasPrice,
       "special_instructions": specialInstructions,
     };
+  }
+
+  // ✅ Factory method to create FoodItem from API JSON
+  factory FoodItem.fromJson(Map<String, dynamic> json) {
+    return FoodItem(
+      id: json['item']['id'],
+      name: json['item']['item_name'],
+      price: double.tryParse(json['price'].toString()) ?? 0.0,
+      quantity: json['quantity'],
+      extras:
+          (json['extras'] as String?)
+              ?.split(',')
+              .map((e) => e.trim())
+              .toList() ??
+          [],
+      specialInstructions: json['special_instructions'] ?? "",
+    );
   }
 }

@@ -4,7 +4,6 @@ import 'package:gastcallde/feature/dashboard/screens/dashboard.dart';
 import 'package:get/get.dart';
 
 import '../../../core/services_class/local_service/shared_preferences_helper.dart';
-import '../../bottom_nav_bar/screen/bottom_nav_bar.dart';
 import '../../welcome/view/onBoarding.dart';
 
 class SplashScreenController extends GetxController {

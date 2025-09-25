@@ -109,7 +109,7 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(
-          color: const Color(0xFFE2E8F0),
+          color: Color(0xFFE2E8F0),
           width: 1,
         ), // Default border color
       ),

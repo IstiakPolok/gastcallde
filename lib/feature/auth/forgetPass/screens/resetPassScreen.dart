@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/global_widegts/custom_button.dart';
-import 'package:gastcallde/feature/auth/login/screens/loginScreen.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 

@@ -68,7 +68,7 @@ class ReservationScreen extends StatelessWidget {
 }
 
 class RestaurantDashboard extends StatefulWidget {
-  RestaurantDashboard({super.key});
+  const RestaurantDashboard({super.key});
 
   @override
   _RestaurantDashboardState createState() => _RestaurantDashboardState();
@@ -802,7 +802,6 @@ class _HeaderSection extends StatelessWidget {
   final DateTime selectedDate;
 
   const _HeaderSection({
-    super.key,
     required this.onDateChange,
     required this.selectedDate,
   });

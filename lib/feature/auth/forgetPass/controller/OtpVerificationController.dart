@@ -3,7 +3,6 @@ import 'package:gastcallde/core/network_caller/endpoints.dart';
 import 'package:gastcallde/feature/auth/forgetPass/screens/resetPassScreen.dart';
 import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
-import '../../../../core/const/app_colors.dart';
 
 class OtpVerificationController extends GetxController {
   var isLoading = false.obs;

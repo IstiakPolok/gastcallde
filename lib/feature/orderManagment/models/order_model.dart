@@ -1,18 +1,29 @@
-// lib/feature/calls/order_model.dart
 import 'food_item_model.dart';
 
 class Order {
-  final String id;
-  final String customerName;
-  final String customernumber; // Added customer number`
-  final List<FoodItem> foodItems; // This is the correct type
+  int id;
+  String customerName;
+  String customernumber;
   String status;
+  List<FoodItem> foodItems;
 
   Order({
     required this.id,
     required this.customerName,
-    required this.customernumber, // Initialize customer number
+    required this.customernumber,
+    required this.status,
     required this.foodItems,
-    this.status = 'incoming',
   });
+
+  factory Order.fromJson(Map<String, dynamic> json) {
+    return Order(
+      id: json['id'],
+      customerName: json['customer_name'],
+      customernumber: json['phone'],
+      status: json['status'],
+      foodItems: (json['order_items'] as List)
+          .map((e) => FoodItem.fromJson(e))
+          .toList(),
+    );
+  }
 }

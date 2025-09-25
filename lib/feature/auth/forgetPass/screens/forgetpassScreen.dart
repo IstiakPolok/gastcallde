@@ -5,7 +5,6 @@ import 'package:gastcallde/feature/auth/login/screens/loginScreen.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/const/app_colors.dart';
-import 'otpVerificationScreen.dart';
 
 class forgetpassScreen extends StatelessWidget {
   forgetpassScreen({super.key});

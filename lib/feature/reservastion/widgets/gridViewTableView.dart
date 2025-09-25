@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 
 class TableReservationGrid extends StatelessWidget {
   final DateTime selectedDate;
-  TableReservationGrid({super.key, required this.selectedDate});
+  const TableReservationGrid({super.key, required this.selectedDate});
 
   String get formattedDate => DateFormat('yyyy-MM-dd').format(selectedDate);
 
