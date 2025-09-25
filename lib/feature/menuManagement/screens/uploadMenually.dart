@@ -4,9 +4,7 @@ import 'package:gastcallde/core/network_caller/endpoints.dart';
 import 'package:gastcallde/core/services_class/local_service/shared_preferences_helper.dart';
 import 'package:gastcallde/feature/menuManagement/screens/menuManagement.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart'; // For token
 
 class AddFoodItemScreen extends StatelessWidget {
@@ -25,22 +23,24 @@ class AddFoodItemScreen extends StatelessWidget {
   Future<void> createFoodItem() async {
     final String url = '${Urls.baseUrl}/owner/items/create/?lean=EN';
     final String? token = await SharedPreferencesHelper.getAccessToken();
-    print('🔑 Fetching menu with Token: $token');
+
+    print("\n================= 🍔 CREATE FOOD ITEM =================");
+    print("🔑 Token: $token");
+    print("🌍 URL: $url");
+
     final headers = {
       'Authorization': 'Bearer $token',
       'Accept': 'application/json',
       'Content-Type': 'multipart/form-data',
     };
 
-    print("🔍 Sending Request...");
-    print("➡️ URL: $url");
-    print("➡️ Headers: $headers");
+    print("📌 Headers: $headers");
 
     // Prepare the request
     final request = http.MultipartRequest('POST', Uri.parse(url));
     request.headers.addAll(headers);
 
-    // Add form data fields
+    // Add form fields
     request.fields['item_name'] = nameController.text;
     request.fields['status'] = statusController.text;
     request.fields['descriptions'] = descriptionController.text;
@@ -49,56 +49,47 @@ class AddFoodItemScreen extends StatelessWidget {
     request.fields['discount'] = discountController.text;
     request.fields['preparation_time'] = preparationTimeController.text;
 
-    // Debug: Printing form data before sending
-    print("📦 Request Fields: ");
-    print("item_name: ${nameController.text}");
-    print("status: ${statusController.text}");
-    print("description: ${descriptionController.text}");
-    print("price: ${priceController.text}");
-    print("category: ${categoryController.text}");
-    print("discount: ${discountController.text}");
-    print("preparation_time: ${preparationTimeController.text}");
+    print("\n📦 Request Fields:");
+    request.fields.forEach((key, value) {
+      print("   ➡️ $key: $value");
+    });
 
-    // If an image is selected, add it to the request
+    // If an image is selected
     if (imageController.text.isNotEmpty) {
-      // Assuming the image file path is provided in imageController.text
       try {
         final imageFile = await http.MultipartFile.fromPath(
           'image',
           imageController.text,
         );
         request.files.add(imageFile);
-
-        // Debug: Printing image file details
         print("📷 Image File Added: ${imageController.text}");
       } catch (e) {
-        print("⚠️ Error with image: $e");
+        print("⚠️ Image Error: $e");
       }
+    } else {
+      print("ℹ️ No image selected.");
     }
 
     try {
+      print("\n🚀 Sending API Request...");
       final response = await request.send();
 
-      // Debug: Checking response status
-      print("✅ Response Status: ${response.statusCode}");
+      print("✅ Response Status Code: ${response.statusCode}");
+
+      final responseBody = await response.stream.bytesToString();
+      print("📨 Response Body: $responseBody");
 
       if (response.statusCode == 201) {
-        // Optionally, read the response body
-        final responseBody = await response.stream.bytesToString();
-        print("📦 Response Body: $responseBody");
-
+        print("🎉 Food item added successfully!");
         Get.off(() => menuManagement());
-
-        // Handle success
-        print('✅ Food item added successfully');
       } else {
-        print("❌ Error: Failed to add food item: ${response.statusCode}");
-        final responseBody = await response.stream.bytesToString();
-        print("📦 Response Body: $responseBody");
+        print("❌ Failed to add food item. Code: ${response.statusCode}");
       }
     } catch (error) {
-      print("⚠️ Error during API request: $error");
+      print("🔥 Exception during API call: $error");
     }
+
+    print("================= ✅ END CREATE FOOD ITEM =================\n");
   }
 
   Future<String?> _getAccessToken() async {
@@ -194,11 +185,11 @@ class AddFoodItemScreen extends StatelessWidget {
                       // ),
                       SizedBox(width: isTablet ? 30 : 0),
                       Expanded(
-                        child: _buildTextFieldSection(
+                        child: _buildDropdownSection(
                           'Status',
-                          'Type here',
+                          ['Available', 'Unavailable'],
                           isTablet,
-                          controller: statusController,
+                          statusController,
                         ),
                       ),
 
@@ -212,17 +203,19 @@ class AddFoodItemScreen extends StatelessWidget {
                   )
                 : Column(
                     children: [
-                      _buildDropdownSection('Category', [
-                        'Appetizers',
-                        'Main Course',
-                        'Desserts',
-                        'Drinks',
-                      ], isTablet),
+                      _buildTextFieldSection(
+                        'Category',
+                        'Type here',
+                        isTablet,
+                        controller: categoryController,
+                      ),
                       const SizedBox(height: 20),
-                      _buildDropdownSection('Status', [
-                        'Available',
-                        'Unavailable',
-                      ], isTablet),
+                      _buildDropdownSection(
+                        'Status',
+                        ['Available', 'Not Available'],
+                        isTablet,
+                        statusController,
+                      ),
                     ],
                   ),
             const SizedBox(height: 30),
@@ -355,12 +348,17 @@ class AddFoodItemScreen extends StatelessWidget {
     );
   }
 
-  // Dropdown section for category and status
   Widget _buildDropdownSection(
     String title,
     List<String> items,
     bool isTablet,
+    TextEditingController controller,
   ) {
+    // Ensure controller has a value (default first item)
+    if (controller.text.isEmpty) {
+      controller.text = items.first;
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -382,18 +380,20 @@ class AddFoodItemScreen extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: isTablet ? 16 : 12),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
+              dropdownColor: Colors.white,
               isExpanded: true,
-              value:
-                  items.first, // Default selected value (for stateless example)
+              value: controller.text,
               icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
               style: TextStyle(
                 fontSize: isTablet ? 16 : 14,
                 color: Colors.black87,
               ),
               onChanged: (String? newValue) {
-                debugPrint('Selected: $newValue');
+                if (newValue != null) {
+                  controller.text = newValue; // ✅ updates the API field
+                }
               },
-              items: items.map<DropdownMenuItem<String>>((String value) {
+              items: items.map((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value),

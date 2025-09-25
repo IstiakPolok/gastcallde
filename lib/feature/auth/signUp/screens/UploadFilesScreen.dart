@@ -11,6 +11,8 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 
 class UploadFilesPage extends StatefulWidget {
+  const UploadFilesPage({super.key});
+
   @override
   _UploadFilesPageState createState() => _UploadFilesPageState();
 }
@@ -18,7 +20,7 @@ class UploadFilesPage extends StatefulWidget {
 class _UploadFilesPageState extends State<UploadFilesPage> {
   final List<File> selectedFiles = [];
   String? bearerToken;
-  final String apiUrl = "${Urls.uploadmenu}";
+  final String apiUrl = Urls.uploadmenu;
 
   @override
   void initState() {

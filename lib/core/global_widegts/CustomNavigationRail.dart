@@ -12,8 +12,6 @@ import 'package:gastcallde/feature/orderManagment/orderManagmentscreen.dart';
 import 'package:gastcallde/feature/reservastion/screens/reservationScreen.dart';
 import 'package:gastcallde/feature/setting/screens/settingScreen.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class CustomNavigationRail extends StatelessWidget {
   final int selectedIndex;

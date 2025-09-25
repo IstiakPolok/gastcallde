@@ -223,7 +223,6 @@ class EditFoodScreen extends StatelessWidget {
                         EasyLoading.showSuccess('Item updated successfully');
                         Navigator.pop(context);
                       },
-                      child: const Text('Save Changes'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryColor,
                         foregroundColor: Colors.white,
@@ -232,6 +231,7 @@ class EditFoodScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
+                      child: const Text('Save Changes'),
                     ),
                   ),
                 ),

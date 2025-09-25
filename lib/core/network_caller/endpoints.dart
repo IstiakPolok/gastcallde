@@ -1,5 +1,5 @@
 class Urls {
-  static const String baseUrl = 'http://10.10.13.26:9001';
+  static const String baseUrl = 'http://10.10.13.26:8000';
 
   static const String login = '$baseUrl/login/?lean=';
   static const String register = '$baseUrl/register/?lean=';
@@ -17,6 +17,9 @@ class Urls {
       '$baseUrl/owner/update-table-status/?date=';
   static const String getTablegridReservations =
       '$baseUrl/owner/table-reservations/?date=';
+
+  static const String subscriptionUrl =
+      '$baseUrl/subscription/create-checkout-session/';
 
   static const String updateProfile = '$baseUrl/auth/profile';
   static const String updateProfileImage = '$baseUrl/auth/update/profile-image';

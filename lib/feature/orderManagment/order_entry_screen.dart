@@ -1,125 +1,17 @@
 // lib/feature/calls/order_entry_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/feature/orderManagment/models/food_item_model.dart';
 import 'package:get/get.dart';
-import 'controllers/order_controller.dart';
-import 'models/order_model.dart';
+import 'controllers/OrderEntryController.dart';
+import 'controllers/MenuController.dart';
 
-// Local controller for this screen to manage temporary state
-class OrderEntryController extends GetxController {
-  final orderItems = <FoodItem>[].obs;
-  final customerNameController = TextEditingController();
-  final addressController = TextEditingController();
-  final phoneController = TextEditingController();
-  final orderNotesController = TextEditingController();
-
-  var selectedCategory = 'All'.obs; // Track selected category for filtering
-
-  void addFoodItem(FoodItem item) {
-    // Check if the item already exists in the current order
-    var existingItemIndex = orderItems.indexWhere((i) => i.name == item.name);
-    if (existingItemIndex != -1) {
-      orderItems[existingItemIndex].quantity++;
-      orderItems.refresh(); // Manually refresh the list to update the UI
-    } else {
-      orderItems.add(item);
-    }
-  }
-
-  void incrementQuantity(FoodItem item) {
-    item.quantity++;
-    orderItems.refresh();
-  }
-
-  void decrementQuantity(FoodItem item) {
-    if (item.quantity > 1) {
-      item.quantity--;
-    } else {
-      orderItems.remove(item);
-    }
-    orderItems.refresh();
-  }
-
-  void removeItem(FoodItem item) {
-    orderItems.remove(item);
-  }
-
-  void createOrder() {
-    if (orderItems.isEmpty ||
-        customerNameController.text.isEmpty ||
-        addressController.text.isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Please add food items, customer name, and address.',
-      );
-      return;
-    }
-
-    // Get the global OrderController
-    final orderController = Get.find<OrderController>();
-
-    // Create a new order object
-    final newOrder = Order(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      customerName: customerNameController.text,
-      foodItems: List<FoodItem>.from(orderItems),
-      customernumber: phoneController.text,
-    );
-
-    // Add the new order to the incoming list
-    orderController.addOrder(newOrder);
-
-    // Clear the form and close the screen
-    clearForm();
-    Get.back();
-  }
-
-  void clearForm() {
-    customerNameController.clear();
-    addressController.clear();
-    phoneController.clear();
-    orderNotesController.clear();
-    orderItems.clear();
-  }
-}
-
-// Change the `filteredFoodItems` to use an Obx widget to reactively update
 class OrderEntryScreen extends StatelessWidget {
   OrderEntryScreen({super.key});
 
+  final menuController = Get.put(Menu_Controller());
   final orderEntryController = Get.put(OrderEntryController());
-
-  // List of food items categorized by type
-  final List<FoodMenuItemData> allFoodItems = [
-    FoodMenuItemData(
-      name: 'burger',
-      price: 12.99,
-      //imagePath: 'assets/image/burger.png',
-      category: 'Burger',
-    ),
-    FoodMenuItemData(
-      name: 'Pizza',
-      price: 15.50,
-      // imagePath: 'assets/image/pizza.png',
-      category: 'Pizza',
-    ),
-    // Add more items as needed
-  ];
-
-  // Filter food items based on selected category
-  List<FoodMenuItemData> get filteredFoodItems {
-    if (orderEntryController.selectedCategory.value == 'All') {
-      return allFoodItems;
-    } else {
-      return allFoodItems
-          .where(
-            (item) =>
-                item.category == orderEntryController.selectedCategory.value,
-          )
-          .toList();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -188,63 +80,44 @@ class OrderEntryScreen extends StatelessWidget {
                   // Category Filter
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        FilterButton(
-                          text: 'All',
-                          onPressed: () {
-                            orderEntryController.selectedCategory.value = 'All';
-                          },
+                    child: Obx(() {
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: menuController.categories.map((cat) {
+                            return FilterButton(
+                              text: cat,
+                              onPressed: () {
+                                orderEntryController.selectedCategory.value =
+                                    cat;
+                              },
+                            );
+                          }).toList(),
                         ),
-                        FilterButton(
-                          text: 'Pizza',
-                          onPressed: () {
-                            orderEntryController.selectedCategory.value =
-                                'Pizza';
-                          },
-                        ),
-                        FilterButton(
-                          text: 'Burger',
-                          onPressed: () {
-                            orderEntryController.selectedCategory.value =
-                                'Burger';
-                          },
-                        ),
-                        FilterButton(
-                          text: 'Dessert',
-                          onPressed: () {
-                            orderEntryController.selectedCategory.value =
-                                'Dessert';
-                          },
-                        ),
-                        FilterButton(
-                          text: 'Drink',
-                          onPressed: () {
-                            orderEntryController.selectedCategory.value =
-                                'Drink';
-                          },
-                        ),
-                      ],
-                    ),
+                      );
+                    }),
                   ),
 
                   const SizedBox(height: 10),
-                  // Use Obx to make this section reactive
+
+                  // Menu items
                   Obx(() {
+                    if (menuController.isLoading.value) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    final items = menuController.filteredItems(
+                      orderEntryController.selectedCategory.value,
+                    );
+
                     return Column(
-                      children: filteredFoodItems.map((foodItem) {
+                      children: items.map((foodItem) {
                         return FoodMenuItem(
+                          id: foodItem.id,
                           name: foodItem.name,
                           price: foodItem.price,
-                          // imagePath: foodItem.imagePath,
-                          onAdd: () {
-                            orderEntryController.addFoodItem(
-                              FoodItem(
-                                name: foodItem.name,
-                                price: foodItem.price,
-                              ),
-                            );
+                          onAdd: (FoodItem item) {
+                            orderEntryController.addFoodItem(item);
                           },
                         );
                       }).toList(),
@@ -264,7 +137,7 @@ class OrderEntryScreen extends StatelessWidget {
               child: Obx(() {
                 double total = orderEntryController.orderItems.fold(
                   0.0,
-                  (sum, item) => sum + (item.price * item.quantity),
+                  (sum, item) => sum + (item.totalPrice * item.quantity),
                 );
 
                 return Column(
@@ -364,27 +237,43 @@ class FilterButton extends StatelessWidget {
 }
 
 class FoodMenuItemData {
+  final int id;
   final String name;
+  final String category;
   final double price;
-  //final String imagePath;
-  final String category; // This will hold the category for filtering
+  final String description;
+  final String? image;
 
   FoodMenuItemData({
+    required this.id,
     required this.name,
-    required this.price,
-    // required this.imagePath,
     required this.category,
+    required this.price,
+    required this.description,
+    this.image,
   });
+
+  factory FoodMenuItemData.fromJson(Map<String, dynamic> json) {
+    return FoodMenuItemData(
+      id: json['id'],
+      name: json['item_name'],
+      category: json['category'],
+      price: double.tryParse(json['price'].toString()) ?? 0.0,
+      description: json['descriptions'] ?? '',
+      image: json['image'],
+    );
+  }
 }
 
 class FoodMenuItem extends StatefulWidget {
+  final int id;
   final String name;
   final double price;
-  //final String imagePath;
-  final VoidCallback onAdd;
+  final void Function(FoodItem) onAdd;
 
   const FoodMenuItem({
     super.key,
+    required this.id,
     required this.name,
     required this.price,
     //required this.imagePath,
@@ -400,6 +289,9 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
   bool _cheeseSelected = false;
   bool _avocadoSelected = false;
   bool _extraPattySelected = false;
+
+  final TextEditingController _specialInstructionsController =
+      TextEditingController(); // ✅ added
 
   @override
   Widget build(BuildContext context) {
@@ -516,7 +408,25 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
             backgroundColor: Colors.white,
             foregroundColor: AppColors.primaryColor,
           ),
-          onPressed: widget.onAdd,
+          onPressed: () {
+            // Collect selected extras
+            List<String> extras = [];
+            if (_baconSelected) extras.add('Bacon');
+            if (_cheeseSelected) extras.add('Cheese');
+            if (_avocadoSelected) extras.add('Avocado');
+            if (_extraPattySelected) extras.add('Extra Patty');
+
+            widget.onAdd(
+              FoodItem(
+                id: widget.id,
+                name: widget.name,
+                price: widget.price,
+                extras: extras,
+                specialInstructions: _specialInstructionsController.text,
+              ),
+            );
+          },
+
           child: const Text('Add to Order'),
         ),
       ],
@@ -553,7 +463,39 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
             backgroundColor: Colors.white,
             foregroundColor: AppColors.primaryColor,
           ),
-          onPressed: widget.onAdd,
+          onPressed: () {
+            List<String> extras = [];
+            double extrasPrice = 0;
+
+            if (_baconSelected) {
+              extras.add('Bacon');
+              extrasPrice += 2.5;
+            }
+            if (_cheeseSelected) {
+              extras.add('Cheese');
+              extrasPrice += 1.5;
+            }
+            if (_avocadoSelected) {
+              extras.add('Avocado');
+              extrasPrice += 2.0;
+            }
+            if (_extraPattySelected) {
+              extras.add('Extra Patty');
+              extrasPrice += 4.0;
+            }
+
+            widget.onAdd(
+              FoodItem(
+                id: widget.id, // pass id
+                name: widget.name,
+                price: widget.price,
+                extras: extras,
+
+                specialInstructions: _specialInstructionsController.text,
+              ),
+            );
+          },
+
           child: const Text('Add to Order'),
         ),
       ],
@@ -611,7 +553,10 @@ class OrderItemSummary extends StatelessWidget {
                     item.name,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  Text('\$${(item.price * item.quantity).toStringAsFixed(2)}'),
+                  Text(
+                    '\$${(item.totalPrice * item.quantity).toStringAsFixed(2)}',
+                  ),
+
                   Row(
                     children: [
                       Flexible(
@@ -649,7 +594,7 @@ class OrderItemSummary extends StatelessWidget {
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          '\$${(item.price * item.quantity).toStringAsFixed(2)}',
+                          '\$${(item.totalPrice * item.quantity).toStringAsFixed(2)}',
                         ),
                       ],
                     ),

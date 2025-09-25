@@ -14,7 +14,16 @@ class OrdersDashboard extends StatefulWidget {
 
 class _OrdersDashboardState extends State<OrdersDashboard> {
   final OrderController orderController = Get.find<OrderController>();
-  String selectedColumn = 'Incoming';
+  String selectedColumn = 'incoming';
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch fresh data whenever this screen is opened
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      orderController.fetchOrders();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,10 +52,10 @@ class _OrdersDashboardState extends State<OrdersDashboard> {
               },
               items:
                   <String>[
-                    'Incoming',
-                    'In Preparation',
-                    'Out for Delivery',
-                    'Completed',
+                    'incoming',
+                    'in_preparation',
+                    'out_for_delivery',
+                    'completed',
                   ].map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
@@ -64,37 +73,37 @@ class _OrdersDashboardState extends State<OrdersDashboard> {
                     children: [
                       Expanded(
                         child: OrderListColumn(
-                          title: 'Incoming',
+                          title: 'incoming',
                           orders: orderController.incomingOrders,
                           onButtonPressed: orderController.moveToPreparation,
-                          buttonText: 'In Preparation',
+                          buttonText: 'in_preparation',
                           buttonColor: Colors.amber,
                         ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: OrderListColumn(
-                          title: 'In Preparation',
+                          title: 'in_preparation',
                           orders: orderController.inPreparationOrders,
                           onButtonPressed: orderController.moveToDelivery,
-                          buttonText: 'Out for Delivery',
+                          buttonText: 'out_for_delivery',
                           buttonColor: Colors.blue,
                         ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: OrderListColumn(
-                          title: 'Out for Delivery',
+                          title: 'out_for_delivery',
                           orders: orderController.outForDeliveryOrders,
                           onButtonPressed: orderController.moveToCompleted,
-                          buttonText: 'Completed',
+                          buttonText: 'completed',
                           buttonColor: Colors.green,
                         ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: OrderListColumn(
-                          title: 'Completed',
+                          title: 'completed',
                           orders: orderController.completedOrders,
                           onButtonPressed: null, // No button on this list
                           buttonText: '',
@@ -107,40 +116,40 @@ class _OrdersDashboardState extends State<OrdersDashboard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Conditionally display the column based on the selected value
-                      if (selectedColumn == 'Incoming')
+                      if (selectedColumn == 'incoming')
                         Expanded(
                           child: OrderListColumn(
-                            title: 'Incoming',
+                            title: 'incoming',
                             orders: orderController.incomingOrders,
                             onButtonPressed: orderController.moveToPreparation,
-                            buttonText: 'In Preparation',
+                            buttonText: 'in_preparation',
                             buttonColor: Colors.amber,
                           ),
                         ),
-                      if (selectedColumn == 'In Preparation')
+                      if (selectedColumn == '')
                         Expanded(
                           child: OrderListColumn(
-                            title: 'In Preparation',
+                            title: 'in_preparation',
                             orders: orderController.inPreparationOrders,
                             onButtonPressed: orderController.moveToDelivery,
-                            buttonText: 'Out for Delivery',
+                            buttonText: 'out_for_delivery',
                             buttonColor: Colors.blue,
                           ),
                         ),
-                      if (selectedColumn == 'Out for Delivery')
+                      if (selectedColumn == 'out_for_delivery')
                         Expanded(
                           child: OrderListColumn(
-                            title: 'Out for Delivery',
+                            title: 'out_for_delivery',
                             orders: orderController.outForDeliveryOrders,
                             onButtonPressed: orderController.moveToCompleted,
-                            buttonText: 'Completed',
+                            buttonText: 'completed',
                             buttonColor: Colors.green,
                           ),
                         ),
-                      if (selectedColumn == 'Completed')
+                      if (selectedColumn == 'completed')
                         Expanded(
                           child: OrderListColumn(
-                            title: 'Completed',
+                            title: 'completed',
                             orders: orderController.completedOrders,
                             onButtonPressed: null, // No button on this list
                             buttonText: '',
@@ -207,11 +216,25 @@ class OrderListColumn extends StatelessWidget {
                   elevation: 2,
                   margin: const EdgeInsets.only(bottom: 16),
                   child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(6.0),
                     child: isTablet
                         ? Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              if (showBackButton &&
+                                  title != 'incoming') // <-- Hide when Incoming
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.arrow_back_ios,
+                                    color: AppColors.primaryColor,
+                                  ),
+
+                                  onPressed: () {
+                                    final controller =
+                                        Get.find<OrderController>();
+                                    controller.reverseOrderStatus(order);
+                                  },
+                                ),
                               Text('Customer: ${order.customerName}'),
                               Text('Phone: ${order.customernumber}'),
                               const SizedBox(height: 8),
@@ -277,42 +300,42 @@ class OrderListColumn extends StatelessWidget {
                                       ),
 
                                     // Delete button
-                                    Row(
-                                      children: [
-                                        // Inside the Row where the back button is shown
-                                        if (showBackButton &&
-                                            title !=
-                                                'Incoming') // <-- Hide when Incoming
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.arrow_back_ios,
-                                              color: AppColors.primaryColor,
-                                            ),
-                                            onPressed: () {
-                                              final controller =
-                                                  Get.find<OrderController>();
-                                              controller.reverseOrderStatus(
-                                                order,
-                                              );
-                                            },
-                                          ),
+                                    // Row(
+                                    //   children: [
+                                    //     // Inside the Row where the back button is shown
+                                    //     if (showBackButton &&
+                                    //         title !=
+                                    //             'incoming') // <-- Hide when Incoming
+                                    //       IconButton(
+                                    //         icon: const Icon(
+                                    //           Icons.arrow_back_ios,
+                                    //           color: AppColors.primaryColor,
+                                    //         ),
+                                    //         onPressed: () {
+                                    //           final controller =
+                                    //               Get.find<OrderController>();
+                                    //           controller.reverseOrderStatus(
+                                    //             order,
+                                    //           );
+                                    //         },
+                                    //       ),
 
-                                        Spacer(),
-                                        if (showDeleteButton) ...[
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.delete_outline_sharp,
-                                              color: Colors.red,
-                                            ),
-                                            onPressed: () {
-                                              final controller =
-                                                  Get.find<OrderController>();
-                                              controller.deleteOrder(order);
-                                            },
-                                          ),
-                                        ],
-                                      ],
-                                    ),
+                                    //     Spacer(),
+                                    //     if (showDeleteButton) ...[
+                                    //       IconButton(
+                                    //         icon: const Icon(
+                                    //           Icons.delete_outline_sharp,
+                                    //           color: Colors.red,
+                                    //         ),
+                                    //         onPressed: () {
+                                    //           final controller =
+                                    //               Get.find<OrderController>();
+                                    //           controller.deleteOrder(order);
+                                    //         },
+                                    //       ),
+                                    //     ],
+                                    //   ],
+                                    // ),
                                   ],
                                 ),
                               ],

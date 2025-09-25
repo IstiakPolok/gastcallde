@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:gastcallde/core/network_caller/endpoints.dart';
 import 'package:gastcallde/feature/auth/forgetPass/screens/otpVerificationScreen.dart';
 import 'package:get/get.dart';
