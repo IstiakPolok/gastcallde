@@ -351,13 +351,13 @@ class OrderListColumn extends StatelessWidget {
                               for (var foodItem in order.foodItems) ...[
                                 Row(
                                   children: [
-                                    Center(
-                                      child: Image.asset(
-                                        'assets/image/${foodItem.name.toLowerCase().replaceAll(' ', '_')}.png', // Assuming your images are named based on food item names
-                                        width: 100,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
+                                    // Center(
+                                    //   child: Image.asset(
+                                    //     'assets/image/${foodItem.name.toLowerCase().replaceAll(' ', '_')}.png', // Assuming your images are named based on food item names
+                                    //     width: 100,
+                                    //     fit: BoxFit.cover,
+                                    //   ),
+                                    // ),
                                     const SizedBox(width: 12),
                                     // Display the food item details (name, price, quantity, total price)
                                     Expanded(

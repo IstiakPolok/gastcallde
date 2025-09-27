@@ -101,10 +101,48 @@ class Item {
   }
 }
 
-class ItemsScreen extends StatelessWidget {
+class ItemsScreen extends StatefulWidget {
+  // Changed from StatelessWidget to StatefulWidget
   ItemsScreen({super.key});
 
+  @override
+  State<ItemsScreen> createState() => _ItemsScreenState();
+}
+
+class _ItemsScreenState extends State<ItemsScreen> {
   final ValueNotifier<int> _selectedIndexNotifier = ValueNotifier<int>(0);
+
+  List<Item> _allItems = []; // Store all items
+  List<Item> _filteredItems = []; // Filtered items for search
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    fetchItems().then((items) {
+      setState(() {
+        _allItems = items;
+        _filteredItems = items;
+      });
+    });
+
+    // Listen to search input changes
+    _searchController.addListener(() {
+      _filterItems();
+    });
+  }
+
+  void _filterItems() {
+    final query = _searchController.text.toLowerCase();
+
+    setState(() {
+      _filteredItems = _allItems.where((item) {
+        final nameMatch = item.name.toLowerCase().contains(query);
+        final categoryMatch = item.category.toLowerCase().contains(query);
+        return nameMatch || categoryMatch; // Search in name OR category
+      }).toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,9 +172,10 @@ class ItemsScreen extends StatelessWidget {
                       color: Colors.grey[200],
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Search',
+                    child: TextField(
+                      controller: _searchController, // <-- Added controller
+                      decoration: const InputDecoration(
+                        hintText: 'Search by name or category', // Updated hint
                         border: InputBorder.none,
                         prefixIcon: Icon(Icons.search, color: Colors.grey),
                       ),
@@ -181,9 +220,25 @@ class ItemsScreen extends StatelessWidget {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   }
 
-                  final items = snapshot.data ?? [];
+                  final allItems = snapshot.data ?? [];
 
-                  // Table Headers for tablet, labels for mobile
+                  // Filter items based on search text
+                  final query = _searchController.text
+                      .toLowerCase(); // <-- search controller
+                  final filteredItems = allItems.where((item) {
+                    final nameMatch = item.name.toLowerCase().contains(query);
+                    final categoryMatch = item.category.toLowerCase().contains(
+                      query,
+                    );
+                    return nameMatch ||
+                        categoryMatch; // search in name OR category
+                  }).toList();
+
+                  if (filteredItems.isEmpty) {
+                    return const Center(child: Text('No items found'));
+                  }
+
+                  // Tablet layout
                   if (isTablet) {
                     return Column(
                       children: [
@@ -244,12 +299,11 @@ class ItemsScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        // Item List
                         Expanded(
                           child: ListView.builder(
-                            itemCount: items.length,
+                            itemCount: filteredItems.length,
                             itemBuilder: (context, index) {
-                              final item = items[index];
+                              final item = filteredItems[index];
                               return Padding(
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 8.0,
@@ -263,10 +317,11 @@ class ItemsScreen extends StatelessWidget {
                     );
                   }
 
+                  // Mobile layout
                   return ListView.builder(
-                    itemCount: items.length,
+                    itemCount: filteredItems.length,
                     itemBuilder: (context, index) {
-                      final item = items[index];
+                      final item = filteredItems[index];
                       return _buildMobileItemCard(item, context);
                     },
                   );

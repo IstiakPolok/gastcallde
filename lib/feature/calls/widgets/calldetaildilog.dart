@@ -1,15 +1,83 @@
+import 'dart:convert';
+
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
+import 'package:gastcallde/core/network_caller/endpoints.dart';
+import 'package:gastcallde/core/services_class/local_service/shared_preferences_helper.dart';
 import 'package:gastcallde/feature/calls/screens/callScreen.dart';
+import 'package:http/http.dart' as http;
 
-class CallDetailsDialog extends StatelessWidget {
+class CallDetailsDialog extends StatefulWidget {
   const CallDetailsDialog(this.entry, {super.key});
-
   final CallEntry entry;
   final bool _isCallbackScheduled = false;
 
   @override
+  State<CallDetailsDialog> createState() => _CallDetailsDialogState();
+}
+
+class _CallDetailsDialogState extends State<CallDetailsDialog> {
+  late AudioPlayer audioPlayer;
+  bool isPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    audioPlayer = AudioPlayer();
+  }
+
+  @override
+  void dispose() {
+    audioPlayer.dispose();
+    super.dispose();
+  }
+
+  Future<void> markCallback(CallEntry entry) async {
+    if (entry.callback) return;
+
+    final token = await SharedPreferencesHelper.getAccessToken();
+    if (token == null) return;
+
+    final url = "${Urls.baseUrl}/owner/user-call/callback/${entry.id}/";
+    try {
+      final response = await http.patch(
+        Uri.parse(url),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({"callback": true}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        setState(() {
+          entry.callback = true; // UI updates immediately
+        });
+        print("✅ Callback marked for call id: ${entry.id}");
+      } else {
+        print("❌ Failed to mark callback | Response: ${response.body}");
+      }
+    } catch (e) {
+      print("🔥 Exception while marking callback: $e");
+    }
+  }
+
+  void _togglePlay() async {
+    if (isPlaying) {
+      await audioPlayer.stop();
+    } else if (widget.entry.recording.isNotEmpty) {
+      await audioPlayer.setSource(UrlSource(widget.entry.recording));
+      await audioPlayer.resume();
+    }
+    setState(() {
+      isPlaying = !isPlaying;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final entry = widget.entry;
     return Dialog(
       backgroundColor: const Color(0xFFF6F8FB),
       insetPadding: const EdgeInsets.all(16.0),
@@ -50,23 +118,41 @@ class CallDetailsDialog extends StatelessWidget {
                     ],
                   ),
                   const Spacer(),
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF139783),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                        side: const BorderSide(color: Color(0xFFE5E7EB)),
+                  if (!entry.callback)
+                    ElevatedButton(
+                      onPressed: () async {
+                        await markCallback(entry);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF139783),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          side: const BorderSide(color: Color(0xFFE5E7EB)),
+                        ),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
+                        ),
                       ),
-                      elevation: 0,
+                      child: const Text('Callback'),
+                    )
+                  else
+                    Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 8.0,
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        "Done",
+                        style: TextStyle(color: Colors.green),
                       ),
                     ),
-                    child: const Text('Callback'),
-                  ),
                 ],
               ),
             ),
@@ -115,8 +201,8 @@ class CallDetailsDialog extends StatelessWidget {
           titleIcon: Icons.person,
           title: 'Customer Information',
           info: [
-            ['Name', (entry.customer)],
-            ['Phone', (entry.phone)],
+            ['Name', (widget.entry.customer)],
+            ['Phone', (widget.entry.phone)],
           ],
         ),
         const SizedBox(height: 16),
@@ -124,10 +210,10 @@ class CallDetailsDialog extends StatelessWidget {
           titleIcon: Icons.access_time,
           title: 'Call Information',
           info: [
-            ['Date', (entry.date)],
-            ['Time', (entry.time)],
-            ['Duration', (entry.duration)],
-            ['Type', (entry.type)],
+            ['Date', (widget.entry.date)],
+            ['Time', (widget.entry.time)],
+            ['Duration', (widget.entry.duration)],
+            ['Type', (widget.entry.type)],
           ],
         ),
       ],
@@ -163,9 +249,11 @@ class CallDetailsDialog extends StatelessWidget {
                 color: const Color(0xFFF9FAFB),
                 borderRadius: BorderRadius.circular(8.0),
               ),
-              child: const Text(
-                'The customer said for two large burger The customer said for two large burger The customer said for two large burger...',
-                style: TextStyle(
+              child: Text(
+                widget.entry.summary.isNotEmpty
+                    ? widget.entry.summary
+                    : 'No summary available',
+                style: const TextStyle(
                   fontSize: 14,
                   height: 1.5,
                   color: Color(0xFF4B5563),
@@ -173,37 +261,39 @@ class CallDetailsDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: const [
-                Icon(Icons.play_circle_outline, color: Color(0xFF6B7280)),
-                SizedBox(width: 4),
-                Text(
-                  'Play (2:30)',
-                  style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+            if (widget.entry.recording.isNotEmpty)
+              ElevatedButton.icon(
+                onPressed: _togglePlay,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-              ],
-            ),
+                icon: Icon(isPlaying ? Icons.stop : Icons.play_arrow),
+                label: Text(isPlaying ? "Stop Recording" : "Play Recording"),
+              ),
             const SizedBox(height: 16),
             const Divider(height: 1, color: Color(0xFFE5E7EB)),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Switch(
-                  value: _isCallbackScheduled,
-                  onChanged: null,
-                  activeColor: Colors.white,
-                  activeTrackColor: const Color(0xFF139783),
-                  inactiveThumbColor: const Color(0xFF9CA3AF),
-                  inactiveTrackColor: const Color(0xFFE5E7EB),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Schedule a callback',
-                  style: TextStyle(fontSize: 16, color: Color(0xFF4B5563)),
-                ),
-              ],
-            ),
+            // Row(
+            //   children: [
+            //     Switch(
+            //       value: _isCallbackScheduled,
+            //       onChanged: null,
+            //       activeColor: Colors.white,
+            //       activeTrackColor: const Color(0xFF139783),
+            //       inactiveThumbColor: const Color(0xFF9CA3AF),
+            //       inactiveTrackColor: const Color(0xFFE5E7EB),
+            //     ),
+            //     const SizedBox(width: 8),
+            //     const Text(
+            //       'Schedule a callback',
+            //       style: TextStyle(fontSize: 16, color: Color(0xFF4B5563)),
+            //     ),
+            //   ],
+            // ),
           ],
         ),
       ),

@@ -4,6 +4,9 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+import '../../../core/const/app_colors.dart';
+import 'RevenueController.dart';
+
 // Main entry point for the application
 
 // Convert to a StatefulWidget to manage the state of the selected filter.
@@ -151,6 +154,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
     );
   }
 
+  final RevenueController controller = Get.put(RevenueController());
   @override
   Widget build(BuildContext context) {
     // Determine screen size for responsiveness
@@ -242,14 +246,14 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                 ? Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: InfoCard(
-                          title: 'revenue_orders'.tr,
-                          value: infoData['revenueOrders']!,
-                          subText: _selectedFilter,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
+                      // Expanded(
+                      //   child: InfoCard(
+                      //     title: 'revenue_orders'.tr,
+                      //     value: infoData['revenueOrders']!,
+                      //     subText: _selectedFilter,
+                      //   ),
+                      // ),
+                      // const SizedBox(width: 16),
                       Expanded(
                         child: InfoCard(
                           title: 'revenue_reservation'.tr,
@@ -457,21 +461,24 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
             const SizedBox(height: 24),
 
             // Bottom section with two chart cards
+            // Bottom section with two chart cards
             isTablet
                 ? Row(
                     children: [
                       Expanded(
                         child: ChartCard(
-                          title: 'total_order_quantity'.tr,
+                          title: 'total_revenue_trends'.tr,
                           children: [
-                            Text(
-                              '\$125,000',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
+                            Obx(
+                              () => Text(
+                                '\$${controller.totalRevenue.value.toStringAsFixed(2)}',
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                            SizedBox(height: 16),
+                            const SizedBox(height: 16),
                             SizedBox(height: 200, child: RevenueLineChart()),
                           ],
                         ),
@@ -481,18 +488,17 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                         child: ChartCard(
                           title: 'total_order_quantity'.tr,
                           children: [
-                            Text(
-                              '1,220',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
+                            Obx(
+                              () => Text(
+                                '${controller.totalOrders.value}',
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 16),
-                            SizedBox(
-                              height: 200,
-                              child: OrderQuantityBarChart(),
-                            ),
+                            SizedBox(height: 200, child: OrdersBarChart()),
                           ],
                         ),
                       ),
@@ -501,16 +507,18 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                 : Column(
                     children: [
                       ChartCard(
-                        title: 'total_order_quantity'.tr,
+                        title: 'total_revenue_trends'.tr,
                         children: [
-                          Text(
-                            '\$125,000',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
+                          Obx(
+                            () => Text(
+                              '\$${controller.totalRevenue.value.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                          SizedBox(height: 16),
+                          const SizedBox(height: 16),
                           SizedBox(height: 200, child: RevenueLineChart()),
                         ],
                       ),
@@ -518,15 +526,17 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       ChartCard(
                         title: 'total_order_quantity'.tr,
                         children: [
-                          const Text(
-                            '1,220',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
+                          Obx(
+                            () => Text(
+                              controller.totalOrders.value.toString(),
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 16),
-                          SizedBox(height: 200, child: OrderQuantityBarChart()),
+                          SizedBox(height: 200, child: OrdersBarChart()),
                         ],
                       ),
                     ],
@@ -804,237 +814,202 @@ class callsLineChart extends StatelessWidget {
   }
 }
 
-// Widget for the bottom-left line chart
 class RevenueLineChart extends StatelessWidget {
-  const RevenueLineChart({super.key});
+  RevenueLineChart({super.key});
+  final RevenueController controller = Get.put(RevenueController());
 
   @override
   Widget build(BuildContext context) {
-    return LineChart(
-      LineChartData(
-        minX: 0,
-        maxX: 6,
-        minY: 0,
-        maxY: 400,
-        gridData: FlGridData(
-          show: true,
-          drawVerticalLine: false,
-          getDrawingHorizontalLine: (value) {
-            return FlLine(color: const Color(0xfff3f3f3), strokeWidth: 1);
-          },
-        ),
-        titlesData: FlTitlesData(
-          show: true,
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 30,
-              interval: 1,
-              getTitlesWidget: (value, meta) {
-                const style = TextStyle(
-                  color: Color(0xff68737d),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 10,
-                );
-                String text;
-                switch (value.toInt()) {
-                  case 0:
-                    text = 'day_1'.tr; // Translates "Day 1"
-                    break;
-                  case 1:
-                    text = 'day_2'.tr; // Translates "Day 2"
-                    break;
-                  case 2:
-                    text = 'day_3'.tr; // Translates "Day 3"
-                    break;
-                  case 3:
-                    text = 'day_4'.tr; // Translates "Day 4"
-                    break;
-                  case 4:
-                    text = 'day_5'.tr; // Translates "Day 5"
-                    break;
-                  case 5:
-                    text = 'day_6'.tr; // Translates "Day 6"
-                    break;
-                  case 6:
-                    text = 'day_7'.tr; // Translates "Day 7"
-                    break;
-                  default:
-                    return Container();
-                }
-                return Text(text, style: style); // Display the translated text
-              },
-            ),
-          ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 40,
-              getTitlesWidget: (value, meta) {
-                switch (value.toInt()) {
-                  case 100:
-                    return Text('100', style: GoogleFonts.inter(fontSize: 10));
-                  case 200:
-                    return Text('200', style: GoogleFonts.inter(fontSize: 10));
-                  case 300:
-                    return Text('300', style: GoogleFonts.inter(fontSize: 10));
-                  case 400:
-                    return Text('400', style: GoogleFonts.inter(fontSize: 10));
-                  default:
-                    return const Text('');
-                }
-              },
-            ),
-          ),
-        ),
-        borderData: FlBorderData(show: false),
-        lineBarsData: [
-          LineChartBarData(
-            spots: const [
-              FlSpot(0, 190),
-              FlSpot(1, 250),
-              FlSpot(2, 170),
-              FlSpot(3, 310),
-              FlSpot(4, 180),
-              FlSpot(5, 340),
-              FlSpot(6, 290),
-            ],
-            isCurved: true,
-            gradient: LinearGradient(
-              colors: [Colors.purple.shade300, Colors.purple.shade300],
-            ),
-            barWidth: 2,
-            isStrokeCapRound: true,
-            dotData: FlDotData(show: false),
-            belowBarData: BarAreaData(
-              show: true,
-              gradient: LinearGradient(
-                colors: [
-                  Colors.purple.withOpacity(0.3),
-                  Colors.blue.withOpacity(0),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+    return Obx(() {
+      if (controller.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      final spots = List.generate(
+        controller.last7DaysRevenue.length,
+        (index) => FlSpot(index.toDouble(), controller.last7DaysRevenue[index]),
+      );
+
+      return LineChart(
+        LineChartData(
+          minX: 0,
+          maxX: 6,
+          minY: 0,
+          maxY:
+              (controller.last7DaysRevenue.reduce((a, b) => a > b ? a : b) +
+              50),
+          gridData: FlGridData(show: true),
+          titlesData: FlTitlesData(
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 30,
+                interval: 1,
+                getTitlesWidget: (value, meta) {
+                  const style = TextStyle(
+                    color: Color(0xff68737d),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                  );
+                  switch (value.toInt()) {
+                    case 0:
+                      return Text(
+                        'day_1'.tr,
+                        style: style,
+                      ); // Translates "Day 1"
+                    case 1:
+                      return Text(
+                        'day_2'.tr,
+                        style: style,
+                      ); // Translates "Day 2"
+                    case 2:
+                      return Text(
+                        'day_3'.tr,
+                        style: style,
+                      ); // Translates "Day 3"
+                    case 3:
+                      return Text(
+                        'day_4'.tr,
+                        style: style,
+                      ); // Translates "Day 4"
+                    case 4:
+                      return Text(
+                        'day_5'.tr,
+                        style: style,
+                      ); // Translates "Day 5"
+                    case 5:
+                      return Text(
+                        'day_6'.tr,
+                        style: style,
+                      ); // Translates "Day 6"
+                    case 6:
+                      return Text(
+                        'day_7'.tr,
+                        style: style,
+                      ); // Translates "Day 7"
+                    default:
+                      return const SizedBox();
+                  }
+                },
               ),
             ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: true, reservedSize: 40),
+            ),
           ),
-        ],
-      ),
-    );
+          lineBarsData: [
+            LineChartBarData(
+              spots: spots,
+              isCurved: true,
+              gradient: LinearGradient(colors: [Colors.purple, Colors.blue]),
+              barWidth: 2,
+              belowBarData: BarAreaData(
+                show: true,
+                gradient: LinearGradient(
+                  colors: [Colors.purple.withOpacity(0.3), Colors.transparent],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    });
   }
 }
 
-// Widget for the bottom-right bar chart
-class OrderQuantityBarChart extends StatelessWidget {
-  const OrderQuantityBarChart({super.key});
+class OrdersBarChart extends StatelessWidget {
+  OrdersBarChart({super.key});
+  final RevenueController controller = Get.find();
 
   @override
   Widget build(BuildContext context) {
-    return BarChart(
-      BarChartData(
-        alignment: BarChartAlignment.spaceAround,
-        maxY: 400,
-        barTouchData: BarTouchData(enabled: false),
-        titlesData: FlTitlesData(
-          show: true,
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                const style = TextStyle(
-                  color: Color(0xff68737d),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 10,
-                );
-                String text;
-                switch (value.toInt()) {
-                  case 0:
-                    text = 'Day 1';
-                    break;
-                  case 1:
-                    text = 'Day 2';
-                    break;
-                  case 2:
-                    text = 'Day 3';
-                    break;
-                  case 3:
-                    text = 'Day 4';
-                    break;
-                  case 4:
-                    text = 'Day 5';
-                    break;
-                  case 5:
-                    text = 'Day 6';
-                    break;
-                  case 6:
-                    text = 'Day 7';
-                    break;
-                  default:
-                    return Container();
-                }
-                return Text(text, style: style);
-              },
-              reservedSize: 38,
-            ),
-          ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 40,
-              getTitlesWidget: (value, meta) {
-                switch (value.toInt()) {
-                  case 100:
-                    return Text('100', style: GoogleFonts.inter(fontSize: 10));
-                  case 200:
-                    return Text('200', style: GoogleFonts.inter(fontSize: 10));
-                  case 300:
-                    return Text('300', style: GoogleFonts.inter(fontSize: 10));
-                  case 400:
-                    return Text('400', style: GoogleFonts.inter(fontSize: 10));
-                  default:
-                    return const Text('');
-                }
-              },
-            ),
-          ),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        ),
-        borderData: FlBorderData(show: false),
-        gridData: FlGridData(
-          show: true,
-          drawVerticalLine: false,
-          getDrawingHorizontalLine: (value) {
-            return FlLine(color: const Color(0xfff3f3f3), strokeWidth: 1);
-          },
-        ),
-        barGroups: [
-          _buildBarGroupData(0, 200),
-          _buildBarGroupData(1, 240),
-          _buildBarGroupData(2, 280),
-          _buildBarGroupData(3, 300),
-          _buildBarGroupData(4, 270),
-          _buildBarGroupData(5, 310),
-          _buildBarGroupData(6, 290),
-        ],
-      ),
-    );
-  }
+    return Obx(() {
+      if (controller.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
 
-  // Helper function to create individual bar groups
-  BarChartGroupData _buildBarGroupData(int x, double y) {
-    return BarChartGroupData(
-      x: x,
-      barRods: [
-        BarChartRodData(
-          toY: y,
-          color: Color(0xFFE8EDF5),
-          width: 30,
-          borderRadius: BorderRadius.circular(4),
+      return BarChart(
+        BarChartData(
+          alignment: BarChartAlignment.spaceAround,
+          maxY:
+              (controller.last7DaysOrders.reduce((a, b) => a > b ? a : b) + 1),
+          barTouchData: BarTouchData(enabled: true),
+          titlesData: FlTitlesData(
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: true, reservedSize: 40),
+            ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 30,
+                interval: 1,
+                getTitlesWidget: (value, meta) {
+                  const style = TextStyle(
+                    color: Color(0xff68737d),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                  );
+                  switch (value.toInt()) {
+                    case 0:
+                      return Text(
+                        'day_1'.tr,
+                        style: style,
+                      ); // Translates "Day 1"
+                    case 1:
+                      return Text(
+                        'day_2'.tr,
+                        style: style,
+                      ); // Translates "Day 2"
+                    case 2:
+                      return Text(
+                        'day_3'.tr,
+                        style: style,
+                      ); // Translates "Day 3"
+                    case 3:
+                      return Text(
+                        'day_4'.tr,
+                        style: style,
+                      ); // Translates "Day 4"
+                    case 4:
+                      return Text(
+                        'day_5'.tr,
+                        style: style,
+                      ); // Translates "Day 5"
+                    case 5:
+                      return Text(
+                        'day_6'.tr,
+                        style: style,
+                      ); // Translates "Day 6"
+                    case 6:
+                      return Text(
+                        'day_7'.tr,
+                        style: style,
+                      ); // Translates "Day 7"
+                    default:
+                      return const SizedBox();
+                  }
+                },
+              ),
+            ),
+          ),
+          borderData: FlBorderData(show: false),
+          barGroups: List.generate(controller.last7DaysOrders.length, (index) {
+            return BarChartGroupData(
+              x: index,
+              barRods: [
+                BarChartRodData(
+                  toY: controller.last7DaysOrders[index].toDouble(),
+                  color: AppColors.primaryColor,
+                  width: 16,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ],
+            );
+          }),
         ),
-      ],
-    );
+      );
+    });
   }
 }

@@ -1,9 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/core/global_widegts/CustomDrawer.dart';
 import 'package:gastcallde/core/global_widegts/CustomNavigationRail.dart';
+import 'package:gastcallde/core/network_caller/endpoints.dart';
 import 'package:gastcallde/feature/calls/widgets/calldetaildilog.dart';
+import 'package:http/http.dart' as http show get;
 import 'package:intl/intl.dart';
+
+import '../../../core/services_class/local_service/shared_preferences_helper.dart';
 
 class callScreen extends StatelessWidget {
   callScreen({super.key});
@@ -63,73 +69,32 @@ class callScreen extends StatelessWidget {
 }
 
 class CallEntry {
+  final int id;
   final String date;
   final String time;
   final String phone;
   final String customer;
   final String type;
-  final String callbackStatus;
+  bool callback;
   final String duration;
+  final String summary;
+  final String recording;
 
   CallEntry({
+    required this.id,
     required this.date,
     required this.time,
     required this.phone,
     required this.customer,
     required this.type,
-    required this.callbackStatus,
+    required this.callback,
     required this.duration,
+    required this.summary,
+    required this.recording,
   });
-}
 
-// Sample data for the call log
-final List<CallEntry> callLogs = [
-  CallEntry(
-    date: '02-07-25',
-    time: '06:00 pm',
-    phone: '9347 48908',
-    customer: 'John Doe',
-    type: 'Order',
-    callbackStatus: 'Done',
-    duration: '1:12 min',
-  ),
-  CallEntry(
-    date: '02-07-25',
-    time: '06:00 pm',
-    phone: '9347 48908',
-    customer: 'Jane Doe',
-    type: 'Reservation',
-    callbackStatus: 'Callback',
-    duration: '1:12 min',
-  ),
-  CallEntry(
-    date: '02-07-25',
-    time: '06:00 pm',
-    phone: '9347 48908',
-    customer: 'Peter Pan',
-    type: 'Customer Service',
-    callbackStatus: 'Done',
-    duration: '1:12 min',
-  ),
-  CallEntry(
-    date: '02-07-25',
-    time: '06:00 pm',
-    phone: '9347 48908',
-    customer: 'Mary Jane',
-    type: 'Reservation',
-    callbackStatus: 'Callback',
-    duration: '1:12 min',
-  ),
-  CallEntry(
-    date: '02-07-25',
-    time: '06:00 pm',
-    phone: '9347 48908',
-    customer: 'Bruce Wayne',
-    type: 'Order',
-    callbackStatus: 'Done',
-    duration: '1:12 min',
-  ),
-];
+  String get callbackStatus => callback ? "Done" : "Callback";
+}
 
 class callDashboard extends StatefulWidget {
   const callDashboard({super.key});
@@ -142,20 +107,132 @@ class _callDashboardState extends State<callDashboard> {
   String _selectedCallType = 'All Calls';
   String _selectedCallbackTab = 'All';
   DateTime _currentDate = DateTime.now();
+  List<CallEntry> _apiCallLogs = [];
+  bool _isLoading = false;
+  TextEditingController _searchController = TextEditingController();
+  ValueNotifier<String> _searchQuery = ValueNotifier<String>('');
 
-  // Function to format the date to "15 July, 2025"
+  @override
+  void initState() {
+    super.initState();
+    fetchCalls();
+
+    _searchController.addListener(() {
+      _searchQuery.value = _searchController.text.trim().toLowerCase();
+      setState(() {}); // refresh UI on search change
+    });
+  }
+
+  Future<void> fetchCalls() async {
+    print("📞 fetchCalls() called...");
+
+    setState(() {
+      _isLoading = true;
+    });
+    print("⏳ Loading state set to TRUE");
+
+    try {
+      final token = await SharedPreferencesHelper.getAccessToken();
+      print("🔑 Token fetched: ${token != null ? '✅ Found' : '❌ Not Found'}");
+
+      if (token == null) {
+        print('⚠️ No token found, aborting API call...');
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final formattedDate =
+          "${_currentDate.year}-${_currentDate.month.toString().padLeft(2, '0')}-${_currentDate.day.toString().padLeft(2, '0')}";
+      print("📅 Fetching calls for date: $formattedDate");
+
+      final url = "${Urls.baseUrl}/owner/user-calls/?date=$formattedDate";
+      print("🌐 API URL: $url");
+
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+      );
+
+      print("📥 Response received | Status Code: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonList = jsonDecode(response.body);
+        print("✅ Successfully decoded JSON | Total calls: ${jsonList.length}");
+
+        final List<CallEntry> parsedCalls = jsonList.map((item) {
+          try {
+            final dateTime =
+                DateTime.tryParse(item['created_at'] ?? '') ??
+                DateTime.now(); // fallback to now if parsing fails
+            final formattedDate =
+                "${dateTime.day.toString().padLeft(2, '0')}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.year.toString().substring(2)}";
+            final formattedTime =
+                "${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}";
+
+            final entry = CallEntry(
+              date: formattedDate,
+              time: formattedTime,
+              id: item['id'],
+              phone: item['phone'] ?? '-',
+              customer: item['customer_name'] ?? 'Unknown',
+              type: item['type'] ?? '-',
+              callback: item['callback'] ?? false,
+              duration:
+                  "${double.tryParse(item['duration_seconds'].toString())?.toStringAsFixed(1) ?? '0'} sec",
+              summary: item['summary'] ?? 'No summary available',
+              recording: item['recording'] ?? '',
+            );
+
+            print(
+              "📌 Parsed Call: ${entry.customer} | ${entry.phone} | ${entry.time}",
+            );
+            return entry;
+          } catch (e) {
+            print("⚠️ Error parsing item: $item | Error: $e");
+            return CallEntry(
+              id: 0,
+              date: "-",
+              time: "-",
+              phone: "-",
+              customer: "Unknown",
+              type: "-",
+              callback: false,
+              duration: "-",
+              summary: "-",
+              recording: "",
+            );
+          }
+        }).toList();
+
+        setState(() {
+          _apiCallLogs = parsedCalls;
+        });
+
+        print("📊 State updated with ${parsedCalls.length} calls");
+      } else {
+        print("❌ Failed to fetch calls | Response: ${response.body}");
+        setState(() => _apiCallLogs = []);
+      }
+    } catch (e, stack) {
+      print("🔥 Exception during fetchCalls: $e");
+      print("📜 Stack Trace:\n$stack");
+      setState(() => _apiCallLogs = []);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+      print("✅ Loading state set to FALSE");
+    }
+  }
+
   String _formatDate(DateTime date) {
     return DateFormat('dd MMMM, yyyy').format(date);
   }
 
-  // Function to handle the left arrow click (previous day)
-  void _onPreviousDay() {
-    setState(() {
-      _currentDate = _currentDate.subtract(Duration(days: 1));
-    });
-  }
-
-  void _showCardDetailsDialog(CallEntry entry) {
+  void _showCardDetailsDialog(CallEntry entry, String? recordingUrl) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -166,20 +243,24 @@ class _callDashboardState extends State<callDashboard> {
               children: <Widget>[
                 Text('Date: ${entry.date}'),
                 Text('Time: ${entry.time}'),
-                Text('Phone: ${entry.phone}'),
                 Text('Customer: ${entry.customer}'),
                 Text('Type: ${entry.type}'),
                 Text('Callback Status: ${entry.callbackStatus}'),
                 Text('Duration: ${entry.duration}'),
+                if (recordingUrl != null)
+                  TextButton(
+                    onPressed: () {
+                      // open link with url_launcher
+                    },
+                    child: const Text("🔊 Play Recording"),
+                  ),
               ],
             ),
           ),
-          actions: <Widget>[
+          actions: [
             TextButton(
+              onPressed: () => Navigator.pop(context),
               child: const Text('Close'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
             ),
           ],
         );
@@ -187,16 +268,22 @@ class _callDashboardState extends State<callDashboard> {
     );
   }
 
-  // Function to handle the right arrow click (next day)
-  void _onNextDay() {
+  void _onPreviousDay() {
     setState(() {
-      _currentDate = _currentDate.add(Duration(days: 1));
+      _currentDate = _currentDate.subtract(const Duration(days: 1));
     });
+    fetchCalls();
   }
 
-  // Function to filter the call logs based on selected filters
+  void _onNextDay() {
+    setState(() {
+      _currentDate = _currentDate.add(const Duration(days: 1));
+    });
+    fetchCalls();
+  }
+
   List<CallEntry> _getFilteredCallLogs() {
-    return callLogs.where((entry) {
+    return _apiCallLogs.where((entry) {
       // Filter by callback status
       bool matchesCallbackStatus =
           _selectedCallbackTab == 'All' ||
@@ -206,8 +293,13 @@ class _callDashboardState extends State<callDashboard> {
       bool matchesCallType =
           _selectedCallType == 'All Calls' || entry.type == _selectedCallType;
 
-      // Return true if both filters match
-      return matchesCallbackStatus && matchesCallType;
+      // Filter by search query (phone or customer)
+      bool matchesSearch =
+          _searchQuery.value.isEmpty ||
+          entry.phone.toLowerCase().contains(_searchQuery.value) ||
+          entry.customer.toLowerCase().contains(_searchQuery.value);
+
+      return matchesCallbackStatus && matchesCallType && matchesSearch;
     }).toList();
   }
 
@@ -272,6 +364,7 @@ class _callDashboardState extends State<callDashboard> {
   Widget build(BuildContext context) {
     // Determine screen size for responsiveness
     bool isTablet = MediaQuery.of(context).size.width > 600;
+    String displayDate = DateFormat('dd MMM yyyy').format(_currentDate);
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -292,55 +385,46 @@ class _callDashboardState extends State<callDashboard> {
                     final screenWidth = MediaQuery.of(context).size.width;
                     final isCompact = screenWidth < 400;
 
-                    return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 8),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-
-                      child: Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.chevron_left),
-                            onPressed: _onPreviousDay,
-                            constraints: const BoxConstraints(),
-                            padding: EdgeInsets.zero,
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
                           ),
-                          const Text(
-                            'Today',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.chevron_right),
-                            onPressed: _onNextDay,
-                            constraints: const BoxConstraints(),
-                            padding: EdgeInsets.zero,
-                          ),
-
-                          // Conditionally show full date + icon on wider screens
-                          if (!isCompact) ...[
-                            Text(
-                              _formatDate(_currentDate),
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 11,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                spreadRadius: 1,
+                                blurRadius: 5,
+                                offset: const Offset(0, 3),
                               ),
-                            ),
-                            const SizedBox(width: 6),
-                            const Icon(
-                              Icons.calendar_today_outlined,
-                              color: Colors.grey,
-                              size: 20,
-                            ),
-                          ],
-                        ],
-                      ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.chevron_left),
+                                onPressed: () => _onPreviousDay(),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                displayDate,
+                                style: const TextStyle(color: Colors.grey),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(Icons.chevron_right),
+                                onPressed: () => _onNextDay(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     );
                   },
                 ),
@@ -383,7 +467,7 @@ class _callDashboardState extends State<callDashboard> {
               ),
             ),
             const SizedBox(height: 16),
-            // Callback tabs and search bar
+
             Row(
               children: [
                 _buildCallbackTab('All'),
@@ -394,6 +478,7 @@ class _callDashboardState extends State<callDashboard> {
                   SizedBox(
                     width: 300,
                     child: TextField(
+                      controller: _searchController, // add controller
                       decoration: InputDecoration(
                         hintText: 'Search',
                         prefixIcon: const Icon(Icons.search),
@@ -407,6 +492,10 @@ class _callDashboardState extends State<callDashboard> {
                           vertical: 8.0,
                         ),
                       ),
+                      onChanged: (value) {
+                        _searchQuery.value = value.trim().toLowerCase();
+                        setState(() {}); // refresh UI when search changes
+                      },
                     ),
                   ),
               ],
@@ -420,10 +509,23 @@ class _callDashboardState extends State<callDashboard> {
     );
   }
 
-  // Widget to build the call log table (tablet) or list (phone)
   Widget _buildCallLog(bool isTablet) {
     List<CallEntry> filteredLogs =
         _getFilteredCallLogs(); // Get the filtered list of calls
+
+    if (filteredLogs.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20.0),
+        child: Center(
+          child: Text(
+            _searchQuery.value.isNotEmpty
+                ? 'No search results found'
+                : 'No calls available',
+            style: const TextStyle(color: Colors.grey, fontSize: 16),
+          ),
+        ),
+      );
+    }
 
     return Column(
       children: [
@@ -470,7 +572,6 @@ class _callDashboardState extends State<callDashboard> {
     );
   }
 
-  // Widget for a single row on a tablet
   Widget _buildTabletRow(CallEntry entry) {
     return Row(
       children: [

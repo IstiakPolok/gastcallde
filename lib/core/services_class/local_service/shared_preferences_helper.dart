@@ -9,6 +9,7 @@ class SharedPreferencesHelper {
   static const String _categoriesKey = "categories";
   static const String _isWelcomeDialogShownKey =
       'isDriverVerificationDialogShown';
+  static const String _restaurantIdKey = 'restaurant_id';
 
   static Future<void> saveLanguage(String code) async {
     final prefs = await SharedPreferences.getInstance();
@@ -49,8 +50,6 @@ class SharedPreferencesHelper {
     return [];
   }
 
-  // Save access token
-  // Save access token
   static Future<void> saveToken(String token) async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -61,6 +60,28 @@ class SharedPreferencesHelper {
       print('Login flag saved: $loginFlagSaved'); // Should print true
     } catch (e) {
       print('Error saving token to SharedPreferences: $e');
+    }
+  }
+
+  static Future<void> saveRestaurantId(int restaurantId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_restaurantIdKey, restaurantId);
+      print('✅ Restaurant ID saved: $restaurantId');
+    } catch (e) {
+      print('❌ Error saving restaurant ID: $e');
+    }
+  }
+
+  static Future<int?> getRestaurantId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final id = prefs.getInt(_restaurantIdKey);
+      print('📥 Restaurant ID retrieved: $id');
+      return id;
+    } catch (e) {
+      print('❌ Error reading restaurant ID: $e');
+      return null;
     }
   }
 
