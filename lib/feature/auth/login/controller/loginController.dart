@@ -62,19 +62,36 @@ class LoginController extends GetxController {
       var response = await request.send();
       final responseString = await response.stream.bytesToString();
 
+      print('🔵 Login API Response: $responseString');
+
       if (response.statusCode == 200) {
         Get.snackbar('Login Successful', 'Welcome back!');
         var responseData = jsonDecode(responseString);
+
+        // ✅ Print Restaurant ID safely
+        final restaurantData = responseData['restaurant'];
+
+        if (restaurantData != null) {
+          final restaurantId = restaurantData['id'];
+          print('✅ Restaurant ID: $restaurantId');
+          await SharedPreferencesHelper.saveRestaurantId(restaurantId);
+        } else {
+          print('⚠️ No restaurant data found in response');
+        }
+
+        // ✅ Save token
         String accessToken = responseData['access'];
         SharedPreferencesHelper.saveToken(accessToken);
 
         EasyLoading.dismiss();
-        Get.offAll(() => Dashboard()); // ✅ Replaces screen properly
+        Get.offAll(() => Dashboard());
       } else {
         Get.snackbar('Login Failed', 'Invalid email or password');
+        print('🔴 Login failed: ${response.statusCode}');
       }
     } catch (e) {
       Get.snackbar('Error', 'An error occurred: $e');
+      print('🔴 Exception during login: $e');
     } finally {
       isLoading.value = false;
       EasyLoading.dismiss();

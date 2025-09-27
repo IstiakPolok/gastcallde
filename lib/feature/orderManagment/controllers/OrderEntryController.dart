@@ -33,9 +33,10 @@ class OrderEntryController extends GetxController {
     try {
       final token = await SharedPreferencesHelper.getAccessToken();
       final url = Uri.parse('${Urls.baseUrl}/owner/create/order/');
+      final RestaurantId = await SharedPreferencesHelper.getRestaurantId();
 
       final body = {
-        "restaurant": 2,
+        "restaurant": RestaurantId,
         "customer_name": customerNameController.text,
         "status": "incoming",
         "order_items": orderItems.map((item) {

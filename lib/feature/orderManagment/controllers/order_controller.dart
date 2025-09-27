@@ -1,6 +1,7 @@
 // lib/feature/calls/order_controller.dart
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:gastcallde/feature/orderManagment/models/order_model.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -25,8 +26,8 @@ class OrderController extends GetxController {
     final url = Uri.parse('${Urls.baseUrl}/owner/my-orders/');
     final token = await SharedPreferencesHelper.getAccessToken();
 
-    print('Fetching orders from: $url');
-    print('Using token: $token');
+    debugPrint('🔄 Fetching orders from: $url');
+    debugPrint('🔑 Using token: $token');
 
     try {
       final response = await http.get(
@@ -37,12 +38,12 @@ class OrderController extends GetxController {
         },
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      debugPrint('📡 Response status: ${response.statusCode}');
+      debugPrint('📦 Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
-        print('Total orders fetched: ${data.length}');
+        debugPrint('✅ Total orders fetched: ${data.length}');
 
         // Clear previous lists
         incomingOrders.clear();
@@ -50,12 +51,19 @@ class OrderController extends GetxController {
         outForDeliveryOrders.clear();
         completedOrders.clear();
 
-        // Parse orders and distribute by status
+        // Parse and categorize orders
         for (var orderJson in data) {
           final order = Order.fromJson(orderJson);
-          print('Parsing order id=${order.id}, status=${order.status}');
 
-          switch (order.status.toLowerCase()) {
+          debugPrint(
+            '📝 Parsing order id=${order.id}, restaurant=${order.restaurant}',
+          );
+
+          // Save restaurant ID only if it's not null or empty
+
+          await SharedPreferencesHelper.saveRestaurantId(order.restaurant);
+
+          switch (order.status.toLowerCase() ?? '') {
             case 'incoming':
               incomingOrders.add(order);
               break;
@@ -69,20 +77,25 @@ class OrderController extends GetxController {
               completedOrders.add(order);
               break;
             default:
-              print('Unknown status: ${order.status}');
+              debugPrint('⚠ Unknown status: ${order.status}');
           }
         }
 
-        // Print list lengths after populating
-        print('Incoming: ${incomingOrders.length}');
-        print('In Preparation: ${inPreparationOrders.length}');
-        print('Out for Delivery: ${outForDeliveryOrders.length}');
-        print('Completed: ${completedOrders.length}');
+        debugPrint('📊 Orders after categorization:');
+        debugPrint('Incoming: ${incomingOrders.length}');
+        debugPrint('In Preparation: ${inPreparationOrders.length}');
+        debugPrint('Out for Delivery: ${outForDeliveryOrders.length}');
+        debugPrint('Completed: ${completedOrders.length}');
       } else {
-        print('Error fetching orders: ${response.statusCode}');
+        debugPrint('❌ Error fetching orders: ${response.statusCode}');
+        Get.snackbar(
+          'Error',
+          'Failed to fetch orders (${response.statusCode})',
+        );
       }
     } catch (e) {
-      print('Exception while fetching orders: $e');
+      debugPrint('🚨 Exception while fetching orders: $e');
+      Get.snackbar('Error', 'Something went wrong while fetching orders.');
     }
   }
 

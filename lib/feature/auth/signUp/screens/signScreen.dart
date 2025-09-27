@@ -1,11 +1,8 @@
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/feature/auth/signUp/controller/signController.dart';
-import 'package:gastcallde/feature/auth/signUp/screens/SubmissionCompleteScreen.dart';
 import 'package:gastcallde/feature/auth/signUp/screens/UploadFilesScreen.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';

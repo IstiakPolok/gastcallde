@@ -105,7 +105,7 @@ class SubscriptionController extends GetxController {
 
       final priceid = price_id;
 
-      print("this price id ${priceid}");
+      print("this price id $priceid");
 
       final body = jsonEncode({
         // "amount": amount,

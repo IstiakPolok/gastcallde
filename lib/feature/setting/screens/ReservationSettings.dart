@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/feature/setting/controllers/TableController.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 class ReservationSettingsScreen extends StatefulWidget {
   ReservationSettingsScreen({super.key});

@@ -1,4 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+
+import '../../../core/network_caller/endpoints.dart';
+import '../../../core/services_class/local_service/shared_preferences_helper.dart';
 
 class CustomerDetailsScreen extends StatefulWidget {
   const CustomerDetailsScreen({super.key});
@@ -8,56 +15,93 @@ class CustomerDetailsScreen extends StatefulWidget {
 }
 
 class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
-  // Customer Info
-  final Map<String, String> customerInfo = {
-    'name': 'Sophia Clark',
-    'email': 'user2025@gmail.com',
-    'phone': '+83467 5987',
-    'address': '170, royal street park, GN 1200',
-    'joined': '2021-05-15',
-  };
+  Map<String, dynamic>? customerInfo;
+  List<Map<String, dynamic>> orderHistory = [];
+  RxBool isLoading = true.obs;
 
-  // Order History with expanded state for each order
-  final List<Map<String, dynamic>> orderHistory = [
-    {
-      'orderId': 'ORD789',
-      'date': '2023-08-15',
-      'status': 'Delivered',
-      'total': '\$150.00',
-      'isExpanded': false,
-    },
-    {
-      'orderId': 'ORD456',
-      'date': '2023-07-20',
-      'status': 'Delivered',
-      'total': '\$200.00',
-      'isExpanded': false,
-    },
-    {
-      'orderId': 'ORD123',
-      'date': '2023-06-05',
-      'status': 'Cancelled',
-      'total': '\$100.00',
-      'isExpanded': false,
-    },
-    {
-      'orderId': 'ORD001',
-      'date': '2023-05-10',
-      'status': 'Cancelled',
-      'total': '\$50.00',
-      'isExpanded': false,
-    },
-    {
-      'orderId': 'ORD999',
-      'date': '2023-04-25',
-      'status': 'Delivered',
-      'total': '\$120.00',
-      'isExpanded': false,
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    fetchCustomerDetails();
+  }
 
-  // Function to toggle the expanded state for an order
-  void _toggleExpansion(int index) {
+  Future<void> fetchCustomerDetails() async {
+    setState(() {
+      isLoading.value = true;
+    });
+
+    final phone = Get.arguments?['phone'];
+    print("📞 Debug: Phone argument received: $phone");
+    if (phone == null) {
+      Get.snackbar('Error', 'No phone number provided');
+      return;
+    }
+
+    try {
+      final token = await SharedPreferencesHelper.getAccessToken();
+      print("🔑 Debug: Access token: $token");
+      if (token == null) {
+        Get.snackbar('Error', 'User not authenticated');
+        return;
+      }
+
+      final url = Uri.parse(
+        "${Urls.baseUrl}/owner/orders/by-phone/?phone=$phone",
+      );
+      print("🌐 Debug: Fetching customer details from: $url");
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print("📡 Debug: Response status: ${response.statusCode}");
+      print("📦 Debug: Response body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print("✅ Debug: Decoded JSON: $data");
+
+        setState(() {
+          customerInfo = data['customerInfo'] ?? {};
+          print("👤 Debug: customerInfo: $customerInfo");
+
+          orderHistory = List<Map<String, dynamic>>.from(
+            (data['orders'] ?? []).map((order) {
+              print("🛒 Debug: Parsing order: $order");
+              return {
+                'id': order['id'],
+                'status': order['status'],
+                'total_price': order['total_price'],
+                'created_at': order['created_at'],
+                'order_items': order['order_items'] ?? [],
+                'isExpanded': false,
+              };
+            }),
+          );
+
+          print("📋 Debug: Final orderHistory: $orderHistory");
+        });
+      } else {
+        print(
+          "❌ Debug: Failed to fetch details, status: ${response.statusCode}",
+        );
+        Get.snackbar('Error', 'Failed to fetch customer details');
+      }
+    } catch (e, stacktrace) {
+      print("🔥 Debug: Exception: $e");
+      print("🛠️ Debug: Stacktrace: $stacktrace");
+      Get.snackbar('Error', 'Something went wrong: $e');
+    } finally {
+      isLoading.value = false;
+      print("⏳ Debug: Loading set to false");
+    }
+  }
+
+  void toggleExpansion(int index) {
     setState(() {
       orderHistory[index]['isExpanded'] = !orderHistory[index]['isExpanded'];
     });
@@ -65,6 +109,8 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final phone = Get.arguments?['phone'] ?? 'No phone';
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -81,266 +127,284 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
         foregroundColor: Colors.black,
         elevation: 0, // Remove shadow
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: const Text(
-                'View and manage customer information',
-                style: TextStyle(color: Colors.grey, fontSize: 14),
+      body: Obx(() {
+        if (isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (customerInfo == null) {
+          return const Center(child: Text('No customer data found'));
+        }
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: const Text(
+                  'View and manage customer information',
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // Customer Information Card
-            LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.maxWidth < 600) {
-                  return Card(
-                    color: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Colors.grey[200]!),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            customerInfo['name']!,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 20,
+              // Customer Information Card
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth < 600) {
+                    return Card(
+                      color: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Colors.grey[200]!),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            // Inside build -> LayoutBuilder (Customer Info Card)
+                            Text(
+                              customerInfo?['name'] ?? 'Unknown Customer',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 20,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text('Email: ${customerInfo['email']}'),
-                          Text('Phone: ${customerInfo['phone']}'),
-                          Text('Address: ${customerInfo['address']}'),
-                          Text('Joined: ${customerInfo['joined']}'),
-                          const SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: <Widget>[
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const <Widget>[
-                                  Text('Total Orders:'),
-                                  Text('Total Spent:'),
-                                  Text('Last Order:'),
-                                ],
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: const <Widget>[
-                                  Text('12'),
-                                  Text('\$2450.00'),
-                                  Text('2024-01-15'),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                } else {
-                  return Card(
-                    color: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Colors.grey[200]!),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                customerInfo['name']!,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 20,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text('Email: ${customerInfo['email']}'),
-                              Text('Phone: ${customerInfo['phone']}'),
-                              Text('Address: ${customerInfo['address']}'),
-                              Text('Joined: ${customerInfo['joined']}'),
-                              const SizedBox(height: 20),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: <Widget>[
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const <Widget>[
-                                  Text('Total Orders:'),
-                                  Text('Total Spent:'),
-                                  Text('Last Order:'),
-                                ],
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: const <Widget>[
-                                  Text('12'),
-                                  Text('\$2450.00'),
-                                  Text('2024-01-15'),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-              },
-            ),
 
-            const Text(
-              'Order History',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-            ),
-            const SizedBox(height: 15),
+                            const SizedBox(height: 8),
+                            Text('Email: ${customerInfo?['email'] ?? '-'}'),
+                            Text('Phone: ${customerInfo?['phone'] ?? '-'}'),
+                            Text('Address: ${customerInfo?['address'] ?? '-'}'),
+                            Text('Joined: ${customerInfo?['joined'] ?? '-'}'),
 
-            // Order History List (using dynamic data)
-            LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.maxWidth < 600) {
-                  // Mobile: Show orders as cards with expanded details on click
-                  return Column(
-                    children: List.generate(orderHistory.length, (index) {
-                      return Card(
-                        color: Colors.white,
-                        margin: const EdgeInsets.symmetric(vertical: 8.0),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 3,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Order ID: ${orderHistory[index]['orderId']}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                      orderHistory[index]['isExpanded']
-                                          ? Icons.keyboard_arrow_up
-                                          : Icons.keyboard_arrow_down,
-                                    ),
-                                    onPressed: () {
-                                      _toggleExpansion(index);
-                                    },
-                                  ),
-                                ],
-                              ),
-                              Text('Date: ${orderHistory[index]['date']}'),
-                              Text(
-                                'Status: ${orderHistory[index]['status']}',
-                                style: TextStyle(
-                                  color:
-                                      orderHistory[index]['status'] ==
-                                          'Delivered'
-                                      ? Colors.teal.shade700
-                                      : Colors.red.shade700,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text('Total: ${orderHistory[index]['total']}'),
-                              if (orderHistory[index]['isExpanded'])
+                            const SizedBox(height: 20),
+                            Text(
+                              'First Order: ${(customerInfo?['first_order_create_date'] ?? '').toString().substring(0, 10)}',
+                            ),
+                            Text(
+                              'Last Order: ${(customerInfo?['last_order_date'] ?? '').toString().substring(0, 10)}',
+                            ),
+                            Text(
+                              'Total Orders: ${customerInfo?['total_order'] ?? 0}',
+                            ),
+                            Text(
+                              'Total Spent: \$${customerInfo?['total_order_price'] ?? 0}',
+                            ),
+
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: <Widget>[
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: const <Widget>[
+                                    Text('Total Orders:'),
+                                    Text('Total Spent:'),
+                                    Text('Last Order:'),
+                                  ],
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: const <Widget>[
+                                    Text('12'),
+                                    Text('\$2450.00'),
+                                    Text('2024-01-15'),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  } else {
+                    return Card(
+                      color: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Colors.grey[200]!),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  customerInfo?['name']!,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 20,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text('Email: ${customerInfo?['email']}'),
+                                Text('Phone: ${customerInfo?['phone']}'),
+                                Text('Address: ${customerInfo?['address']}'),
+                                Text('Joined: ${customerInfo?['joined']}'),
+                                const SizedBox(height: 20),
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: <Widget>[
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: const <Widget>[
+                                    Text('Total Orders:'),
+                                    Text('Total Spent:'),
+                                    Text('Last Order:'),
+                                  ],
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: const <Widget>[
+                                    Text('12'),
+                                    Text('\$2450.00'),
+                                    Text('2024-01-15'),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
+
+              const Text(
+                'Order History',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              ),
+              const SizedBox(height: 15),
+
+              // Order History List (using dynamic data)
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth < 600) {
+                    // Mobile: Show orders as cards with expanded details on click
+                    return Column(
+                      children: List.generate(orderHistory.length, (index) {
+                        return Card(
+                          color: Colors.white,
+                          margin: const EdgeInsets.symmetric(vertical: 8.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 3,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    SingleChildScrollView(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: Column(
-                                        children: <Widget>[
-                                          MenuItemCard(
-                                            imagePath:
-                                                'https://cdn.sanity.io/images/czqk28jt/prod_plk_us/84bbcd43ce0d00ab85cc40e4c23f007e19501d21-2000x1333.png?q=70&auto=format', // Placeholder image
-                                            itemName: 'Veg Hawaiian Pizza',
-                                            price: '\$12.00',
-                                            hasCheckbox: true,
-                                          ),
-                                          const SizedBox(height: 10),
-                                          MenuItemCard(
-                                            imagePath:
-                                                'https://greatrangebison.com/wp-content/uploads/2023/07/caramelized-onion-burger-featured-image.jpg', // Placeholder image
-                                            itemName: 'Veg-Korma Special Pizza',
-                                            price: '\$35.00',
-                                            hasCheckbox: false,
-                                          ),
-                                          const SizedBox(height: 10),
-                                          MenuItemCard(
-                                            imagePath:
-                                                'https://static.toiimg.com/photo/54714340.cms', // Placeholder image
-                                            itemName: 'Chicken Paneer Pizza',
-                                            price: '\$25.00',
-                                            hasCheckbox: true,
-                                          ),
-                                        ],
+                                    Text(
+                                      'Order ID: ${orderHistory[index]['id']}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
                                       ),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(
+                                        orderHistory[index]['isExpanded']
+                                            ? Icons.keyboard_arrow_up
+                                            : Icons.keyboard_arrow_down,
+                                      ),
+                                      onPressed: () {
+                                        toggleExpansion(index);
+                                      },
                                     ),
                                   ],
                                 ),
-                            ],
+                                Text(
+                                  'Date: ${orderHistory[index]['created_at']}',
+                                ),
+                                Text(
+                                  'Status: ${orderHistory[index]['status']}',
+                                  style: TextStyle(
+                                    color:
+                                        orderHistory[index]['status'] ==
+                                            'Delivered'
+                                        ? Colors.teal.shade700
+                                        : Colors.red.shade700,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  'Total: ${orderHistory[index]['total_price']}',
+                                ),
+                                if (orderHistory[index]['isExpanded'])
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      ...List<Map<String, dynamic>>.from(
+                                        orderHistory[index]['order_items'],
+                                      ).map((item) {
+                                        final itemData = item['item'] ?? {};
+                                        return MenuItemCard(
+                                          imagePath:
+                                              (itemData['image'] ?? '')
+                                                  .isNotEmpty
+                                              ? itemData['image']
+                                              : 'https://via.placeholder.com/150',
+                                          itemName:
+                                              itemData['item_name'] ??
+                                              'Unknown Item',
+                                          price: "\$${item['price'] ?? '0.00'}",
+                                          hasCheckbox: false,
+                                        );
+                                      }),
+                                    ],
+                                  ),
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    }),
-                  );
-                } else {
-                  // Large screens: Use table format
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                    child: Column(
-                      children: orderHistory.map((order) {
-                        return _buildOrderRow(
-                          order['orderId']!,
-                          order['date']!,
-                          order['status']!,
-                          order['total']!,
-                          order['status'] == 'Delivered'
-                              ? Colors.teal.shade100
-                              : Colors.red.shade100,
-                          order['status'] == 'Delivered'
-                              ? Colors.teal.shade700
-                              : Colors.red.shade700,
-                          orderHistory.indexOf(
-                            order,
-                          ), // Pass the index for toggling
                         );
-                      }).toList(),
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
-        ),
-      ),
+                      }),
+                    );
+                  } else {
+                    // Large screens: Use table format
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                      child: Column(
+                        children: orderHistory.map((order) {
+                          return _buildOrderRow(
+                            order['id'].toString(),
+                            order['created_at'] ?? '-',
+                            order['status'] ?? '-',
+                            order['total_price'].toString(),
+                            order['status'] == 'Delivered'
+                                ? Colors.teal.shade100
+                                : Colors.red.shade100,
+                            order['status'] == 'Delivered'
+                                ? Colors.teal.shade700
+                                : Colors.red.shade700,
+                            orderHistory.indexOf(
+                              order,
+                            ), // Pass the index for toggling
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 
@@ -388,7 +452,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                 flex: 1,
                 child: TextButton.icon(
                   onPressed: () {
-                    _toggleExpansion(index);
+                    toggleExpansion(index);
                   },
                   icon: Icon(
                     Icons.remove_red_eye_outlined,
@@ -412,48 +476,23 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
 
           // Conditionally display expanded details
           if (orderHistory[index]['isExpanded'])
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SingleChildScrollView(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          children: <Widget>[
-                            MenuItemCard(
-                              imagePath:
-                                  'https://cdn.sanity.io/images/czqk28jt/prod_plk_us/84bbcd43ce0d00ab85cc40e4c23f007e19501d21-2000x1333.png?q=70&auto=format', // Placeholder image
-                              itemName: 'Veg Hawaiian Pizza',
-                              price: '\$12.00',
-                              hasCheckbox: true,
-                            ),
-
-                            MenuItemCard(
-                              imagePath:
-                                  'https://greatrangebison.com/wp-content/uploads/2023/07/caramelized-onion-burger-featured-image.jpg', // Placeholder image
-                              itemName: 'Veg-Korma Special Pizza',
-                              price: '\$35.00',
-                              hasCheckbox: false,
-                            ),
-
-                            MenuItemCard(
-                              imagePath:
-                                  'https://static.toiimg.com/photo/54714340.cms', // Placeholder image
-                              itemName: 'Chicken Paneer Pizza',
-                              price: '\$25.00',
-                              hasCheckbox: true,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ...List<Map<String, dynamic>>.from(
+                  orderHistory[index]['order_items'] ?? [],
+                ).map((item) {
+                  final itemData = item['item'] ?? {};
+                  return MenuItemCard(
+                    imagePath: (itemData['image'] ?? '').isNotEmpty
+                        ? itemData['image']
+                        : 'https://via.placeholder.com/150', // ✅ fallback
+                    itemName: itemData['item_name'] ?? 'Unknown Item',
+                    price: "\$${item['price'] ?? '0.00'}",
+                    hasCheckbox: false,
+                  );
+                }),
+              ],
             ),
         ],
       ),

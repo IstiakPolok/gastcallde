@@ -339,9 +339,6 @@ class AddFoodItemScreen extends StatelessWidget {
               fontSize: isTablet ? 16 : 14,
               color: Colors.black87,
             ),
-            keyboardType: title == 'Price'
-                ? TextInputType.number
-                : TextInputType.text,
           ),
         ),
       ],

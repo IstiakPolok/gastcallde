@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gastcallde/feature/auth/login/screens/loginScreen.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 class paymentCompleteScreen extends StatelessWidget {
   const paymentCompleteScreen({super.key});

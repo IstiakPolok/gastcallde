@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/core/global_widegts/CustomDrawer.dart';
 import 'package:gastcallde/core/global_widegts/CustomNavigationRail.dart';
-import 'package:gastcallde/feature/calls/widgets/calldetaildilog.dart';
 import 'package:gastcallde/feature/setting/screens/ReportIssue.dart';
 import 'package:gastcallde/feature/setting/screens/ReservationSettings.dart';
 import 'package:gastcallde/feature/setting/screens/callforward.dart';
-import 'package:intl/intl.dart';
 
 class settingScreen extends StatelessWidget {
   settingScreen({super.key});
