@@ -1,60 +1,87 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/network_caller/endpoints.dart';
+import '../../../core/services_class/local_service/shared_preferences_helper.dart';
 
-class RestaurantOverviewController extends GetxController {
-  final String baseUrl = "https://your-api.com"; // Replace with actual baseUrl
-
-  RxDouble totalRevenue = 0.0.obs;
-  RxInt totalOrders = 0.obs;
-  RxList<double> revenueTrend = <double>[].obs;
-  RxList<int> ordersTrend = <int>[].obs;
+class RevenueOverviewController extends GetxController {
   RxBool isLoading = false.obs;
 
-  @override
-  void onInit() {
-    super.onInit();
-    fetchOrderStats();
-  }
+  // API Data
+  RxDouble totalRevenueOrder = 0.0.obs;
+  RxInt totalCalls = 0.obs;
+  RxInt totalNumberOfOrders = 0.obs;
+  RxInt totalNumberOfReservations = 0.obs;
+  RxInt numberOfNewCustomers = 0.obs;
+  RxInt numberOfReturnCustomers = 0.obs;
+  RxInt totalDurationSeconds = 0.obs;
+  RxInt totalCallbackTrack = 0.obs;
 
-  Future<void> fetchOrderStats() async {
+  Future<void> fetchStats({int days = 7}) async {
     try {
       isLoading.value = true;
+      print("📡 Fetching stats for last $days days...");
 
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('accessToken') ?? '';
+      final token = await SharedPreferencesHelper.getAccessToken();
+      if (token == null) {
+        print("❌ No token found in SharedPreferences");
+        Get.snackbar("Error", "User not authenticated");
+        return;
+      }
+
+      final url = Uri.parse("${Urls.baseUrl}/owner/stats/?days=$days");
+      print("🔗 API URL: $url");
+      print("🔑 Using token: $token");
 
       final response = await http.get(
-        Uri.parse('$baseUrl/owner/restaurant/order-stats/'),
+        url,
         headers: {
-          'Authorization': 'Bearer $token',
+          'Authorization': 'Bearer $token', // Add your token here
           'Content-Type': 'application/json',
         },
       );
 
+      print("✅ API Status Code: ${response.statusCode}");
+      print("📦 Raw Response Body: ${response.body}");
+
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = jsonDecode(response.body);
+        print("🔍 Decoded Data: $data");
 
-        totalRevenue.value = (data['status']['total_revenue'] as num)
-            .toDouble();
-        totalOrders.value = (data['status']['total_orders'] as num).toInt();
+        totalRevenueOrder.value =
+            double.tryParse(data['total_revenue_order'].toString()) ?? 0.0;
+        totalCalls.value = data['total_calls'] ?? 0;
+        totalNumberOfOrders.value = data['total_number_of_orders'] ?? 0;
+        totalNumberOfReservations.value =
+            data['total_number_of_reservations'] ?? 0;
+        numberOfNewCustomers.value = data['number_of_new_customers'] ?? 0;
+        numberOfReturnCustomers.value = data['number_of_return_customers'] ?? 0;
+        totalDurationSeconds.value = data['total_duration_seconds'] ?? 0;
+        totalCallbackTrack.value = data['total_callback_track'] ?? 0;
 
-        revenueTrend.value = (data['last_7_days_revenue'] as List)
-            .map((item) => (item.values.first as num).toDouble())
-            .toList();
-
-        ordersTrend.value = (data['last_7_days_orders'] as List)
-            .map((item) => (item.values.first as num).toInt())
-            .toList();
+        // ✅ Print all parsed values
+        print("📊 Parsed Stats:");
+        print("   • totalRevenueOrder: ${totalRevenueOrder.value}");
+        print("   • totalCalls: ${totalCalls.value}");
+        print("   • totalNumberOfOrders: ${totalNumberOfOrders.value}");
+        print(
+          "   • totalNumberOfReservations: ${totalNumberOfReservations.value}",
+        );
+        print("   • numberOfNewCustomers: ${numberOfNewCustomers.value}");
+        print("   • numberOfReturnCustomers: ${numberOfReturnCustomers.value}");
+        print("   • totalDurationSeconds: ${totalDurationSeconds.value}");
+        print("   • totalCallbackTrack: ${totalCallbackTrack.value}");
       } else {
-        Get.snackbar('Error', 'Failed to fetch stats');
+        print("❌ Failed to fetch stats. Status code: ${response.statusCode}");
+        Get.snackbar("Error", "Failed to fetch stats");
       }
-    } catch (e) {
-      Get.snackbar('Error', e.toString());
+    } catch (e, stack) {
+      print("🔥 Exception while fetching stats: $e");
+      print(stack);
+      Get.snackbar("Error", e.toString());
     } finally {
       isLoading.value = false;
+      print("✅ Done fetching stats.");
     }
   }
 }

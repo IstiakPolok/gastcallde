@@ -42,9 +42,10 @@ class RevenueController extends GetxController {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final totalRevenue = (data["status"]["total_revenue"] as num)
+
+        totalRevenue.value = (data["status"]["total_revenue"] as num)
             .toDouble();
-        final totalOrders = (data["status"]["total_orders"] as num).toInt();
+        totalOrders.value = (data["status"]["total_orders"] as num).toInt();
 
         final revenueList = data['last_7_days_revenue'] as List;
         final ordersList = data['last_7_days_orders'] as List;

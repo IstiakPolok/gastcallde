@@ -42,9 +42,6 @@ class TableModel {
 class TableController extends GetxController {
   var tables = <TableModel>[].obs; // Observable list of TableModel
 
-  final String baseUrl = "http://10.10.13.26:9001";
-  final String endpoint = "/owner/table/create/?lean=EN";
-
   Future<void> fetchTables() async {
     final prefs = await SharedPreferences.getInstance();
     final code = prefs.getString('language_code') ?? 'EN';
@@ -53,7 +50,7 @@ class TableController extends GetxController {
       print("Fetching tables from API...");
 
       final response = await http.get(
-        Uri.parse('http://10.10.13.26:9001/owner/table/?lean=$code'),
+        Uri.parse('${Urls.baseUrl}/owner/table/?lean=$code'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',

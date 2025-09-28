@@ -82,6 +82,7 @@ class CustomDrawer extends StatelessWidget {
                         .infinity, // Makes the button take all available width
                     child: ElevatedButton(
                       onPressed: () {
+                        Get.off(SubscriptionPlans());
                         print('Global Button Pressed');
                       },
                       style: ElevatedButton.styleFrom(

@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
+import 'package:gastcallde/core/network_caller/endpoints.dart';
 import 'package:gastcallde/core/services_class/local_service/shared_preferences_helper.dart';
 import 'package:gastcallde/feature/Subscription/SubscriptionPlansScreen.dart';
 import 'package:gastcallde/feature/auth/login/screens/loginScreen.dart';
@@ -12,16 +15,19 @@ import 'package:gastcallde/feature/orderManagment/orderManagmentscreen.dart';
 import 'package:gastcallde/feature/reservastion/screens/reservationScreen.dart';
 import 'package:gastcallde/feature/setting/screens/settingScreen.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 
 class CustomNavigationRail extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
 
-  const CustomNavigationRail({
+  CustomNavigationRail({
     super.key,
     required this.selectedIndex,
     required this.onDestinationSelected,
   });
+
+  final subscriptionController = Get.put(SubscriptionCountController());
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +102,7 @@ class CustomNavigationRail extends StatelessWidget {
               children: [
                 ElevatedButton(
                   onPressed: () {
+                    Get.off(SubscriptionPlans());
                     _showSubscriptionDialog(context);
                   },
                   style: ElevatedButton.styleFrom(
@@ -113,7 +120,7 @@ class CustomNavigationRail extends StatelessWidget {
                         Icon(Icons.flash_on, size: 28),
 
                         const Text(
-                          'Upgrage Now', // Text for the global button
+                          'Upgrade Now', // Text for the global button
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -124,11 +131,25 @@ class CustomNavigationRail extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 10),
-                const Text(
-                  'You have 5 days of Free Limit',
-                  style: TextStyle(fontSize: 11, color: Colors.black54),
-                  textAlign: TextAlign.center,
-                ),
+                Obx(() {
+                  if (subscriptionController.isLoading.value) {
+                    return const Text(
+                      'Checking subscription...',
+                      style: TextStyle(fontSize: 11, color: Colors.black54),
+                      textAlign: TextAlign.center,
+                    );
+                  } else {
+                    return Text(
+                      'You have ${subscriptionController.remainingDays.value} days of Free Limit',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.black54,
+                      ),
+                      textAlign: TextAlign.center,
+                    );
+                  }
+                }),
+
                 SizedBox(height: 10),
                 TextButton(
                   onPressed: () {
@@ -297,8 +318,12 @@ class CustomNavigationRail extends StatelessWidget {
                   const SizedBox(height: 32),
                   ElevatedButton(
                     onPressed: () {
-                      // Handle "Upgrade Now" logic here
-                      Navigator.of(context).pop();
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => SubscriptionPlans()),
+                      );
+
+                      // Navigator.of(context).pop();
                       print('Upgrade Now tapped!');
                     },
                     style: ElevatedButton.styleFrom(
@@ -335,5 +360,73 @@ class CustomNavigationRail extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+class SubscriptionCountController extends GetxController {
+  RxInt remainingDays = 0.obs;
+  RxBool isLoading = true.obs;
+
+  Future<void> fetchSubscriptionStatus() async {
+    try {
+      isLoading.value = true;
+      print("🔄 Fetching subscription status...");
+
+      final token = await SharedPreferencesHelper.getAccessToken();
+      if (token == null) {
+        print("⚠️ No token found. User not authenticated.");
+        remainingDays.value = 0;
+        return;
+      }
+
+      print("🔑 Token fetched: $token");
+
+      final response = await http.get(
+        Uri.parse("${Urls.baseUrl}/subscription/subscription-status/"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+      );
+
+      print("📡 API Response Status: ${response.statusCode}");
+      print("📡 API Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print("✅ Parsed Data: $data");
+
+        final String endDateStr = data["current_period_end"];
+        print("📅 Subscription End Date (raw): $endDateStr");
+
+        final DateTime endDate = DateTime.parse(endDateStr);
+        print("📅 Subscription End Date (parsed): $endDate");
+
+        final DateTime now = DateTime.now().toUtc();
+        print("⏰ Current UTC Time: $now");
+
+        final int daysLeft = endDate.difference(now).inDays;
+        print("📊 Days Left (calculated): $daysLeft");
+
+        remainingDays.value = daysLeft > 0 ? daysLeft : 0;
+        print("📊 Remaining Days (final): ${remainingDays.value}");
+      } else {
+        print("❌ Failed to fetch subscription. Status: ${response.statusCode}");
+        remainingDays.value = 0;
+      }
+    } catch (e) {
+      print("🔥 Error fetching subscription: $e");
+      remainingDays.value = 0;
+    } finally {
+      isLoading.value = false;
+      print("✅ Finished fetching subscription.");
+    }
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    print("🚀 SubscriptionCountController initialized.");
+    fetchSubscriptionStatus();
   }
 }

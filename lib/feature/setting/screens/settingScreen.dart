@@ -5,6 +5,10 @@ import 'package:gastcallde/core/global_widegts/CustomNavigationRail.dart';
 import 'package:gastcallde/feature/setting/screens/ReportIssue.dart';
 import 'package:gastcallde/feature/setting/screens/ReservationSettings.dart';
 import 'package:gastcallde/feature/setting/screens/callforward.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+
+import '../controllers/RestaurantSettingsController.dart';
 
 class settingScreen extends StatelessWidget {
   settingScreen({super.key});
@@ -18,9 +22,7 @@ class settingScreen extends StatelessWidget {
     final isMobile = screenWidth < breakpoint;
 
     return Scaffold(
-      appBar: isMobile
-          ? AppBar(title: const Text('Restaurant Overview'))
-          : null,
+      appBar: isMobile ? AppBar(title: const Text(' ')) : null,
       drawer: isMobile
           ? ValueListenableBuilder<int>(
               valueListenable: _selectedIndexNotifier,
@@ -75,18 +77,32 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen>
     with SingleTickerProviderStateMixin {
+  final RestaurantSettingsController restaurantController = Get.put(
+    RestaurantSettingsController(),
+  );
   late TabController _tabController;
   double _voiceSpeed = 0.5;
-  final double _ambientNoise = 0.5;
+
   String _callTransferText = '';
   String _specialPromotionsText = '';
-  String _selectedVoice = 'Alisaya'; // Initial voice selection
+  String _selectedVoice = 'Andrea'; // Initial voice selection
   final List<String> _voiceOptions = [
-    'Alisaya',
-    'Sophia',
-    'John',
-    'Emma',
-  ]; // List of voice options
+    'Andrea',
+    'Burt',
+    'Drew',
+    'Joseph',
+    'Marissa',
+    'Mark',
+    'Matilda',
+    'MRB',
+    'Myra',
+    'Paul',
+    'Paula',
+    'Phillip',
+    'Ryan',
+    'Sarah',
+    'Steve',
+  ];
 
   @override
   void initState() {
@@ -98,6 +114,16 @@ class _SettingsScreenState extends State<SettingsScreen>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  String formatTime(String? time) {
+    if (time == null || time.isEmpty) return 'Not set';
+    final parts = time.split(':');
+    final hour = int.tryParse(parts[0]) ?? 0;
+    final minute = int.tryParse(parts[1]) ?? 0;
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+    return '$displayHour:${minute.toString().padLeft(2, '0')} $period';
   }
 
   @override
@@ -309,25 +335,37 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
         const SizedBox(height: 24),
 
-        // Restaurant Address Section
         _buildSectionTitle('Restaurant Address'),
         _buildCard(
           children: [
-            _buildDropdownField(
-              icon: Icons.location_on_outlined,
-              text: '122, Location, Main City-Nagpur, city\nLand park street',
-            ),
+            Obx(() {
+              if (restaurantController.isLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              return _buildDropdownField(
+                icon: Icons.location_on_outlined,
+                text: restaurantController.address.value.isEmpty
+                    ? 'Address not set'
+                    : restaurantController.address.value,
+              );
+            }),
           ],
         ),
+
         const SizedBox(height: 24),
 
         // Business hours Section
         _buildSectionTitle('Business hours'),
         _buildCard(
           children: [
-            _buildDropdownField(icon: Icons.access_time, text: '10 am - 11 pm'),
+            _buildDropdownField(
+              icon: Icons.access_time,
+              text:
+                  '${restaurantController.formatTime(restaurantController.openingTime.value)} - ${restaurantController.formatTime(restaurantController.closingTime.value)}',
+            ),
           ],
         ),
+
         const SizedBox(height: 24),
 
         // Special promotions Section
