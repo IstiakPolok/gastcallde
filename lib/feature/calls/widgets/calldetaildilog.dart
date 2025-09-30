@@ -20,6 +20,12 @@ class CallDetailsDialog extends StatefulWidget {
 class _CallDetailsDialogState extends State<CallDetailsDialog> {
   late AudioPlayer audioPlayer;
   bool isPlaying = false;
+  String _formatTime(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return "$minutes:$seconds";
+  }
 
   @override
   void initState() {
@@ -261,7 +267,60 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
               ),
             ),
             const SizedBox(height: 16),
-            if (widget.entry.recording.isNotEmpty)
+            // Inside your _buildRightColumn() before return
+
+            // --- Audio Player UI ---
+            StreamBuilder<Duration>(
+              stream: audioPlayer.onPositionChanged,
+              builder: (context, snapshot) {
+                final position = snapshot.data ?? Duration.zero;
+                return StreamBuilder<Duration>(
+                  stream: audioPlayer.onDurationChanged,
+                  builder: (context, snapshot) {
+                    final total = snapshot.data ?? Duration.zero;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Slider(
+                          min: 0,
+                          max: total.inSeconds.toDouble(),
+                          value: position.inSeconds
+                              .clamp(0, total.inSeconds)
+                              .toDouble(),
+                          activeColor: AppColors.primaryColor,
+                          onChanged: (value) async {
+                            await audioPlayer.seek(
+                              Duration(seconds: value.toInt()),
+                            );
+                          },
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _formatTime(position),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Text(
+                              _formatTime(total),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            if (widget.entry.recording.isNotEmpty) ...[
               ElevatedButton.icon(
                 onPressed: _togglePlay,
                 style: ElevatedButton.styleFrom(
@@ -271,9 +330,24 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                icon: Icon(isPlaying ? Icons.stop : Icons.play_arrow),
-                label: Text(isPlaying ? "Stop Recording" : "Play Recording"),
+                icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
+                label: Text(isPlaying ? "Pause" : "Play"),
               ),
+            ],
+
+            // if (widget.entry.recording.isNotEmpty)
+            //   ElevatedButton.icon(
+            //     onPressed: _togglePlay,
+            //     style: ElevatedButton.styleFrom(
+            //       backgroundColor: AppColors.primaryColor,
+            //       foregroundColor: Colors.white,
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(8),
+            //       ),
+            //     ),
+            //     icon: Icon(isPlaying ? Icons.stop : Icons.play_arrow),
+            //     label: Text(isPlaying ? "Stop Recording" : "Play Recording"),
+            //   ),
             const SizedBox(height: 16),
             const Divider(height: 1, color: Color(0xFFE5E7EB)),
             const SizedBox(height: 16),

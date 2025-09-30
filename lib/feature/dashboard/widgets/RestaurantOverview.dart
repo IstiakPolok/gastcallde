@@ -93,6 +93,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Text(
         text,
+        overflow: TextOverflow.ellipsis,
         style: GoogleFonts.inter(
           fontSize: 12,
           fontWeight: FontWeight.bold,
@@ -194,16 +195,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                 ? Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Expanded(
-                      //   child: InfoCard(
-                      //     title: 'revenue_orders'.tr,
-                      //     value: infoData['revenueOrders']!,
-                      //     subText: _selectedFilter,
-                      //   ),
-                      // ),
-                      // const SizedBox(width: 16),
-                      SizedBox(
-                        width: 200,
+                      Expanded(
                         child: Obx(
                           () => InfoCard(
                             title: 'revenue_orders'.tr,
@@ -213,9 +205,8 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: 200,
+                      const SizedBox(width: 16),
+                      Expanded(
                         child: Obx(
                           () => InfoCard(
                             title: 'revenue_reservation'.tr,
@@ -227,9 +218,8 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: 200,
+                      const SizedBox(width: 16),
+                      Expanded(
                         child: Obx(
                           () => InfoCard(
                             title: 'total_call_duration'.tr,
@@ -288,6 +278,8 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       Expanded(
                         flex: 1,
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment
+                              .stretch, // makes children full width
                           children: [
                             SmallInfoCard(
                               title: 'num_calls'.tr,
@@ -308,11 +300,13 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                           ],
                         ),
                       ),
+
                       const SizedBox(width: 16),
                       // Middle column of small info cards
                       Expanded(
                         flex: 1,
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             SmallInfoCard(
                               title: 'num_orders'.tr,
