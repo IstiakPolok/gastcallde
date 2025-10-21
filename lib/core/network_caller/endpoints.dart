@@ -1,5 +1,5 @@
 class Urls {
-  static const String baseUrl = 'http://10.10.13.26:8000';
+  static const String baseUrl = 'http://10.10.13.26:9002';
 
   static const String login = '$baseUrl/login/?lean=';
   static const String register = '$baseUrl/register/?lean=';

@@ -33,64 +33,77 @@ class CustomNavigationRail extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        NavigationRail(
-          backgroundColor: Colors.white,
-          //elevation: 0,
-          selectedIndex: selectedIndex,
-          onDestinationSelected: (index) {
-            onDestinationSelected(index);
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => _getScreenForIndex(index)),
-            );
-          },
-          leading: Padding(
-            padding: const EdgeInsets.only(top: 16.0, bottom: 24.0),
-            child: Image.asset('assets/icons/logo.png', width: 100),
+        SingleChildScrollView(
+          // add bottom padding so the rail items can scroll above the bottom button area
+          padding: const EdgeInsets.only(top: 0, bottom: 220),
+          child: ConstrainedBox(
+            // ensure the rail expands at least to the viewport height so NavigationRail lays out correctly
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height,
+            ),
+            child: IntrinsicHeight(
+              child: NavigationRail(
+                backgroundColor: Colors.white,
+                selectedIndex: selectedIndex,
+                onDestinationSelected: (index) {
+                  onDestinationSelected(index);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => _getScreenForIndex(index),
+                    ),
+                  );
+                },
+                leading: Padding(
+                  padding: const EdgeInsets.only(top: 16.0, bottom: 24.0),
+                  child: Image.asset('assets/icons/logo.png', width: 100),
+                ),
+                labelType: NavigationRailLabelType.all,
+                destinations: [
+                  _buildDestination(
+                    'assets/icons/svg/1.svg',
+                    'Overview',
+                    selectedIndex == 0,
+                  ),
+                  _buildDestination(
+                    'assets/icons/svg/2.svg',
+                    'Calls',
+                    selectedIndex == 1,
+                  ),
+                  _buildDestination(
+                    'assets/icons/svg/3.svg',
+                    'Order Management',
+                    selectedIndex == 2,
+                  ),
+                  _buildDestination(
+                    'assets/icons/svg/4.svg',
+                    'Reservation',
+                    selectedIndex == 3,
+                  ),
+                  _buildDestination(
+                    'assets/icons/svg/5.svg',
+                    'Menu Management',
+                    selectedIndex == 4,
+                  ),
+                  _buildDestination(
+                    'assets/icons/svg/6.svg',
+                    'Customers',
+                    selectedIndex == 5,
+                  ),
+                  _buildDestination(
+                    'assets/icons/svg/8.svg',
+                    'Subscription Plans',
+                    selectedIndex == 6,
+                  ),
+                  _buildDestination(
+                    'assets/icons/svg/7.svg',
+                    'Settings',
+                    selectedIndex == 7,
+                  ),
+                ],
+              ),
+            ),
           ),
-          labelType: NavigationRailLabelType.all,
-          destinations: [
-            _buildDestination(
-              'assets/icons/svg/1.svg',
-              'Overview',
-              selectedIndex == 0,
-            ),
-            _buildDestination(
-              'assets/icons/svg/2.svg',
-              'Calls',
-              selectedIndex == 1,
-            ),
-            _buildDestination(
-              'assets/icons/svg/3.svg',
-              'Order Management',
-              selectedIndex == 2,
-            ),
-            _buildDestination(
-              'assets/icons/svg/4.svg',
-              'Reservation',
-              selectedIndex == 3,
-            ),
-            _buildDestination(
-              'assets/icons/svg/5.svg',
-              'Menu Management',
-              selectedIndex == 4,
-            ),
-            _buildDestination(
-              'assets/icons/svg/6.svg',
-              'Customers',
-              selectedIndex == 5,
-            ),
-            _buildDestination(
-              'assets/icons/svg/8.svg',
-              'Subscription Plans',
-              selectedIndex == 6,
-            ),
-            _buildDestination(
-              'assets/icons/svg/7.svg',
-              'Settings',
-              selectedIndex == 7,
-            ),
-          ],
         ),
         Positioned(
           bottom: 20, // Distance from the bottom of the screen
@@ -98,89 +111,92 @@ class CustomNavigationRail extends StatelessWidget {
           right: 0, // Allow the button to span the width
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    Get.off(SubscriptionPlans());
-                    _showSubscriptionDialog(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+            child: Container(
+              color: Colors.white,
+              child: Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Get.off(SubscriptionPlans());
+                      _showSubscriptionDialog(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Row(
+                        children: [
+                          Icon(Icons.flash_on, size: 28),
+
+                          const Text(
+                            'Upgrade Now', // Text for the global button
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Row(
-                      children: [
-                        Icon(Icons.flash_on, size: 28),
+                  SizedBox(height: 10),
+                  Obx(() {
+                    if (subscriptionController.isLoading.value) {
+                      return const Text(
+                        'Checking subscription...',
+                        style: TextStyle(fontSize: 11, color: Colors.black54),
+                        textAlign: TextAlign.center,
+                      );
+                    } else {
+                      return Text(
+                        'You have ${subscriptionController.remainingDays.value} days of Free Limit',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.black54,
+                        ),
+                        textAlign: TextAlign.center,
+                      );
+                    }
+                  }),
 
-                        const Text(
-                          'Upgrade Now', // Text for the global button
+                  SizedBox(height: 10),
+                  TextButton(
+                    onPressed: () {
+                      print('Log out button pressed');
+                      SharedPreferencesHelper.logoutUser();
+                      Get.to(LoginScreen());
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(
+                        0xFFE53935,
+                      ), // Red color for the icon and text
+                    ),
+
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Arrow icon
+                        Icon(Icons.logout_sharp, size: 28),
+                        SizedBox(width: 8),
+                        // "Log out" text
+                        Text(
+                          'Log out',
                           style: TextStyle(
                             fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-                SizedBox(height: 10),
-                Obx(() {
-                  if (subscriptionController.isLoading.value) {
-                    return const Text(
-                      'Checking subscription...',
-                      style: TextStyle(fontSize: 11, color: Colors.black54),
-                      textAlign: TextAlign.center,
-                    );
-                  } else {
-                    return Text(
-                      'You have ${subscriptionController.remainingDays.value} days of Free Limit',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Colors.black54,
-                      ),
-                      textAlign: TextAlign.center,
-                    );
-                  }
-                }),
-
-                SizedBox(height: 10),
-                TextButton(
-                  onPressed: () {
-                    print('Log out button pressed');
-                    SharedPreferencesHelper.logoutUser();
-                    Get.to(LoginScreen());
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: const Color(
-                      0xFFE53935,
-                    ), // Red color for the icon and text
-                  ),
-
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Arrow icon
-                      Icon(Icons.logout_sharp, size: 28),
-                      SizedBox(width: 8),
-                      // "Log out" text
-                      Text(
-                        'Log out',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -197,8 +213,8 @@ class CustomNavigationRail extends StatelessWidget {
       icon: SvgPicture.asset(
         assetPath,
         colorFilter: const ColorFilter.mode(Colors.grey, BlendMode.srcIn),
-        width: 24,
-        height: 24,
+        width: 20,
+        height: 20,
       ),
       selectedIcon: SvgPicture.asset(
         assetPath,
@@ -206,8 +222,8 @@ class CustomNavigationRail extends StatelessWidget {
           AppColors.primaryColor,
           BlendMode.srcIn,
         ),
-        width: 24,
-        height: 24,
+        width: 20,
+        height: 20,
       ),
       label: Text(label),
     );

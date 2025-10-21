@@ -56,6 +56,7 @@ dependencies:
   webview_flutter: ^4.13.0
   audioplayers: ^6.5.1
   just_audio: ^0.10.5
+  sidebarx: ^0.17.2
   
 dev_dependencies:
   flutter_test:

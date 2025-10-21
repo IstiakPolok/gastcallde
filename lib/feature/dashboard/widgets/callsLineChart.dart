@@ -22,18 +22,18 @@ class CallsLineChart extends StatelessWidget {
       if (controller.isLoading.value) {
         return const Center(child: CircularProgressIndicator());
       }
+      // compute axis bounds and interval so we get ~10 Y labels
+      final minY = controller.getMinY();
+      final maxY = controller.getMaxY();
+      final yInterval = controller.getYAxisInterval(desiredTickCount: 10);
 
       return LineChart(
         LineChartData(
           minX: 0,
-          maxX: 11,
-          minY: 0,
-          maxY:
-              (controller.orderData + controller.reservationData).reduce(
-                (a, b) => a > b ? a : b,
-              ) +
-              50, // adjust maxY dynamically
-          gridData: FlGridData(show: false),
+          maxX: 11, // 12 months (X-axis)
+          minY: minY,
+          maxY: maxY,
+          gridData: FlGridData(show: true, drawVerticalLine: false),
           titlesData: FlTitlesData(
             rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
             topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -43,12 +43,6 @@ class CallsLineChart extends StatelessWidget {
                 reservedSize: 30,
                 interval: 1,
                 getTitlesWidget: (value, meta) {
-                  const style = TextStyle(
-                    color: Color(0xff68737d),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 10,
-                  );
-
                   const months = [
                     'Jan',
                     'Feb',
@@ -64,7 +58,14 @@ class CallsLineChart extends StatelessWidget {
                     'Dec',
                   ];
                   if (value.toInt() >= 0 && value.toInt() < 12) {
-                    return Text(months[value.toInt()].tr, style: style);
+                    return Text(
+                      months[value.toInt()].tr,
+                      style: const TextStyle(
+                        color: Color(0xff68737d),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                      ),
+                    );
                   }
                   return const SizedBox();
                 },
@@ -74,6 +75,7 @@ class CallsLineChart extends StatelessWidget {
               sideTitles: SideTitles(
                 showTitles: true,
                 reservedSize: 40,
+                interval: yInterval,
                 getTitlesWidget: (value, meta) {
                   return Text(
                     value.toInt().toString(),
@@ -122,6 +124,38 @@ class MonthlyStatsController extends GetxController {
   RxBool isLoading = false.obs;
   RxList<double> orderData = List.filled(12, 0.0).obs;
   RxList<double> reservationData = List.filled(12, 0.0).obs;
+
+  double getMinY() {
+    final combined = [...orderData, ...reservationData];
+    if (combined.isEmpty) return 0;
+    final minVal = combined.reduce((a, b) => a < b ? a : b);
+    // round down to a "nice" number (nearest 10)
+    return (minVal <= 0) ? 0.0 : (minVal / 10).floorToDouble() * 10;
+  }
+
+  double getMaxY() {
+    final combined = [...orderData, ...reservationData];
+    if (combined.isEmpty) return 10;
+    final maxVal = combined.reduce((a, b) => a > b ? a : b);
+    // round up to a "nice" number (nearest 10) and ensure at least 10
+    final rounded = (maxVal <= 10) ? 10.0 : (maxVal / 10).ceilToDouble() * 10;
+    return rounded;
+  }
+
+  /// Returns an interval that yields approximately [desiredTickCount] labels
+  /// (including min and max). Uses simple rounding to a whole number.
+  double getYAxisInterval({int desiredTickCount = 10}) {
+    final minY = getMinY();
+    final maxY = getMaxY();
+    final range = maxY - minY;
+
+    if (range <= 0) return 1;
+
+    final raw = range / (desiredTickCount - 1);
+    // round raw up to a whole number for clearer ticks
+    final interval = raw.ceilToDouble();
+    return interval > 0 ? interval : 1;
+  }
 
   Future<void> fetchMonthlyStats() async {
     try {
