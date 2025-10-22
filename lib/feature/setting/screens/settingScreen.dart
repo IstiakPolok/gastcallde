@@ -44,7 +44,7 @@ class settingScreen extends StatelessWidget {
                 valueListenable: _selectedIndexNotifier,
                 builder: (context, selectedIndex, _) {
                   return CustomNavigationRail(
-                    selectedIndex: 7,
+                    selectedIndex: 8,
                     onDestinationSelected: (index) {
                       _selectedIndexNotifier.value = index;
                     },

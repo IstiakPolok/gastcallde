@@ -88,14 +88,14 @@ class OrderController extends GetxController {
         debugPrint('Completed: ${completedOrders.length}');
       } else {
         debugPrint('❌ Error fetching orders: ${response.statusCode}');
-        Get.snackbar(
-          'Error',
-          'Failed to fetch orders (${response.statusCode})',
-        );
+        // Get.snackbar(
+        //   'Error',
+        //   'Failed to fetch orders (${response.statusCode})',
+        // );
       }
     } catch (e) {
       debugPrint('🚨 Exception while fetching orders: $e');
-      Get.snackbar('Error', 'Something went wrong while fetching orders.');
+      //Get.snackbar('Error', 'Something went wrong while fetching orders.');
     }
   }
 

@@ -34,11 +34,6 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
 
     // Fetch default stats if no dates selected
     Revenuecontroller.fetchStats(); // no dates, API will just call /owner/stats/
-
-    // Optional: set a default last 7 days range
-    DateTime today = DateTime.now();
-    DateTime weekAgo = today.subtract(const Duration(days: 7));
-    Revenuecontroller.fetchStats(startDate: weekAgo, endDate: today);
   }
 
   Future<void> _selectStartDate(BuildContext context) async {
@@ -116,33 +111,70 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
   }
 
   Widget _buildDateRangePicker() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Text(
-          'Select date range : ',
-          style: TextStyle(
-            color: Color(0xFF1A2E35),
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
+    final double screenWidth = MediaQuery.of(context).size.width;
+    const double breakpoint = 600;
+    final bool isMobile = screenWidth <= breakpoint;
+
+    if (isMobile) {
+      // MOBILE VIEW: show in column
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildDateBox(
+            label: 'start_date'.tr,
+            date: _startDate,
+            onTap: () => _selectStartDate(context),
           ),
-        ),
-        const SizedBox(width: 12),
-        _buildDateBox(
-          label: 'start_date'.tr,
-          date: _startDate,
-          onTap: () => _selectStartDate(context),
-        ),
-        const SizedBox(width: 12),
-        Text('to'.tr, style: TextStyle(fontSize: 14, color: Color(0xFF1A2E35))),
-        const SizedBox(width: 12),
-        _buildDateBox(
-          label: 'end_date'.tr,
-          date: _endDate,
-          onTap: () => _selectEndDate(context),
-        ),
-      ],
-    );
+          const SizedBox(width: 12),
+          Text(
+            'to'.tr,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color(0xFF1A2E35),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(width: 12),
+          _buildDateBox(
+            label: 'end_date'.tr,
+            date: _endDate,
+            onTap: () => _selectEndDate(context),
+          ),
+        ],
+      );
+    } else {
+      // TABLET/DESKTOP VIEW: show in row
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            'Select date range : ',
+            style: TextStyle(
+              color: Color(0xFF1A2E35),
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(width: 12),
+          _buildDateBox(
+            label: 'start_date'.tr,
+            date: _startDate,
+            onTap: () => _selectStartDate(context),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            'to'.tr,
+            style: const TextStyle(fontSize: 14, color: Color(0xFF1A2E35)),
+          ),
+          const SizedBox(width: 12),
+          _buildDateBox(
+            label: 'end_date'.tr,
+            date: _endDate,
+            onTap: () => _selectEndDate(context),
+          ),
+        ],
+      );
+    }
   }
 
   Widget _buildChartFilterButton(String text, Color color) {
@@ -188,12 +220,18 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       color: Colors.black87,
                     ),
                   ),
-                  Text(
-                    'live_overview'.tr,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'live_overview'.tr,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      LanguageToggleButton(),
+                    ],
                   ),
                 ],
               ),
@@ -231,376 +269,439 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Time range filter section
             _buildDateRangePicker(),
             const SizedBox(height: 24),
 
-            // Top row of info cards
-            isTablet
-                ? Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Obx(
+            // MOBILE: Info cards in a horizontal scrollable row
+            if (isMobile)
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Obx(
                           () => InfoCard(
                             title: 'total_order'.tr,
-                            value:
-                                "${Revenuecontroller.totalOrders.value.toStringAsFixed(2)}",
+                            value: Revenuecontroller.totalOrders.value
+                                .toStringAsFixed(2),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Obx(
+                        const SizedBox(width: 12),
+                        Obx(
                           () => InfoCard(
                             title: 'Num_of_New_Customer_Order'.tr,
                             value: Revenuecontroller.numberOfNewCustomers.value
                                 .toString(),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Obx(
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Obx(
                           () => InfoCard(
                             title: 'revenue_orders'.tr,
                             value:
                                 "\$${Revenuecontroller.totalRevenueOrder.value.toStringAsFixed(2)}",
                           ),
                         ),
-                      ),
-
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Obx(
+                        const SizedBox(width: 12),
+                        Obx(
                           () => InfoCard(
                             title: 'average_order_value'.tr,
                             value:
                                 "\$${Revenuecontroller.averageOrderValue.value.toStringAsFixed(2)}",
                           ),
                         ),
-                      ),
-                    ],
-                  )
-                : Column(
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+            if (isMobile) const SizedBox(height: 24),
+
+            // MOBILE: Small info cards in a grid
+            if (isMobile)
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 1.7,
+                children: [
+                  Obx(
+                    () => SmallInfoCard(
+                      title: 'num_returning_customer_orders'.tr,
+                      value: Revenuecontroller.numberOfReturnCustomers.value
+                          .toString(),
+                    ),
+                  ),
+                  Obx(
+                    () => SmallInfoCard(
+                      title: 'num_reservations'.tr,
+                      value: Revenuecontroller.totalNumberOfReservations.value
+                          .toString(),
+                    ),
+                  ),
+                  Obx(
+                    () => SmallInfoCard(
+                      title: 'returning_customer_reservation_count'.tr,
+                      value: Revenuecontroller
+                          .numberOfReturningReservations
+                          .value
+                          .toString(),
+                    ),
+                  ),
+                  Obx(
+                    () => SmallInfoCard(
+                      title: 'num_orders'.tr,
+                      value: Revenuecontroller.numberOfNewCustomers.value
+                          .toString(),
+                    ),
+                  ),
+                  Obx(
+                    () => SmallInfoCard(
+                      title: 'new_customer_reservation'.tr,
+                      value: Revenuecontroller.numberOfNewReservations.value
+                          .toString(),
+                    ),
+                  ),
+                  Obx(
+                    () => SmallInfoCard(
+                      title: 'new_customer_reservation%'.tr,
+                      value: Revenuecontroller
+                          .newCustomerReservationPercentage
+                          .value
+                          .toString(),
+                    ),
+                  ),
+                  Obx(
+                    () => SmallInfoCard(
+                      title: 'returning_customer_order'.tr,
+                      value: Revenuecontroller
+                          .numberOfReturningReservations
+                          .value
+                          .toString(),
+                    ),
+                  ),
+                  Obx(
+                    () => SmallInfoCard(
+                      title: 'num_reserved_guests'.tr,
+                      value: Revenuecontroller.totalReservationGuests.value
+                          .toString(),
+                    ),
+                  ),
+                  Obx(
+                    () => SmallInfoCard(
+                      title: 'returning_customer_reservation'.tr,
+                      value: Revenuecontroller
+                          .returningCustomerReservationPercentage
+                          .value
+                          .toString(),
+                    ),
+                  ),
+                ],
+              ),
+
+            if (isMobile) const SizedBox(height: 24),
+
+            // MOBILE: Chart card
+            if (isMobile)
+              ChartCard(
+                title: 'all_call'.tr,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      SizedBox(
-                        width: 200,
-                        child: InfoCard(
-                          title: 'revenue_orders'.tr,
-                          value:
-                              "\$${Revenuecontroller.totalRevenueOrder.value.toStringAsFixed(2)}",
-                        ),
-                      ),
-                      SizedBox(
-                        width: 200,
-                        child: InfoCard(
-                          title: 'revenue_orders'.tr,
-                          value:
-                              "\$${Revenuecontroller.totalRevenueOrder.value.toStringAsFixed(2)}",
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: 200,
-                        child: InfoCard(
-                          title: 'Num_of_New_Customer_Order'.tr,
-                          value: Revenuecontroller
-                              .totalNumberOfReservations
-                              .value
-                              .toString(),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: 200,
-                        child: InfoCard(
-                          title: 'total_call_duration'.tr,
-                          value:
-                              "${Revenuecontroller.numberOfNewCustomers.value} sec",
-                        ),
+                      _buildChartFilterButton('total_order'.tr, Colors.green),
+                      _buildChartFilterButton(
+                        'total_reservation'.tr,
+                        Colors.blue,
                       ),
                     ],
                   ),
-            const SizedBox(height: 24),
+                  const SizedBox(height: 8),
+                  SizedBox(height: 200, child: CallsLineChart()),
+                ],
+              ),
 
-            // Middle section with a mix of cards and a line chart
-            isTablet
-                ? Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Left column of small info cards
-                      Expanded(
-                        flex: 1,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment
-                              .stretch, // makes children full width
-                          children: [
-                            SmallInfoCard(
-                              title: 'num_returning_customer_orders'.tr,
-                              value:
-                                  "${Revenuecontroller.numberOfReturnCustomers.value} ",
-                            ),
-                            const SizedBox(height: 16),
-                            SmallInfoCard(
-                              title: 'num_reservations'.tr,
-                              value:
-                                  "${Revenuecontroller.totalNumberOfReservations.value} ",
-                            ),
-                            const SizedBox(height: 16),
+            if (isMobile) const SizedBox(height: 24),
 
-                            SmallInfoCard(
-                              title: 'returning_customer_reservation_count'.tr,
-                              value:
-                                  "${Revenuecontroller.numberOfReturningReservations.value} ",
-                            ),
-                          ],
-                        ),
+            // MOBILE: Revenue and order charts
+            if (isMobile)
+              ChartCard(
+                title: 'total_revenue_trends'.tr,
+                children: [
+                  Obx(
+                    () => Text(
+                      '\$${controller.totalRevenue.value.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(height: 200, child: RevenueLineChart()),
+                ],
+              ),
 
-                      const SizedBox(width: 16),
-                      // Middle column of small info cards
-                      Expanded(
-                        flex: 1,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            SmallInfoCard(
-                              title: 'num_orders'.tr,
-                              value:
-                                  "${Revenuecontroller.numberOfNewCustomers.value} ",
-                            ),
-                            const SizedBox(height: 16),
-                            SmallInfoCard(
-                              title: 'new_customer_reservation'.tr,
-                              value:
-                                  "${Revenuecontroller.numberOfNewReservations.value} ",
-                            ),
-                            const SizedBox(height: 16),
-                            SmallInfoCard(
-                              title: 'new_customer_reservation%'.tr,
-                              value:
-                                  "${Revenuecontroller.newCustomerReservationPercentage.value} ",
-                            ),
-                          ],
-                        ),
+            if (isMobile) const SizedBox(height: 16),
+
+            if (isMobile)
+              ChartCard(
+                title: 'total_order_quantity'.tr,
+                children: [
+                  Obx(
+                    () => Text(
+                      controller.totalOrders.value.toString(),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        flex: 1,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            SmallInfoCard(
-                              title: 'returning_customer_order'.tr,
-                              value:
-                                  "${Revenuecontroller.numberOfReturningReservations.value} ",
-                            ),
-                            const SizedBox(height: 16),
-                            SmallInfoCard(
-                              title: 'num_reserved_guests'.tr,
-                              value:
-                                  "${Revenuecontroller.totalReservationGuests.value} ",
-                            ),
-                            const SizedBox(height: 16),
-                            SmallInfoCard(
-                              title: 'returning_customer_reservation'.tr,
-                              value:
-                                  "${Revenuecontroller.returningCustomerReservationPercentage.value} ",
-                            ),
-                          ],
-                        ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(height: 200, child: OrdersBarChart()),
+                ],
+              ),
+
+            // TABLET: Use original layout
+            if (isTablet) ...[
+              // ...existing code for tablet view (unchanged)...
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Obx(
+                      () => InfoCard(
+                        title: 'total_order'.tr,
+                        value: Revenuecontroller.totalOrders.value
+                            .toStringAsFixed(2),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        flex: 2,
-                        child: ChartCard(
-                          title: 'all_call'.tr,
-                          children: [
-                            // Chart filter buttons (non-interactive)
-                            Wrap(
-                              spacing: 8, // horizontal space between buttons
-                              runSpacing: 4,
-                              children: [
-                                _buildChartFilterButton(
-                                  'total_order'.tr,
-                                  Colors.green,
-                                ),
-                                _buildChartFilterButton(
-                                  'total_reservation'.tr,
-                                  Colors.blue,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            // Line chart widget
-                            SizedBox(height: 200, child: CallsLineChart()),
-                          ],
-                        ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Obx(
+                      () => InfoCard(
+                        title: 'Num_of_New_Customer_Order'.tr,
+                        value: Revenuecontroller.numberOfNewCustomers.value
+                            .toString(),
                       ),
-                    ],
-                  )
-                : Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Flexible(
-                            child: SmallInfoCard(
-                              title: 'num_calls'.tr,
-                              value:
-                                  "${Revenuecontroller.averageOrderValue.value} ",
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Flexible(
-                            child: SmallInfoCard(
-                              title: 'num_orders'.tr,
-                              value:
-                                  "${Revenuecontroller.numberOfNewCustomers.value} ",
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Flexible(
-                            child: SmallInfoCard(
-                              title: 'num_new_customers'.tr,
-                              value:
-                                  "${Revenuecontroller.numberOfNewCustomers.value} ",
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Flexible(
-                            child: SmallInfoCard(
-                              title: 'num_return_customers'.tr,
-                              value:
-                                  "${Revenuecontroller.numberOfReturnCustomers.value} ",
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      SmallInfoCard(
-                        title: 'ai_to_human'.tr,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Obx(
+                      () => InfoCard(
+                        title: 'revenue_orders'.tr,
                         value:
-                            "${Revenuecontroller.numberOfReturnCustomers.value} ",
+                            "\$${Revenuecontroller.totalRevenueOrder.value.toStringAsFixed(2)}",
                       ),
-                      const SizedBox(height: 16),
-                      SmallInfoCard(
-                        title: 'ai_to_human'.tr,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Obx(
+                      () => InfoCard(
+                        title: 'average_order_value'.tr,
                         value:
-                            "${Revenuecontroller.numberOfReturnCustomers.value} ",
+                            "\$${Revenuecontroller.averageOrderValue.value.toStringAsFixed(2)}",
                       ),
-                      const SizedBox(height: 24),
-                      ChartCard(
-                        title: 'all_call'.tr,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              _buildChartFilterButton(
-                                'total_order'.tr,
-                                Colors.green,
-                              ),
-                              _buildChartFilterButton(
-                                'total_reservation'.tr,
-                                Colors.blue,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          SizedBox(height: 200, child: CallsLineChart()),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
-            const SizedBox(height: 24),
-
-            // Bottom section with two chart cards
-            // Bottom section with two chart cards
-            isTablet
-                ? Row(
-                    children: [
-                      Expanded(
-                        child: ChartCard(
-                          title: 'total_revenue_trends'.tr,
+                ],
+              ),
+              const SizedBox(height: 24),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ...existing code for small info cards and charts...
+                  Expanded(
+                    flex: 1,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Obx(
+                          () => SmallInfoCard(
+                            title: 'num_returning_customer_orders'.tr,
+                            value: Revenuecontroller
+                                .numberOfReturnCustomers
+                                .value
+                                .toString(),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Obx(
+                          () => SmallInfoCard(
+                            title: 'num_reservations'.tr,
+                            value: Revenuecontroller
+                                .totalNumberOfReservations
+                                .value
+                                .toString(),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Obx(
+                          () => SmallInfoCard(
+                            title: 'returning_customer_reservation_count'.tr,
+                            value: Revenuecontroller
+                                .numberOfReturningReservations
+                                .value
+                                .toString(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 1,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Obx(
+                          () => SmallInfoCard(
+                            title: 'num_orders'.tr,
+                            value: Revenuecontroller.numberOfNewCustomers.value
+                                .toString(),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Obx(
+                          () => SmallInfoCard(
+                            title: 'new_customer_reservation'.tr,
+                            value: Revenuecontroller
+                                .numberOfNewReservations
+                                .value
+                                .toString(),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Obx(
+                          () => SmallInfoCard(
+                            title: 'new_customer_reservation%'.tr,
+                            value: Revenuecontroller
+                                .newCustomerReservationPercentage
+                                .value
+                                .toString(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 1,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Obx(
+                          () => SmallInfoCard(
+                            title: 'returning_customer_order'.tr,
+                            value: Revenuecontroller
+                                .numberOfReturningReservations
+                                .value
+                                .toString(),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Obx(
+                          () => SmallInfoCard(
+                            title: 'num_reserved_guests'.tr,
+                            value: Revenuecontroller
+                                .totalReservationGuests
+                                .value
+                                .toString(),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Obx(
+                          () => SmallInfoCard(
+                            title: 'returning_customer_reservation'.tr,
+                            value: Revenuecontroller
+                                .returningCustomerReservationPercentage
+                                .value
+                                .toString(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 2,
+                    child: ChartCard(
+                      title: 'all_call'.tr,
+                      children: [
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
                           children: [
-                            Obx(
-                              () => Text(
-                                '\$${controller.totalRevenue.value.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                            _buildChartFilterButton(
+                              'total_order'.tr,
+                              Colors.green,
                             ),
-                            const SizedBox(height: 16),
-                            SizedBox(height: 200, child: RevenueLineChart()),
+                            _buildChartFilterButton(
+                              'total_reservation'.tr,
+                              Colors.blue,
+                            ),
                           ],
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ChartCard(
-                          title: 'total_order_quantity'.tr,
-                          children: [
-                            Obx(
-                              () => Text(
-                                '${controller.totalOrders.value}',
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            SizedBox(height: 200, child: OrdersBarChart()),
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
-                : Column(
-                    children: [
-                      ChartCard(
-                        title: 'total_revenue_trends'.tr,
-                        children: [
-                          Obx(
-                            () => Text(
-                              '\$${controller.totalRevenue.value.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          SizedBox(height: 200, child: RevenueLineChart()),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      ChartCard(
-                        title: 'total_order_quantity'.tr,
-                        children: [
-                          Obx(
-                            () => Text(
-                              controller.totalOrders.value.toString(),
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          SizedBox(height: 200, child: OrdersBarChart()),
-                        ],
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        SizedBox(height: 200, child: CallsLineChart()),
+                      ],
+                    ),
                   ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: ChartCard(
+                      title: 'total_revenue_trends'.tr,
+                      children: [
+                        Obx(
+                          () => Text(
+                            '\$${controller.totalRevenue.value.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(height: 200, child: RevenueLineChart()),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ChartCard(
+                      title: 'total_order_quantity'.tr,
+                      children: [
+                        Obx(
+                          () => Text(
+                            controller.totalOrders.value.toString(),
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(height: 200, child: OrdersBarChart()),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),

@@ -25,7 +25,7 @@ class SubscriptionPlans extends StatelessWidget {
               valueListenable: _selectedIndexNotifier,
               builder: (context, selectedIndex, _) {
                 return CustomDrawer(
-                  selectedIndex: 6,
+                  selectedIndex: 7,
                   onItemSelected: (index) {
                     _selectedIndexNotifier.value = index;
                   },
@@ -41,7 +41,7 @@ class SubscriptionPlans extends StatelessWidget {
                 valueListenable: _selectedIndexNotifier,
                 builder: (context, selectedIndex, _) {
                   return CustomNavigationRail(
-                    selectedIndex: 6,
+                    selectedIndex: 7,
                     onDestinationSelected: (index) {
                       _selectedIndexNotifier.value = index;
                     },

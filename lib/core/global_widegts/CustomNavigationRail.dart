@@ -17,6 +17,8 @@ import 'package:gastcallde/feature/setting/screens/settingScreen.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
+import '../../feature/delivery/deliveryscreen.dart';
+
 class CustomNavigationRail extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
@@ -91,14 +93,19 @@ class CustomNavigationRail extends StatelessWidget {
                     selectedIndex == 5,
                   ),
                   _buildDestination(
+                    'assets/icons/svg/9.svg',
+                    'Delivery Management',
+                    selectedIndex == 6,
+                  ),
+                  _buildDestination(
                     'assets/icons/svg/8.svg',
                     'Subscription Plans',
-                    selectedIndex == 6,
+                    selectedIndex == 7,
                   ),
                   _buildDestination(
                     'assets/icons/svg/7.svg',
                     'Settings',
-                    selectedIndex == 7,
+                    selectedIndex == 8,
                   ),
                 ],
               ),
@@ -244,10 +251,12 @@ class CustomNavigationRail extends StatelessWidget {
         return menuManagement();
       case 5:
         return Customerscreen();
-      case 7:
+      case 8:
         return settingScreen();
-      case 6:
+      case 7:
         return SubscriptionPlans();
+      case 6:
+        return DeliveryScreen();
 
       default:
         return Center(child: Container(color: Colors.green));

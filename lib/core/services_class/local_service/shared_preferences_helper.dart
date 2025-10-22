@@ -10,6 +10,7 @@ class SharedPreferencesHelper {
   static const String _isWelcomeDialogShownKey =
       'isDriverVerificationDialogShown';
   static const String _restaurantIdKey = 'restaurant_id';
+  static const String _refreshTokenKey = 'refresh_token';
 
   static Future<void> saveLanguage(String code) async {
     final prefs = await SharedPreferences.getInstance();
@@ -163,6 +164,29 @@ class SharedPreferencesHelper {
     await clearAllData();
     print('User logged out and data cleared');
     // Get.offAll(() => LoginView());
+  }
+
+  static Future<void> saveRefreshToken(String refreshToken) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      bool saved = await prefs.setString(_refreshTokenKey, refreshToken);
+      print('✅ Refresh token saved: $saved');
+    } catch (e) {
+      print('❌ Error saving refresh token: $e');
+    }
+  }
+
+  // 🔹 Retrieve refresh token
+  static Future<String?> getRefreshToken() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString(_refreshTokenKey);
+      print('📥 Retrieved refresh token: $token');
+      return token;
+    } catch (e) {
+      print('❌ Error retrieving refresh token: $e');
+      return null;
+    }
   }
 
   // Save the User ID

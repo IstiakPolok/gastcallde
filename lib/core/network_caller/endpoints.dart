@@ -28,4 +28,7 @@ class Urls {
   static const String createGroup = '$baseUrl/group/create';
   static const String myGrouplist = '$baseUrl/group/my-groups';
   static const String groupAddMember = '$baseUrl/group/add';
+  static const String refreshToken = '$baseUrl/token/refresh/';
+  static const String getDeliveryAreas = '$baseUrl/owner/areas/';
+  static const String addDeliveryArea = '$baseUrl/owner/areas/';
 }
