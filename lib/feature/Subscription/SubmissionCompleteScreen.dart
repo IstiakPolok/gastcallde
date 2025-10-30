@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:gastcallde/feature/auth/login/screens/loginScreen.dart';
 import 'package:get/get.dart';
 
+import '../dashboard/screens/dashboard.dart';
+
 class paymentCompleteScreen extends StatelessWidget {
   const paymentCompleteScreen({super.key});
 
@@ -32,7 +34,7 @@ class paymentCompleteScreen extends StatelessWidget {
                 child: IconButton(
                   icon: const Icon(Icons.close, color: Colors.black),
                   onPressed: () {
-                    Get.offAll(LoginScreen());
+                    Get.offAll(Dashboard());
                     debugPrint('Close button pressed!');
                   },
                 ),
@@ -62,18 +64,14 @@ class paymentCompleteScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8.0),
+
               // Sub text 1
-              const Text(
-                'Your request has been successfully submitted',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
               const SizedBox(height: 40.0),
               // "Wait for Admin Approval" button
               ElevatedButton(
                 onPressed: () {
                   Get.offAll(LoginScreen());
-                  debugPrint('Wait for Admin Approval button pressed!');
+                  debugPrint('Dashboard  button pressed!');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(
@@ -89,7 +87,7 @@ class paymentCompleteScreen extends StatelessWidget {
                   elevation: 0,
                 ),
                 child: const Text(
-                  'Wait for Admin Approval',
+                  'Back',
                   style: TextStyle(
                     fontSize: 16,
                     color: Color(0xFF4C8D9B), // Custom blue text color
@@ -97,12 +95,8 @@ class paymentCompleteScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20.0),
+
               // Bottom text
-              const Text(
-                'Your submission is currently being reviewed by our team',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
             ],
           ),
         ),

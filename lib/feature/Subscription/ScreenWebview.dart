@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gastcallde/feature/Subscription/SubmissionCompleteScreen.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:get/get.dart';
 import '../orderManagment/orderManagmentscreen.dart';
@@ -22,12 +23,18 @@ class ScreenWebview extends StatelessWidget {
           },
           onNavigationRequest: (request) {
             print("📡 Navigating to: ${request.url}");
+            print(
+              "🔍 Checking if URL contains 'success=success': ${request.url.contains('success=success')}",
+            );
 
-            if (request.url.contains('?success=success')) {
+            if (request.url.contains('success=success')) {
               print(
-                "🎉 Success URL detected! Navigating to ScreenDonationComplete",
+                "🎉 Success URL detected! Navigating to order management screen",
               );
-              Get.offAll(() => orderManagmentscreen());
+              // Use Future.delayed to ensure navigation happens after current frame
+              Future.delayed(Duration.zero, () {
+                Get.offAll(() => paymentCompleteScreen());
+              });
               return NavigationDecision.prevent;
             }
 

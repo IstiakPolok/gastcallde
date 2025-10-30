@@ -167,6 +167,60 @@ class TableController extends GetxController {
     }
   }
 
+  // Update a table by ID
+  Future<bool> updateTable(
+    int tableId,
+    String name,
+    String capacity,
+    String status,
+    String reservationStatus,
+  ) async {
+    print("Starting to update table with ID: $tableId");
+    final String? token = await SharedPreferencesHelper.getAccessToken();
+
+    try {
+      final request = http.MultipartRequest(
+        'PUT',
+        Uri.parse('${Urls.baseUrl}/owner/table/update/$tableId/'),
+      );
+
+      request.headers.addAll({
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      });
+
+      request.fields.addAll({
+        'table_name': name,
+        'total_set': capacity,
+        'status': status,
+        'reservation_status': reservationStatus,
+      });
+
+      print("Updating table with fields: ${request.fields}");
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      print("Update response status code: ${response.statusCode}");
+      print("Update response body: $responseBody");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print("✅ Table $tableId updated successfully");
+        // Refresh the table list to get the updated data
+        await fetchTables();
+        return true;
+      } else {
+        print(
+          "❌ Failed to update table $tableId. Status Code: ${response.statusCode}",
+        );
+        return false;
+      }
+    } catch (e) {
+      print("❌ Error while updating table $tableId: $e");
+      return false;
+    }
+  }
+
   @override
   void onInit() {
     super.onInit();
