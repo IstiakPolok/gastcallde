@@ -18,6 +18,12 @@ class SharedPreferencesHelper {
     print('Saved language: $code'); // 🔹 Debug print
   }
 
+  // Get current language code
+  static Future<String> getLanguage() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('language_code') ?? 'EN';
+  }
+
   // Load language at app start
   static Future<void> loadSavedLanguage() async {
     final prefs = await SharedPreferences.getInstance();

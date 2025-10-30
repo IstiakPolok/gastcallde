@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
@@ -10,6 +9,7 @@ import 'package:gastcallde/feature/auth/login/screens/loginScreen.dart';
 import 'package:gastcallde/feature/calls/screens/callScreen.dart';
 import 'package:gastcallde/feature/customers/screens/customerSCreen.dart';
 import 'package:gastcallde/feature/dashboard/screens/dashboard.dart';
+import 'package:gastcallde/feature/delivery/deliveryscreen.dart';
 import 'package:gastcallde/feature/menuManagement/screens/menuManagement.dart';
 import 'package:gastcallde/feature/orderManagment/orderManagmentscreen.dart';
 import 'package:gastcallde/feature/reservastion/screens/reservationScreen.dart';
@@ -17,9 +17,7 @@ import 'package:gastcallde/feature/setting/screens/settingScreen.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
-import '../../feature/delivery/deliveryscreen.dart';
-
-class CustomNavigationRail extends StatelessWidget {
+class CustomNavigationRail extends StatefulWidget {
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
 
@@ -29,174 +27,197 @@ class CustomNavigationRail extends StatelessWidget {
     required this.onDestinationSelected,
   });
 
+  @override
+  State<CustomNavigationRail> createState() => _CustomNavigationRailState();
+}
+
+class _CustomNavigationRailState extends State<CustomNavigationRail> {
   final subscriptionController = Get.put(SubscriptionCountController());
+  bool _isExpanded = true;
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        SingleChildScrollView(
-          // add bottom padding so the rail items can scroll above the bottom button area
-          padding: const EdgeInsets.only(top: 0, bottom: 220),
-          child: ConstrainedBox(
-            // ensure the rail expands at least to the viewport height so NavigationRail lays out correctly
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height,
-            ),
-            child: IntrinsicHeight(
-              child: NavigationRail(
-                backgroundColor: Colors.white,
-                selectedIndex: selectedIndex,
-                onDestinationSelected: (index) {
-                  onDestinationSelected(index);
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => _getScreenForIndex(index),
-                    ),
-                  );
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          // Logo and toggle button
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              IconButton(
+                icon: Icon(
+                  _isExpanded ? Icons.menu_open : Icons.menu,
+                  color: AppColors.primaryColor,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isExpanded = !_isExpanded;
+                  });
                 },
-                leading: Padding(
-                  padding: const EdgeInsets.only(top: 16.0, bottom: 24.0),
+                tooltip: _isExpanded ? 'Collapse' : 'Expand',
+              ),
+              if (_isExpanded)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
                   child: Image.asset('assets/icons/logo.png', width: 100),
                 ),
-                labelType: NavigationRailLabelType.all,
-                destinations: [
-                  _buildDestination(
-                    'assets/icons/svg/1.svg',
-                    'Overview',
-                    selectedIndex == 0,
-                  ),
-                  _buildDestination(
-                    'assets/icons/svg/2.svg',
-                    'Calls',
-                    selectedIndex == 1,
-                  ),
-                  _buildDestination(
-                    'assets/icons/svg/3.svg',
-                    'Order Management',
-                    selectedIndex == 2,
-                  ),
-                  _buildDestination(
-                    'assets/icons/svg/4.svg',
-                    'Reservation',
-                    selectedIndex == 3,
-                  ),
-                  _buildDestination(
-                    'assets/icons/svg/5.svg',
-                    'Menu Management',
-                    selectedIndex == 4,
-                  ),
-                  _buildDestination(
-                    'assets/icons/svg/6.svg',
-                    'Customers',
-                    selectedIndex == 5,
-                  ),
-                  _buildDestination(
-                    'assets/icons/svg/9.svg',
-                    'Delivery Management',
-                    selectedIndex == 6,
-                  ),
-                  _buildDestination(
-                    'assets/icons/svg/8.svg',
-                    'Subscription Plans',
-                    selectedIndex == 7,
-                  ),
-                  _buildDestination(
-                    'assets/icons/svg/7.svg',
-                    'Settings',
-                    selectedIndex == 8,
-                  ),
-                ],
-              ),
-            ),
+            ],
           ),
-        ),
-        Positioned(
-          bottom: 20, // Distance from the bottom of the screen
-          left: 0, // Align the button to the left of the screen
-          right: 0, // Allow the button to span the width
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              color: Colors.white,
+          // Navigation items
+          Expanded(
+            child: SingleChildScrollView(
               child: Column(
                 children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Get.off(SubscriptionPlans());
-                      _showSubscriptionDialog(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Row(
-                        children: [
-                          Icon(Icons.flash_on, size: 28),
-
-                          const Text(
-                            'Upgrade Now', // Text for the global button
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
+                  // Navigation Rail Items
+                  IntrinsicHeight(
+                    child: NavigationRail(
+                      backgroundColor: Colors.white,
+                      selectedIndex: widget.selectedIndex,
+                      onDestinationSelected: (index) {
+                        widget.onDestinationSelected(index);
+                        _navigateToScreen(index);
+                      },
+                      labelType: _isExpanded
+                          ? NavigationRailLabelType.all
+                          : NavigationRailLabelType.none,
+                      destinations: [
+                        _buildDestination(
+                          'assets/icons/svg/1.svg',
+                          'Overview',
+                          widget.selectedIndex == 0,
+                        ),
+                        _buildDestination(
+                          'assets/icons/svg/2.svg',
+                          'Calls',
+                          widget.selectedIndex == 1,
+                        ),
+                        _buildDestination(
+                          'assets/icons/svg/3.svg',
+                          'Order Management',
+                          widget.selectedIndex == 2,
+                        ),
+                        _buildDestination(
+                          'assets/icons/svg/4.svg',
+                          'Reservation',
+                          widget.selectedIndex == 3,
+                        ),
+                        _buildDestination(
+                          'assets/icons/svg/5.svg',
+                          'Menu Management',
+                          widget.selectedIndex == 4,
+                        ),
+                        _buildDestination(
+                          'assets/icons/svg/6.svg',
+                          'Customers',
+                          widget.selectedIndex == 5,
+                        ),
+                        _buildDestination(
+                          'assets/icons/svg/9.svg',
+                          'Delivery Management',
+                          widget.selectedIndex == 6,
+                        ),
+                        _buildDestination(
+                          'assets/icons/svg/8.svg',
+                          'Subscription Plans',
+                          widget.selectedIndex == 7,
+                        ),
+                        _buildDestination(
+                          'assets/icons/svg/7.svg',
+                          'Settings',
+                          widget.selectedIndex == 8,
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 10),
-                  Obx(() {
-                    if (subscriptionController.isLoading.value) {
-                      return const Text(
-                        'Checking subscription...',
-                        style: TextStyle(fontSize: 11, color: Colors.black54),
-                        textAlign: TextAlign.center,
-                      );
-                    } else {
-                      return Text(
-                        'You have ${subscriptionController.remainingDays.value} days of Free Limit',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.black54,
-                        ),
-                        textAlign: TextAlign.center,
-                      );
-                    }
-                  }),
-
-                  SizedBox(height: 10),
-                  TextButton(
-                    onPressed: () {
-                      print('Log out button pressed');
-                      SharedPreferencesHelper.logoutUser();
-                      Get.to(LoginScreen());
-                    },
-                    style: TextButton.styleFrom(
-                      foregroundColor: const Color(
-                        0xFFE53935,
-                      ), // Red color for the icon and text
-                    ),
-
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
+                  // Bottom section (after Settings)
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
                       children: [
-                        // Arrow icon
-                        Icon(Icons.logout_sharp, size: 28),
-                        SizedBox(width: 8),
-                        // "Log out" text
-                        Text(
-                          'Log out',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                        ElevatedButton(
+                          onPressed: () {
+                            Get.off(SubscriptionPlans());
+                            _showSubscriptionDialog(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.flash_on, size: 16),
+                                if (_isExpanded) ...[
+                                  SizedBox(width: 8),
+                                  const Text(
+                                    'Upgrade Now',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        if (_isExpanded)
+                          Obx(() {
+                            if (subscriptionController.isLoading.value) {
+                              return const Text(
+                                'Checking subscription...',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.black54,
+                                ),
+                                textAlign: TextAlign.center,
+                              );
+                            } else {
+                              return Text(
+                                'You have ${subscriptionController.remainingDays.value} days of Free Limit',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.black54,
+                                ),
+                                textAlign: TextAlign.center,
+                              );
+                            }
+                          }),
+                        SizedBox(height: 10),
+                        TextButton(
+                          onPressed: () {
+                            print('Log out button pressed');
+                            SharedPreferencesHelper.logoutUser();
+                            Get.to(LoginScreen());
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color(0xFFE53935),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.logout_sharp, size: 28),
+                              if (_isExpanded) ...[
+                                SizedBox(width: 8),
+                                const Text(
+                                  'Log out',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ],
@@ -206,8 +227,48 @@ class CustomNavigationRail extends StatelessWidget {
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+
+  void _navigateToScreen(int index) {
+    Widget screen;
+    switch (index) {
+      case 0:
+        screen = Dashboard();
+        break;
+      case 1:
+        screen = callScreen();
+        break;
+      case 2:
+        screen = orderManagmentscreen();
+        break;
+      case 3:
+        screen = ReservationScreen();
+        break;
+      case 4:
+        screen = menuManagement();
+        break;
+      case 5:
+        screen = Customerscreen();
+        break;
+      case 6:
+        screen = DeliveryScreen();
+        break;
+      case 7:
+        screen = SubscriptionPlans();
+        break;
+      case 8:
+        screen = settingScreen();
+        break;
+      default:
+        return;
+    }
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => screen),
     );
   }
 
@@ -234,33 +295,6 @@ class CustomNavigationRail extends StatelessWidget {
       ),
       label: Text(label),
     );
-  }
-
-  // Return the corresponding screen for each index
-  Widget _getScreenForIndex(int index) {
-    switch (index) {
-      case 0:
-        return Dashboard();
-      case 1:
-        return callScreen();
-      case 2:
-        return orderManagmentscreen();
-      case 3:
-        return ReservationScreen();
-      case 4:
-        return menuManagement();
-      case 5:
-        return Customerscreen();
-      case 8:
-        return settingScreen();
-      case 7:
-        return SubscriptionPlans();
-      case 6:
-        return DeliveryScreen();
-
-      default:
-        return Center(child: Container(color: Colors.green));
-    }
   }
 
   void _showSubscriptionDialog(BuildContext context) {

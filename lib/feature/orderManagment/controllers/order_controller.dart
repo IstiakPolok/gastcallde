@@ -1,6 +1,7 @@
 // lib/feature/calls/order_controller.dart
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gastcallde/feature/orderManagment/models/order_model.dart';
 import 'package:get/get.dart';
@@ -9,12 +10,44 @@ import 'package:http/http.dart' as http;
 import '../../../core/network_caller/endpoints.dart';
 import '../../../core/services_class/local_service/shared_preferences_helper.dart';
 
+// Isolate function for parsing orders in background
+Future<Map<String, List<Order>>> _parseOrdersInBackground(
+  List<dynamic> data,
+) async {
+  return compute(_parseOrders, data);
+}
+
+Map<String, List<Order>> _parseOrders(List<dynamic> data) {
+  final Map<String, List<Order>> categorizedOrders = {
+    'incoming': [],
+    'in_preparation': [],
+    'out_for_delivery': [],
+    'completed': [],
+  };
+
+  for (var orderJson in data) {
+    try {
+      final order = Order.fromJson(orderJson);
+      final status = order.status.toLowerCase();
+
+      if (categorizedOrders.containsKey(status)) {
+        categorizedOrders[status]!.add(order);
+      }
+    } catch (e) {
+      debugPrint('Error parsing order: $e');
+    }
+  }
+
+  return categorizedOrders;
+}
+
 class OrderController extends GetxController {
-  // ... (existing lists and methods) ...
   final incomingOrders = <Order>[].obs;
   final inPreparationOrders = <Order>[].obs;
   final outForDeliveryOrders = <Order>[].obs;
   final completedOrders = <Order>[].obs;
+
+  final isLoading = false.obs;
 
   @override
   void onInit() {
@@ -22,12 +55,20 @@ class OrderController extends GetxController {
     fetchOrders();
   }
 
-  void fetchOrders() async {
-    final url = Uri.parse('${Urls.baseUrl}/owner/my-orders/');
+  void fetchOrders({DateTime? date}) async {
+    isLoading.value = true;
+
+    // Format date as YYYY-MM-DD
+    String dateParam = '';
+    if (date != null) {
+      dateParam =
+          '?date=${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    }
+
+    final url = Uri.parse('${Urls.baseUrl}/owner/my-orders/$dateParam');
     final token = await SharedPreferencesHelper.getAccessToken();
 
     debugPrint('🔄 Fetching orders from: $url');
-    debugPrint('🔑 Using token: $token');
 
     try {
       final response = await http.get(
@@ -39,63 +80,37 @@ class OrderController extends GetxController {
       );
 
       debugPrint('📡 Response status: ${response.statusCode}');
-      debugPrint('📦 Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
         debugPrint('✅ Total orders fetched: ${data.length}');
 
-        // Clear previous lists
-        incomingOrders.clear();
-        inPreparationOrders.clear();
-        outForDeliveryOrders.clear();
-        completedOrders.clear();
+        // Parse orders in background thread to avoid blocking UI
+        final categorizedOrders = await _parseOrdersInBackground(data);
 
-        // Parse and categorize orders
-        for (var orderJson in data) {
-          final order = Order.fromJson(orderJson);
+        // Clear and update lists on main thread
+        incomingOrders.value = categorizedOrders['incoming']!;
+        inPreparationOrders.value = categorizedOrders['in_preparation']!;
+        outForDeliveryOrders.value = categorizedOrders['out_for_delivery']!;
+        completedOrders.value = categorizedOrders['completed']!;
 
-          debugPrint(
-            '📝 Parsing order id=${order.id}, restaurant=${order.restaurant}',
-          );
-
-          // Save restaurant ID only if it's not null or empty
-
-          await SharedPreferencesHelper.saveRestaurantId(order.restaurant);
-
-          switch (order.status.toLowerCase() ?? '') {
-            case 'incoming':
-              incomingOrders.add(order);
-              break;
-            case 'in_preparation':
-              inPreparationOrders.add(order);
-              break;
-            case 'out_for_delivery':
-              outForDeliveryOrders.add(order);
-              break;
-            case 'completed':
-              completedOrders.add(order);
-              break;
-            default:
-              debugPrint('⚠ Unknown status: ${order.status}');
-          }
+        // Save restaurant ID from first order if available
+        if (data.isNotEmpty && data[0]['restaurant'] != null) {
+          await SharedPreferencesHelper.saveRestaurantId(data[0]['restaurant']);
         }
 
-        debugPrint('📊 Orders after categorization:');
+        debugPrint('📊 Orders categorized:');
         debugPrint('Incoming: ${incomingOrders.length}');
         debugPrint('In Preparation: ${inPreparationOrders.length}');
         debugPrint('Out for Delivery: ${outForDeliveryOrders.length}');
         debugPrint('Completed: ${completedOrders.length}');
       } else {
         debugPrint('❌ Error fetching orders: ${response.statusCode}');
-        // Get.snackbar(
-        //   'Error',
-        //   'Failed to fetch orders (${response.statusCode})',
-        // );
       }
     } catch (e) {
       debugPrint('🚨 Exception while fetching orders: $e');
-      //Get.snackbar('Error', 'Something went wrong while fetching orders.');
+    } finally {
+      isLoading.value = false;
     }
   }
 

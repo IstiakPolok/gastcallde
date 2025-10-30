@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gastcallde/core/localization/localization.dart';
+import 'package:gastcallde/core/services_class/connectivity_service.dart';
 import 'package:gastcallde/feature/orderManagment/controllers/order_controller.dart';
 import 'package:gastcallde/route/app_routes.dart';
 import 'package:get/get.dart';
@@ -9,7 +10,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize services
   Get.put(OrderController());
+  Get.put(ConnectivityService(), permanent: true);
 
   configEasyLoading();
 

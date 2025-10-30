@@ -167,7 +167,10 @@ class MonthlyStatsController extends GetxController {
         return;
       }
 
+      print('🔍 Fetching monthly stats...');
       final url = Uri.parse("${Urls.baseUrl}/owner/restaurant/monthly-stats/");
+      print('📍 URL: $url');
+
       final response = await http.get(
         url,
         headers: {
@@ -176,10 +179,18 @@ class MonthlyStatsController extends GetxController {
         },
       );
 
+      print('📡 Response Status Code: ${response.statusCode}');
+      print('📦 Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        print('✅ Decoded Data: $data');
+
         final orders = data['order'] as List;
         final reservations = data['reservation'] as List;
+
+        print('📊 Orders List: $orders');
+        print('📊 Reservations List: $reservations');
 
         orderData.value = RxList<double>.from(
           orders.map<double>(
@@ -192,13 +203,21 @@ class MonthlyStatsController extends GetxController {
             (e) => double.tryParse(e.values.first.toString()) ?? 0.0,
           ),
         );
+
+        print('📈 Order Data: $orderData');
+        print('📈 Reservation Data: $reservationData');
       } else {
-        Get.snackbar("Error", "Failed to fetch monthly stats");
+        print(
+          "❌ Error: Failed to fetch monthly stats - Status ${response.statusCode}",
+        );
+        print("❌ Error Body: ${response.body}");
       }
     } catch (e) {
-      Get.snackbar("Error", e.toString());
+      print("🚨 Exception: ${e.toString()}");
+      print("🚨 Stack Trace: ${StackTrace.current}");
     } finally {
       isLoading.value = false;
+      print('✅ Loading complete');
     }
   }
 }

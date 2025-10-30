@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 
 import '../controllers/RestaurantSettingsController.dart';
+import '../controllers/AssistantController.dart';
 
 class settingScreen extends StatelessWidget {
   settingScreen({super.key});
@@ -80,39 +81,57 @@ class _SettingsScreenState extends State<SettingsScreen>
   final RestaurantSettingsController restaurantController = Get.put(
     RestaurantSettingsController(),
   );
+  final AssistantController assistantController = Get.put(
+    AssistantController(),
+  );
   late TabController _tabController;
-  double _voiceSpeed = 0.5;
 
-  String _callTransferText = '';
-  String _specialPromotionsText = '';
-  String _selectedVoice = 'Andrea'; // Initial voice selection
-  final List<String> _voiceOptions = [
-    'Andrea',
-    'Burt',
-    'Drew',
-    'Joseph',
-    'Marissa',
-    'Mark',
-    'Matilda',
-    'MRB',
-    'Myra',
-    'Paul',
-    'Paula',
-    'Phillip',
-    'Ryan',
-    'Sarah',
-    'Steve',
-  ];
+  final TextEditingController _addressController = TextEditingController();
+  bool _isUpdatingAddress = false;
+
+  TimeOfDay? _openingTime;
+  TimeOfDay? _closingTime;
+  bool _isUpdatingBusinessHours = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    // Initialize address controller
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (restaurantController.address.value.isNotEmpty) {
+        _addressController.text = restaurantController.address.value;
+      }
+      // Initialize business hours
+      _initializeBusinessHours();
+    });
+  }
+
+  void _initializeBusinessHours() {
+    if (restaurantController.openingTime.value.isNotEmpty) {
+      final parts = restaurantController.openingTime.value.split(':');
+      if (parts.length >= 2) {
+        _openingTime = TimeOfDay(
+          hour: int.tryParse(parts[0]) ?? 0,
+          minute: int.tryParse(parts[1]) ?? 0,
+        );
+      }
+    }
+    if (restaurantController.closingTime.value.isNotEmpty) {
+      final parts = restaurantController.closingTime.value.split(':');
+      if (parts.length >= 2) {
+        _closingTime = TimeOfDay(
+          hour: int.tryParse(parts[0]) ?? 0,
+          minute: int.tryParse(parts[1]) ?? 0,
+        );
+      }
+    }
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 
@@ -131,14 +150,14 @@ class _SettingsScreenState extends State<SettingsScreen>
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FB), // Light background color
       appBar: AppBar(
-        toolbarHeight: 150, // Increased height for title and subtitle
+        toolbarHeight: 70, // Reduced height for title and subtitle
         backgroundColor: Colors.white,
         elevation: 0,
         flexibleSpace: Padding(
-          padding: const EdgeInsets.only(left: 16.0),
+          padding: const EdgeInsets.only(left: 16.0, top: 10.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: const [
               Text(
                 'Settings',
@@ -196,143 +215,203 @@ class _SettingsScreenState extends State<SettingsScreen>
       padding: const EdgeInsets.all(16.0),
       children: [
         _buildSectionTitle('AI Voice Settings'),
-        _buildCard(
-          children: [
-            _buildSettingRow(
-              'Choose voice',
-              'Live Overview of your restaurant\'s',
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: NetworkImage(
-                          'https://static.vecteezy.com/system/resources/previews/032/176/197/non_2x/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg',
-                        ), // Placeholder image
-                        fit: BoxFit.cover,
+        Obx(() {
+          if (assistantController.isLoading.value) {
+            return _buildCard(
+              children: [const Center(child: CircularProgressIndicator())],
+            );
+          }
+
+          return _buildCard(
+            children: [
+              _buildSettingRow(
+                'Choose voice',
+                'Select AI voice for restaurant calls',
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: NetworkImage(
+                            'https://static.vecteezy.com/system/resources/previews/032/176/197/non_2x/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg',
+                          ),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _selectedVoice, // Display the selected voice
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            assistantController.getVoiceDisplayName(
+                              assistantController.voice.value,
+                            ),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const Text(
+                            'AI Voice Assistant',
+                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                          ),
+                        ],
                       ),
-                      Text(
-                        'English Girl - young',
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.play_circle_fill,
-                      color: Colors.black,
                     ),
-                    onPressed: () {
-                      // Add your play functionality here
-                    },
-                  ),
-                  DropdownButton<String>(
-                    value: _selectedVoice,
-                    onChanged: (newVoice) {
-                      setState(() {
-                        _selectedVoice = newVoice!; // Update selected voice
-                      });
-                    },
-                    items: _voiceOptions.map((String voice) {
-                      return DropdownMenuItem<String>(
-                        value: voice,
-                        child: Text(voice),
-                      );
-                    }).toList(),
-                  ),
-                ],
+                    IconButton(
+                      icon: Obx(
+                        () => Icon(
+                          assistantController.isPlaying.value
+                              ? Icons.stop_circle
+                              : Icons.play_circle_fill,
+                          color: Colors.black,
+                        ),
+                      ),
+                      onPressed: () async {
+                        if (assistantController.isPlaying.value) {
+                          await assistantController.stopVoicePreview();
+                        } else {
+                          await assistantController.playVoicePreview(
+                            assistantController.voice.value,
+                          );
+                        }
+                      },
+                    ),
+                    DropdownButton<String>(
+                      value: assistantController.voice.value.toLowerCase(),
+                      onChanged: (newVoice) async {
+                        if (newVoice != null) {
+                          final success = await assistantController
+                              .updateVoiceSettings(
+                                newVoice,
+                                assistantController.speed.value,
+                              );
+                          if (success) {
+                            Get.snackbar(
+                              'Success',
+                              'Voice updated to ${assistantController.getVoiceDisplayName(newVoice)}',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: Colors.green,
+                              colorText: Colors.white,
+                            );
+                          } else {
+                            Get.snackbar(
+                              'Error',
+                              'Failed to update voice',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: Colors.red,
+                              colorText: Colors.white,
+                            );
+                          }
+                        }
+                      },
+                      items: assistantController.voiceOptions.entries.map((
+                        entry,
+                      ) {
+                        return DropdownMenuItem<String>(
+                          value: entry.key,
+                          child: Text(entry.value),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          );
+        }),
+        const SizedBox(height: 16),
+        Obx(
+          () => _buildCard(
+            children: [
+              _buildSettingRow(
+                'Voice speed',
+                'Adjust the speaking speed of AI voice',
+                Column(
+                  children: [
+                    Slider(
+                      value: assistantController.speed.value,
+                      min: 0.5,
+                      max: 2.0,
+                      divisions: 15,
+                      label: assistantController.speed.value.toStringAsFixed(1),
+                      activeColor: AppColors.primaryColor,
+                      inactiveColor: Colors.grey[300],
+                      onChanged: (newValue) {
+                        assistantController.speed.value = newValue;
+                      },
+                      onChangeEnd: (newValue) async {
+                        final success = await assistantController
+                            .updateVoiceSettings(
+                              assistantController.voice.value,
+                              newValue,
+                            );
+                        if (success) {
+                          Get.snackbar(
+                            'Success',
+                            'Voice speed updated to ${newValue.toStringAsFixed(1)}x',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.green,
+                            colorText: Colors.white,
+                          );
+                        } else {
+                          Get.snackbar(
+                            'Error',
+                            'Failed to update voice speed',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.red,
+                            colorText: Colors.white,
+                          );
+                        }
+                      },
+                    ),
+                    Text(
+                      '${assistantController.speed.value.toStringAsFixed(1)}x',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
-        _buildCard(
-          children: [
-            _buildSettingRow(
-              'Voice speed',
-              'Live Overview of your restaurant\'s',
-              Slider(
-                value: _voiceSpeed,
-                min: 0.0,
-                max: 1.0,
-                activeColor: AppColors.primaryColor,
-                inactiveColor: Colors.grey[300],
-                onChanged: (newValue) {
-                  setState(() {
-                    _voiceSpeed = newValue;
-                  });
-                },
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
+
+        // Call Transfer Section
+        // _buildSectionTitle('Call Transfer'),
         // _buildCard(
         //   children: [
-        //     _buildSettingRow(
-        //       'Ambient noise',
-        //       'Live Overview of your restaurant\'s',
-        //       Slider(
-        //         value: _ambientNoise,
-        //         min: 0.0,
-        //         max: 1.0,
-        //         activeColor: AppColors.primaryColor,
-        //         inactiveColor: Colors.grey[300],
-        //         onChanged: (newValue) {
-        //           setState(() {
-        //             _ambientNoise = newValue;
-        //           });
-        //         },
+        //     Text(
+        //       'Transfer call AI to restaurant staff when',
+        //       style: TextStyle(color: Colors.grey[600]),
+        //     ),
+        //     const SizedBox(height: 8),
+        //     TextField(
+        //       controller: TextEditingController(text: _callTransferText),
+        //       onChanged: (value) {
+        //         setState(() {
+        //           _callTransferText = value;
+        //         });
+        //       },
+        //       maxLines: 4,
+        //       decoration: InputDecoration(
+        //         hintText: 'Type here',
+        //         fillColor: const Color(0xFFF8F9FB),
+        //         filled: true,
+        //         border: OutlineInputBorder(
+        //           borderRadius: BorderRadius.circular(12.0),
+        //           borderSide: BorderSide.none,
+        //         ),
+        //         contentPadding: const EdgeInsets.all(12.0),
         //       ),
         //     ),
         //   ],
         // ),
-        const SizedBox(height: 24),
-
-        // Call Transfer Section
-        _buildSectionTitle('Call Transfer'),
-        _buildCard(
-          children: [
-            Text(
-              'Transfer call AI to restaurant staff when',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: TextEditingController(text: _callTransferText),
-              onChanged: (value) {
-                setState(() {
-                  _callTransferText = value;
-                });
-              },
-              maxLines: 4,
-              decoration: InputDecoration(
-                hintText: 'Type here',
-                fillColor: const Color(0xFFF8F9FB),
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.all(12.0),
-              ),
-            ),
-          ],
-        ),
         const SizedBox(height: 24),
 
         _buildSectionTitle('Restaurant Address'),
@@ -342,11 +421,118 @@ class _SettingsScreenState extends State<SettingsScreen>
               if (restaurantController.isLoading.value) {
                 return const Center(child: CircularProgressIndicator());
               }
-              return _buildDropdownField(
-                icon: Icons.location_on_outlined,
-                text: restaurantController.address.value.isEmpty
-                    ? 'Address not set'
-                    : restaurantController.address.value,
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: _addressController,
+                    maxLines: 2,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(
+                        Icons.location_on_outlined,
+                        color: Colors.grey,
+                      ),
+                      hintText: restaurantController.address.value.isEmpty
+                          ? 'Enter restaurant address'
+                          : restaurantController.address.value,
+                      hintStyle: const TextStyle(color: Colors.grey),
+                      filled: true,
+                      fillColor: const Color(0xFFF8F9FB),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide: const BorderSide(
+                          color: AppColors.primaryColor,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isUpdatingAddress
+                          ? null
+                          : () async {
+                              setState(() {
+                                _isUpdatingAddress = true;
+                              });
+
+                              final newAddress = _addressController.text.trim();
+
+                              if (newAddress.isEmpty) {
+                                Get.snackbar(
+                                  'Error',
+                                  'Address cannot be empty',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.red,
+                                  colorText: Colors.white,
+                                );
+                                setState(() {
+                                  _isUpdatingAddress = false;
+                                });
+                                return;
+                              }
+
+                              final success = await restaurantController
+                                  .updateRestaurantAddress(newAddress);
+
+                              setState(() {
+                                _isUpdatingAddress = false;
+                              });
+
+                              if (success) {
+                                Get.snackbar(
+                                  'Success',
+                                  'Restaurant address updated successfully',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.green,
+                                  colorText: Colors.white,
+                                );
+                              } else {
+                                Get.snackbar(
+                                  'Error',
+                                  'Failed to update address',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.red,
+                                  colorText: Colors.white,
+                                );
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: _isUpdatingAddress
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              'Update Address',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
               );
             }),
           ],
@@ -358,10 +544,228 @@ class _SettingsScreenState extends State<SettingsScreen>
         _buildSectionTitle('Business hours'),
         _buildCard(
           children: [
-            _buildDropdownField(
-              icon: Icons.access_time,
-              text:
-                  '${restaurantController.formatTime(restaurantController.openingTime.value)} - ${restaurantController.formatTime(restaurantController.closingTime.value)}',
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Opening Time',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: () async {
+                          final TimeOfDay? picked = await showTimePicker(
+                            context: context,
+                            initialTime: _openingTime ?? TimeOfDay.now(),
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              _openingTime = picked;
+                            });
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0,
+                            vertical: 14.0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8F9FB),
+                            borderRadius: BorderRadius.circular(12.0),
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.access_time, color: Colors.grey),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  _openingTime != null
+                                      ? _openingTime!.format(context)
+                                      : restaurantController
+                                            .openingTime
+                                            .value
+                                            .isEmpty
+                                      ? 'Select opening time'
+                                      : restaurantController.formatTime(
+                                          restaurantController
+                                              .openingTime
+                                              .value,
+                                        ),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              const Icon(
+                                Icons.keyboard_arrow_down,
+                                color: Colors.grey,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Closing Time',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: () async {
+                          final TimeOfDay? picked = await showTimePicker(
+                            context: context,
+                            initialTime: _closingTime ?? TimeOfDay.now(),
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              _closingTime = picked;
+                            });
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0,
+                            vertical: 14.0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8F9FB),
+                            borderRadius: BorderRadius.circular(12.0),
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.access_time, color: Colors.grey),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  _closingTime != null
+                                      ? _closingTime!.format(context)
+                                      : restaurantController
+                                            .closingTime
+                                            .value
+                                            .isEmpty
+                                      ? 'Select closing time'
+                                      : restaurantController.formatTime(
+                                          restaurantController
+                                              .closingTime
+                                              .value,
+                                        ),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+                              const Icon(
+                                Icons.keyboard_arrow_down,
+                                color: Colors.grey,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isUpdatingBusinessHours
+                    ? null
+                    : () async {
+                        if (_openingTime == null || _closingTime == null) {
+                          Get.snackbar(
+                            'Error',
+                            'Please select both opening and closing times',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.red,
+                            colorText: Colors.white,
+                          );
+                          return;
+                        }
+
+                        setState(() {
+                          _isUpdatingBusinessHours = true;
+                        });
+
+                        // Convert TimeOfDay to HH:mm:ss format
+                        final openingTimeStr =
+                            '${_openingTime!.hour.toString().padLeft(2, '0')}:${_openingTime!.minute.toString().padLeft(2, '0')}:00';
+                        final closingTimeStr =
+                            '${_closingTime!.hour.toString().padLeft(2, '0')}:${_closingTime!.minute.toString().padLeft(2, '0')}:00';
+
+                        final success = await restaurantController
+                            .updateBusinessHours(
+                              openingTimeStr,
+                              closingTimeStr,
+                            );
+
+                        setState(() {
+                          _isUpdatingBusinessHours = false;
+                        });
+
+                        if (success) {
+                          Get.snackbar(
+                            'Success',
+                            'Business hours updated successfully',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.green,
+                            colorText: Colors.white,
+                          );
+                        } else {
+                          Get.snackbar(
+                            'Error',
+                            'Failed to update business hours',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.red,
+                            colorText: Colors.white,
+                          );
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: _isUpdatingBusinessHours
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Update Business Hours',
+                        style: TextStyle(fontSize: 14, color: Colors.white),
+                      ),
+              ),
             ),
           ],
         ),
@@ -369,35 +773,35 @@ class _SettingsScreenState extends State<SettingsScreen>
         const SizedBox(height: 24),
 
         // Special promotions Section
-        _buildSectionTitle('Special promotions'),
-        _buildCard(
-          children: [
-            Text(
-              'AI will mention during calls',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: TextEditingController(text: _specialPromotionsText),
-              onChanged: (value) {
-                setState(() {
-                  _specialPromotionsText = value;
-                });
-              },
-              maxLines: 4,
-              decoration: InputDecoration(
-                hintText: 'Type here',
-                fillColor: const Color(0xFFF8F9FB),
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.all(12.0),
-              ),
-            ),
-          ],
-        ),
+        // _buildSectionTitle('Special promotions'),
+        // _buildCard(
+        //   children: [
+        //     Text(
+        //       'AI will mention during calls',
+        //       style: TextStyle(color: Colors.grey[600]),
+        //     ),
+        //     const SizedBox(height: 8),
+        //     TextField(
+        //       controller: TextEditingController(text: _specialPromotionsText),
+        //       onChanged: (value) {
+        //         setState(() {
+        //           _specialPromotionsText = value;
+        //         });
+        //       },
+        //       maxLines: 4,
+        //       decoration: InputDecoration(
+        //         hintText: 'Type here',
+        //         fillColor: const Color(0xFFF8F9FB),
+        //         filled: true,
+        //         border: OutlineInputBorder(
+        //           borderRadius: BorderRadius.circular(12.0),
+        //           borderSide: BorderSide.none,
+        //         ),
+        //         contentPadding: const EdgeInsets.all(12.0),
+        //       ),
+        //     ),
+        //   ],
+        // ),
       ],
     );
   }
@@ -456,30 +860,6 @@ class _SettingsScreenState extends State<SettingsScreen>
         const SizedBox(height: 10),
         control,
       ],
-    );
-  }
-
-  Widget _buildDropdownField({required IconData icon, required String text}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FB),
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.grey),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 14, color: Colors.black),
-            ),
-          ),
-          const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
-        ],
-      ),
     );
   }
 }

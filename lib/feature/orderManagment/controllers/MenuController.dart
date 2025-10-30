@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:gastcallde/core/network_caller/endpoints.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/services_class/local_service/shared_preferences_helper.dart';
@@ -23,8 +24,6 @@ class Menu_Controller extends GetxController {
         .toList();
   }
 
-  final String apiUrl = 'http://10.10.13.26:8000/owner/items/?lean=EN';
-
   @override
   void onInit() {
     fetchMenuItems();
@@ -34,21 +33,33 @@ class Menu_Controller extends GetxController {
   Future<void> fetchMenuItems() async {
     try {
       isLoading.value = true;
+      final apiUrl = '${Urls.baseUrl}/owner/items/?lean=EN';
+      print('🔄 Fetching menu items from: $apiUrl');
+
       final token = await SharedPreferencesHelper.getAccessToken();
+      print('🔑 Token: $token');
+
       final response = await http.get(
         Uri.parse(apiUrl),
         headers: {'Authorization': 'Bearer $token'},
       );
 
+      print('📡 Response status: ${response.statusCode}');
+      print('📦 Response body: ${response.body}');
+
       if (response.statusCode == 200) {
         List data = jsonDecode(response.body);
+        print('✅ Menu items fetched: ${data.length}');
         foodItems.value = data
             .map((item) => FoodMenuItemData.fromJson(item))
             .toList();
+        print('✅ Food items parsed: ${foodItems.length}');
       } else {
+        print('❌ Failed to load menu items. Status: ${response.statusCode}');
         Get.snackbar('Error', 'Failed to load menu items');
       }
     } catch (e) {
+      print('🚨 Error fetching menu: $e');
       Get.snackbar('Error', e.toString());
     } finally {
       isLoading.value = false;

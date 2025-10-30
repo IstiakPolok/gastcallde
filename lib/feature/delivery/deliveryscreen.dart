@@ -6,10 +6,15 @@ import 'package:get/get.dart';
 
 import 'controllers/delivery_info_controller.dart';
 
-class DeliveryScreen extends StatelessWidget {
-  DeliveryScreen({super.key});
+class DeliveryScreen extends StatefulWidget {
+  const DeliveryScreen({super.key});
 
-  final ValueNotifier<int> _selectedIndexNotifier = ValueNotifier<int>(0);
+  @override
+  State<DeliveryScreen> createState() => _DeliveryScreenState();
+}
+
+class _DeliveryScreenState extends State<DeliveryScreen> {
+  int _selectedIndex = 6;
 
   @override
   Widget build(BuildContext context) {
@@ -20,15 +25,10 @@ class DeliveryScreen extends StatelessWidget {
     return Scaffold(
       appBar: isMobile ? AppBar(title: const Text(' ')) : null,
       drawer: isMobile
-          ? ValueListenableBuilder<int>(
-              valueListenable: _selectedIndexNotifier,
-              builder: (context, selectedIndex, _) {
-                return CustomDrawer(
-                  selectedIndex: 6,
-                  onItemSelected: (index) {
-                    _selectedIndexNotifier.value = index;
-                  },
-                );
+          ? CustomDrawer(
+              selectedIndex: _selectedIndex,
+              onItemSelected: (index) {
+                setState(() => _selectedIndex = index);
               },
             )
           : null,
@@ -36,25 +36,13 @@ class DeliveryScreen extends StatelessWidget {
         child: Row(
           children: [
             if (!isMobile)
-              ValueListenableBuilder<int>(
-                valueListenable: _selectedIndexNotifier,
-                builder: (context, selectedIndex, _) {
-                  return CustomNavigationRail(
-                    selectedIndex: 6,
-                    onDestinationSelected: (index) {
-                      _selectedIndexNotifier.value = index;
-                    },
-                  );
+              CustomNavigationRail(
+                selectedIndex: _selectedIndex,
+                onDestinationSelected: (index) {
+                  setState(() => _selectedIndex = index);
                 },
               ),
-            Expanded(
-              child: ValueListenableBuilder<int>(
-                valueListenable: _selectedIndexNotifier,
-                builder: (context, selectedIndex, _) {
-                  return const DeliveryInfoScreen();
-                },
-              ),
-            ),
+            const Expanded(child: DeliveryInfoScreen()),
           ],
         ),
       ),
@@ -77,7 +65,7 @@ class DeliveryInfoScreen extends StatelessWidget {
         }
 
         if (controller.deliveryAreas.isEmpty) {
-          return const Center(child: Text('No delivery areas found.'));
+          return Center(child: Text('no_delivery_areas'.tr));
         }
 
         return SingleChildScrollView(
@@ -85,21 +73,21 @@ class DeliveryInfoScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Delivery Information',
-                    style: TextStyle(
+                    'delivery_information'.tr,
+                    style: const TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
-                    'Delivery Areas (Postal Codes / PLZ)',
-                    style: TextStyle(fontSize: 13, color: Colors.black),
+                    'delivery_areas'.tr,
+                    style: const TextStyle(fontSize: 13, color: Colors.black),
                   ),
                 ],
               ),
@@ -110,7 +98,7 @@ class DeliveryInfoScreen extends StatelessWidget {
                     _showAddAddressDialog(context, controller);
                   },
                   icon: const Icon(Icons.add, color: Colors.white, size: 18),
-                  label: const Text('Add Address'),
+                  label: Text('add_address'.tr),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryColor,
                     foregroundColor: Colors.white,
@@ -151,7 +139,7 @@ class DeliveryInfoScreen extends StatelessWidget {
                               postalCode: area['postalcode'] ?? '-',
                               deliveryTime:
                                   "${area['estimated_delivery_time']} mins",
-                              fee: "${area['delivery_fee']} Tk",
+                              fee: "${area['delivery_fee']} €",
                               id: area['id'],
                               controller: controller,
                               context: context,
@@ -172,15 +160,15 @@ class DeliveryInfoScreen extends StatelessWidget {
   }
 
   Widget _buildHeader() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(
         children: [
           Expanded(
             flex: 2,
             child: Text(
-              'Postal Code (PLZ)',
-              style: TextStyle(
+              'postal_code_plz'.tr,
+              style: const TextStyle(
                 color: Colors.grey,
                 fontWeight: FontWeight.w600,
                 fontSize: 12,
@@ -190,8 +178,8 @@ class DeliveryInfoScreen extends StatelessWidget {
           Expanded(
             flex: 3,
             child: Text(
-              'Estimated Delivery Time',
-              style: TextStyle(
+              'estimated_delivery_time'.tr,
+              style: const TextStyle(
                 color: Colors.grey,
                 fontWeight: FontWeight.w600,
                 fontSize: 12,
@@ -201,8 +189,8 @@ class DeliveryInfoScreen extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              'Delivery Fee',
-              style: TextStyle(
+              'delivery_fee'.tr,
+              style: const TextStyle(
                 color: Colors.grey,
                 fontWeight: FontWeight.w600,
                 fontSize: 12,
@@ -212,9 +200,9 @@ class DeliveryInfoScreen extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              'Action',
+              'action'.tr,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.grey,
                 fontWeight: FontWeight.w600,
                 fontSize: 12,
@@ -271,7 +259,14 @@ class DeliveryInfoScreen extends StatelessWidget {
                 _buildActionButton(
                   Icons.edit_outlined,
                   onTap: () {
-                    // TODO: edit action
+                    _showEditAddressDialog(
+                      context,
+                      controller,
+                      id: id,
+                      currentPostalCode: postalCode,
+                      currentDeliveryTime: deliveryTime.replaceAll(' mins', ''),
+                      currentDeliveryFee: fee.replaceAll(' Tk', ''),
+                    );
                   },
                 ),
                 const SizedBox(width: 8),
@@ -317,17 +312,17 @@ class DeliveryInfoScreen extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      'Area Management',
-                      style: TextStyle(
+                    Text(
+                      'area_management'.tr,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      'Delivery Areas (Postal Codes / PLZ)',
-                      style: TextStyle(
+                    Text(
+                      'delivery_areas'.tr,
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
                       ),
@@ -336,27 +331,27 @@ class DeliveryInfoScreen extends StatelessWidget {
                     TextField(
                       controller: postalCodeController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: "Postal Code",
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: 'postal_code'.tr,
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: estimatedTimeController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: "Estimated Delivery Time (mins)",
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: 'estimated_delivery_time_mins'.tr,
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: deliveryFeeController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: "Delivery Fee",
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: 'delivery_fee'.tr,
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -365,9 +360,11 @@ class DeliveryInfoScreen extends StatelessWidget {
                       children: [
                         TextButton(
                           onPressed: () => Get.back(),
-                          child: const Text(
-                            "Cancel",
-                            style: TextStyle(color: AppColors.primaryColor),
+                          child: Text(
+                            'cancel'.tr,
+                            style: const TextStyle(
+                              color: AppColors.primaryColor,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -378,7 +375,10 @@ class DeliveryInfoScreen extends StatelessWidget {
                             final fee = deliveryFeeController.text.trim();
 
                             if (postal.isEmpty || time.isEmpty || fee.isEmpty) {
-                              Get.snackbar("Error", "Please fill all fields");
+                              Get.snackbar(
+                                'error'.tr,
+                                'please_fill_all_fields'.tr,
+                              );
                               return;
                             }
 
@@ -393,7 +393,139 @@ class DeliveryInfoScreen extends StatelessWidget {
                             backgroundColor: AppColors.primaryColor,
                             foregroundColor: Colors.white,
                           ),
-                          child: const Text("Add"),
+                          child: Text('add'.tr),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showEditAddressDialog(
+    BuildContext context,
+    DeliveryInfoController controller, {
+    required int id,
+    required String currentPostalCode,
+    required String currentDeliveryTime,
+    required String currentDeliveryFee,
+  }) {
+    final postalCodeController = TextEditingController(text: currentPostalCode);
+    final estimatedTimeController = TextEditingController(
+      text: currentDeliveryTime,
+    );
+    final deliveryFeeController = TextEditingController(
+      text: currentDeliveryFee,
+    );
+
+    Get.dialog(
+      Dialog(
+        insetPadding: const EdgeInsets.symmetric(
+          horizontal: 40.0,
+          vertical: 24.0,
+        ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 16,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'edit_area'.tr,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'update_delivery_area'.tr,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: postalCodeController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'postal_code'.tr,
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: estimatedTimeController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'estimated_delivery_time_mins'.tr,
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: deliveryFeeController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'delivery_fee'.tr,
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Get.back(),
+                          child: Text(
+                            'cancel'.tr,
+                            style: const TextStyle(
+                              color: AppColors.primaryColor,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: () async {
+                            final postal = postalCodeController.text.trim();
+                            final time = estimatedTimeController.text.trim();
+                            final fee = deliveryFeeController.text.trim();
+
+                            if (postal.isEmpty || time.isEmpty || fee.isEmpty) {
+                              Get.snackbar(
+                                'error'.tr,
+                                'please_fill_all_fields'.tr,
+                              );
+                              return;
+                            }
+
+                            Get.back();
+                            await controller.updateDeliveryArea(
+                              id: id,
+                              postalCode: postal,
+                              estimatedTime: time,
+                              deliveryFee: fee,
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: Text('update'.tr),
                         ),
                       ],
                     ),
@@ -408,7 +540,7 @@ class DeliveryInfoScreen extends StatelessWidget {
   }
 
   Widget _buildActionButton(IconData icon, {required VoidCallback onTap}) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
@@ -429,16 +561,14 @@ class DeliveryInfoScreen extends StatelessWidget {
   ) {
     Get.dialog(
       AlertDialog(
-        title: const Text('Confirm Delete'),
-        content: const Text(
-          'Are you sure you want to delete this delivery area?',
-        ),
+        title: Text('confirm_delete'.tr),
+        content: Text('delete_confirmation_message'.tr),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.primaryColor),
+            child: Text(
+              'cancel'.tr,
+              style: const TextStyle(color: AppColors.primaryColor),
             ),
           ),
           ElevatedButton(
@@ -450,7 +580,7 @@ class DeliveryInfoScreen extends StatelessWidget {
               backgroundColor: AppColors.primaryColor,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Delete'),
+            child: Text('delete'.tr),
           ),
         ],
       ),

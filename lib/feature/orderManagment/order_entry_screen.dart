@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
+import 'package:gastcallde/feature/delivery/controllers/delivery_info_controller.dart';
 import 'package:gastcallde/feature/orderManagment/models/food_item_model.dart';
 import 'package:get/get.dart';
 import 'controllers/OrderEntryController.dart';
@@ -12,10 +13,14 @@ class OrderEntryScreen extends StatelessWidget {
 
   final menuController = Get.put(Menu_Controller());
   final orderEntryController = Get.put(OrderEntryController());
+  final deliveryController = Get.put(DeliveryInfoController());
 
   @override
   Widget build(BuildContext context) {
+    // Fetch delivery areas once when screen builds
+    deliveryController.fetchDeliveryAreas();
     return Scaffold(
+      resizeToAvoidBottomInset: false, // Keyboard overlays instead of resizing
       appBar: AppBar(
         title: const Text('Order Entry'),
         leading: IconButton(
@@ -64,11 +69,133 @@ class OrderEntryScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   TextField(
-                    controller: orderEntryController.orderNotesController,
+                    controller: orderEntryController.emailController,
                     decoration: const InputDecoration(
-                      labelText: 'Order Notes',
+                      labelText: 'Email (Optional)',
                       border: OutlineInputBorder(),
                     ),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Order Type Selection
+                  Obx(
+                    () => Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Order Type',
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: RadioListTile<String>(
+                                  title: const Text('Delivery'),
+                                  value: 'delivery',
+                                  groupValue:
+                                      orderEntryController.orderType.value,
+                                  onChanged: (value) {
+                                    orderEntryController.orderType.value =
+                                        value!;
+                                  },
+                                  contentPadding: EdgeInsets.zero,
+                                  dense: true,
+                                ),
+                              ),
+                              Expanded(
+                                child: RadioListTile<String>(
+                                  title: const Text('Pickup'),
+                                  value: 'pickup',
+                                  groupValue:
+                                      orderEntryController.orderType.value,
+                                  onChanged: (value) {
+                                    orderEntryController.orderType.value =
+                                        value!;
+                                  },
+                                  contentPadding: EdgeInsets.zero,
+                                  dense: true,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Delivery Area Dropdown (only for delivery orders)
+                  Obx(() {
+                    if (orderEntryController.orderType.value == 'delivery') {
+                      return Obx(() {
+                        if (deliveryController.isLoading.value) {
+                          return const LinearProgressIndicator();
+                        }
+
+                        if (deliveryController.deliveryAreas.isEmpty) {
+                          return const Text(
+                            'No delivery areas available',
+                            style: TextStyle(color: Colors.grey),
+                          );
+                        }
+
+                        return DropdownButtonFormField<int>(
+                          decoration: const InputDecoration(
+                            labelText: 'Delivery Area (Optional)',
+                            border: OutlineInputBorder(),
+                          ),
+                          value:
+                              orderEntryController.selectedDeliveryArea.value,
+                          items: deliveryController.deliveryAreas.map((area) {
+                            return DropdownMenuItem<int>(
+                              value: area['id'],
+                              child: Text(
+                                'PLZ ${area['postalcode']} - ${area['delivery_fee']} € (${area['estimated_delivery_time']} min)',
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            orderEntryController.selectedDeliveryArea.value =
+                                value;
+                          },
+                        );
+                      });
+                    }
+                    return const SizedBox.shrink();
+                  }),
+                  const SizedBox(height: 10),
+
+                  TextField(
+                    controller: orderEntryController.allergyController,
+                    decoration: const InputDecoration(
+                      labelText: 'Allergies (Optional)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: orderEntryController.discountTextController,
+                    decoration: const InputDecoration(
+                      labelText: 'Discount Code (Optional)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: orderEntryController.orderNotesController,
+                    decoration: const InputDecoration(
+                      labelText: 'Order Notes (Optional)',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
                   ),
                   const SizedBox(height: 20),
                   const Text(
@@ -128,78 +255,168 @@ class OrderEntryScreen extends StatelessWidget {
             ),
           ),
           // Right side: Current order summary
-          // Right side: Current order summary
           Expanded(
             flex: 1,
             child: Container(
               color: Colors.grey[100],
-              padding: const EdgeInsets.all(16.0),
               child: Obx(() {
-                double total = orderEntryController.orderItems.fold(
+                double subtotal = orderEntryController.orderItems.fold(
                   0.0,
                   (sum, item) => sum + (item.totalPrice * item.quantity),
                 );
 
+                // Get delivery fee if delivery type is selected and area is chosen
+                double deliveryFee = 0.0;
+                if (orderEntryController.orderType.value == 'delivery' &&
+                    orderEntryController.selectedDeliveryArea.value != null) {
+                  final selectedArea = deliveryController.deliveryAreas
+                      .firstWhereOrNull(
+                        (area) =>
+                            area['id'] ==
+                            orderEntryController.selectedDeliveryArea.value,
+                      );
+                  if (selectedArea != null) {
+                    deliveryFee =
+                        double.tryParse(
+                          selectedArea['delivery_fee'].toString(),
+                        ) ??
+                        0.0;
+                  }
+                }
+
+                double total = subtotal + deliveryFee;
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Current Order',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    // Fixed header
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: const Text(
+                        'Current Order',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 10),
+
+                    // Scrollable order items
                     Expanded(
-                      child: ListView.builder(
-                        itemCount: orderEntryController.orderItems.length,
-                        itemBuilder: (context, index) {
-                          final item = orderEntryController.orderItems[index];
-                          return OrderItemSummary(
-                            item: item,
-                            onIncrement: () =>
-                                orderEntryController.incrementQuantity(item),
-                            onDecrement: () =>
-                                orderEntryController.decrementQuantity(item),
-                            onRemove: () =>
-                                orderEntryController.removeItem(item),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Total amount display
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Total:",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          "\$${total.toStringAsFixed(2)}",
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
+                      child: orderEntryController.orderItems.isEmpty
+                          ? const Center(
+                              child: Text(
+                                'No items added',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                              ),
+                              itemCount: orderEntryController.orderItems.length,
+                              itemBuilder: (context, index) {
+                                final item =
+                                    orderEntryController.orderItems[index];
+                                return OrderItemSummary(
+                                  item: item,
+                                  onIncrement: () => orderEntryController
+                                      .incrementQuantity(item),
+                                  onDecrement: () => orderEntryController
+                                      .decrementQuantity(item),
+                                  onRemove: () =>
+                                      orderEntryController.removeItem(item),
+                                );
+                              },
+                            ),
                     ),
 
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: orderEntryController.createOrder,
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(50),
-                        backgroundColor: AppColors.primaryColor,
-                        foregroundColor: Colors.white,
+                    // Fixed footer with totals and button
+                    Container(
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        border: Border(
+                          top: BorderSide(
+                            color: Colors.grey.shade300,
+                            width: 1,
+                          ),
+                        ),
                       ),
-                      child: const Text('Create Order'),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Subtotal
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Subtotal:",
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              Text(
+                                "\$${subtotal.toStringAsFixed(2)}",
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ],
+                          ),
+
+                          // Delivery Fee (only show if delivery is selected)
+                          if (orderEntryController.orderType.value ==
+                              'delivery') ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  "Delivery Fee:",
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                                Text(
+                                  "€${deliveryFee.toStringAsFixed(2)}",
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ],
+                            ),
+                          ],
+
+                          const SizedBox(height: 8),
+                          const Divider(thickness: 1),
+                          const SizedBox(height: 8),
+
+                          // Total amount display
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Total:",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                "\$${total.toStringAsFixed(2)}",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: orderEntryController.createOrder,
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size.fromHeight(50),
+                              backgroundColor: AppColors.primaryColor,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('Create Order'),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 );
@@ -416,12 +633,32 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
             if (_avocadoSelected) extras.add('Avocado');
             if (_extraPattySelected) extras.add('Extra Patty');
 
+            // Calculate extras price
+            double extrasPrice = 0.0;
+            for (var extra in extras) {
+              switch (extra) {
+                case 'Bacon':
+                  extrasPrice += 2.5;
+                  break;
+                case 'Cheese':
+                  extrasPrice += 1.5;
+                  break;
+                case 'Avocado':
+                  extrasPrice += 2.0;
+                  break;
+                case 'Extra Patty':
+                  extrasPrice += 4.0;
+                  break;
+              }
+            }
+
             widget.onAdd(
               FoodItem(
                 id: widget.id,
                 name: widget.name,
                 price: widget.price,
-                extras: extras,
+                extras: extras.join(", "),
+                extrasPrice: extrasPrice,
                 specialInstructions: _specialInstructionsController.text,
               ),
             );
@@ -465,23 +702,37 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
           ),
           onPressed: () {
             List<String> extras = [];
-            double extrasPrice = 0;
 
             if (_baconSelected) {
               extras.add('Bacon');
-              extrasPrice += 2.5;
             }
             if (_cheeseSelected) {
               extras.add('Cheese');
-              extrasPrice += 1.5;
             }
             if (_avocadoSelected) {
               extras.add('Avocado');
-              extrasPrice += 2.0;
             }
             if (_extraPattySelected) {
               extras.add('Extra Patty');
-              extrasPrice += 4.0;
+            }
+
+            // Calculate extras price
+            double extrasPrice = 0.0;
+            for (var extra in extras) {
+              switch (extra) {
+                case 'Bacon':
+                  extrasPrice += 2.5;
+                  break;
+                case 'Cheese':
+                  extrasPrice += 1.5;
+                  break;
+                case 'Avocado':
+                  extrasPrice += 2.0;
+                  break;
+                case 'Extra Patty':
+                  extrasPrice += 4.0;
+                  break;
+              }
             }
 
             widget.onAdd(
@@ -489,8 +740,8 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
                 id: widget.id, // pass id
                 name: widget.name,
                 price: widget.price,
-                extras: extras,
-
+                extras: extras.join(", "),
+                extrasPrice: extrasPrice,
                 specialInstructions: _specialInstructionsController.text,
               ),
             );
@@ -553,6 +804,31 @@ class OrderItemSummary extends StatelessWidget {
                     item.name,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
+                  // Show extras if any
+                  if (item.extras.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Extras: ${item.extras}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                  // Show special instructions if any
+                  if (item.specialInstructions.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Note: ${item.specialInstructions}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 4),
                   Text(
                     '\$${(item.totalPrice * item.quantity).toStringAsFixed(2)}',
                   ),
@@ -593,6 +869,33 @@ class OrderItemSummary extends StatelessWidget {
                           item.name,
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
+                        // Show extras if any
+                        if (item.extras.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Extras: ${item.extras}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ],
+                        // Show special instructions if any
+                        if (item.specialInstructions.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Note: ${item.specialInstructions}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                              fontStyle: FontStyle.italic,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                        const SizedBox(height: 4),
                         Text(
                           '\$${(item.totalPrice * item.quantity).toStringAsFixed(2)}',
                         ),

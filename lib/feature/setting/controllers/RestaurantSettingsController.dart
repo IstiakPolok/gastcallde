@@ -118,4 +118,167 @@ class RestaurantSettingsController extends GetxController {
         : (hour > 12 ? hour - 12 : hour); // convert 24h to 12h
     return '$displayHour:${minute.toString().padLeft(2, '0')} $period';
   }
+
+  Future<bool> updatePhoneNumber(
+    String newPhoneNumber,
+    String forwardMode,
+  ) async {
+    try {
+      final token = await SharedPreferencesHelper.getAccessToken();
+
+      if (token == null) {
+        Get.snackbar("Error", "Token not found");
+        return false;
+      }
+
+      print('Updating phone number to: $newPhoneNumber');
+      print('Updating forward mode to: $forwardMode');
+
+      final response = await http.patch(
+        Uri.parse('${Urls.baseUrl}/owner/resturant/'),
+        headers: {'Authorization': 'Bearer $token'},
+        body: {'phone_number_1': newPhoneNumber, 'forword_mode': forwardMode},
+      );
+
+      print('Update Phone API Status Code: ${response.statusCode}');
+      print('Update Phone API Response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        // Update local value
+        phoneNumber1.value = data['phone_number_1'] ?? newPhoneNumber;
+        print('Successfully updated phone number and forward mode');
+        return true;
+      } else {
+        print('Failed to update phone number: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('Error updating phone number: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateRestaurantAddress(String newAddress) async {
+    try {
+      final token = await SharedPreferencesHelper.getAccessToken();
+
+      if (token == null) {
+        Get.snackbar("Error", "Token not found");
+        return false;
+      }
+
+      print('Updating restaurant address to: $newAddress');
+
+      final response = await http.patch(
+        Uri.parse('${Urls.baseUrl}/owner/resturant/'),
+        headers: {'Authorization': 'Bearer $token'},
+        body: {'address': newAddress},
+      );
+
+      print('Update Address API Status Code: ${response.statusCode}');
+      print('Update Address API Response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        // Update local value
+        address.value = data['address'] ?? newAddress;
+        print('Successfully updated restaurant address');
+        return true;
+      } else {
+        print('Failed to update address: ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      print('Error updating address: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateBusinessHours(
+    String openingTime,
+    String closingTime,
+  ) async {
+    try {
+      final token = await SharedPreferencesHelper.getAccessToken();
+
+      if (token == null) {
+        Get.snackbar("Error", "Token not found");
+        return false;
+      }
+
+      print(
+        '🕒 Attempting to update business hours: $openingTime - $closingTime',
+      );
+      print('📍 Endpoint: ${Urls.baseUrl}/owner/resturant/');
+
+      final response = await http.patch(
+        Uri.parse('${Urls.baseUrl}/owner/resturant/'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'opening_time': openingTime,
+          'closing_time': closingTime,
+        }),
+      );
+
+      print('📡 Update Business Hours API Status Code: ${response.statusCode}');
+      print('📦 Update Business Hours API Response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        // Update local values
+        this.openingTime.value = data['opening_time'] ?? openingTime;
+        this.closingTime.value = data['closing_time'] ?? closingTime;
+        print('✅ Successfully updated business hours');
+        print('✅ New opening time: ${this.openingTime.value}');
+        print('✅ New closing time: ${this.closingTime.value}');
+        return true;
+      } else {
+        print('❌ Failed to update business hours: ${response.statusCode}');
+        print('❌ Error details: ${response.body}');
+
+        // Try to parse error message
+        try {
+          final errorData = jsonDecode(response.body);
+          print('❌ Error data: $errorData');
+          if (errorData is Map && errorData.containsKey('detail')) {
+            Get.snackbar(
+              'Update Failed',
+              errorData['detail'].toString(),
+              snackPosition: SnackPosition.BOTTOM,
+            );
+          } else if (errorData is Map &&
+              errorData.containsKey('opening_time')) {
+            Get.snackbar(
+              'Update Failed',
+              'Opening time: ${errorData['opening_time']}',
+              snackPosition: SnackPosition.BOTTOM,
+            );
+          } else if (errorData is Map &&
+              errorData.containsKey('closing_time')) {
+            Get.snackbar(
+              'Update Failed',
+              'Closing time: ${errorData['closing_time']}',
+              snackPosition: SnackPosition.BOTTOM,
+            );
+          }
+        } catch (e) {
+          print('⚠️ Could not parse error response: $e');
+        }
+
+        return false;
+      }
+    } catch (e) {
+      print('🚨 Exception updating business hours: $e');
+      Get.snackbar(
+        'Error',
+        'Network error: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return false;
+    }
+  }
 }

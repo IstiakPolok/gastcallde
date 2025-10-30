@@ -7,12 +7,14 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TableModel {
+  final int? id;
   final String name;
   final String capacity;
   final String status;
   final String reservationStatus;
 
   TableModel({
+    this.id,
     required this.name,
     required this.capacity,
     required this.status,
@@ -31,6 +33,7 @@ class TableModel {
   // Factory method to convert JSON to TableModel
   factory TableModel.fromJson(Map<String, dynamic> json) {
     return TableModel(
+      id: json['id'],
       name: json['table_name'],
       capacity: json['total_set'].toString(),
       status: json['status'],
@@ -128,6 +131,40 @@ class TableController extends GetxController {
     print("Adding ${newTables.length} new tables locally...");
     tables.assignAll(newTables);
     print("Tables saved locally: ${newTables.map((t) => t.name).toList()}");
+  }
+
+  // Delete a table by ID
+  Future<bool> deleteTable(int tableId) async {
+    print("Starting to delete table with ID: $tableId");
+    final String? token = await SharedPreferencesHelper.getAccessToken();
+
+    try {
+      final response = await http.delete(
+        Uri.parse('${Urls.baseUrl}/owner/table/delete/$tableId/'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      print("Delete response status code: ${response.statusCode}");
+      print("Delete response body: ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        print("✅ Table $tableId deleted successfully");
+        // Remove the table from the local list
+        tables.removeWhere((table) => table.id == tableId);
+        return true;
+      } else {
+        print(
+          "❌ Failed to delete table $tableId. Status Code: ${response.statusCode}",
+        );
+        return false;
+      }
+    } catch (e) {
+      print("❌ Error while deleting table $tableId: $e");
+      return false;
+    }
   }
 
   @override

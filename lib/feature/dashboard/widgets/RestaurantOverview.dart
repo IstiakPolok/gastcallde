@@ -303,7 +303,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                           () => InfoCard(
                             title: 'revenue_orders'.tr,
                             value:
-                                "\$${Revenuecontroller.totalRevenueOrder.value.toStringAsFixed(2)}",
+                                "\€${Revenuecontroller.totalRevenueOrder.value.toStringAsFixed(2)}",
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -311,7 +311,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                           () => InfoCard(
                             title: 'average_order_value'.tr,
                             value:
-                                "\$${Revenuecontroller.averageOrderValue.value.toStringAsFixed(2)}",
+                                "\€${Revenuecontroller.averageOrderValue.value.toStringAsFixed(2)}",
                           ),
                         ),
                       ],
@@ -358,8 +358,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                   Obx(
                     () => SmallInfoCard(
                       title: 'num_orders'.tr,
-                      value: Revenuecontroller.numberOfNewCustomers.value
-                          .toString(),
+                      value: '${Revenuecontroller.numberOfNewCustomers.value}%',
                     ),
                   ),
                   Obx(
@@ -372,19 +371,15 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                   Obx(
                     () => SmallInfoCard(
                       title: 'new_customer_reservation%'.tr,
-                      value: Revenuecontroller
-                          .newCustomerReservationPercentage
-                          .value
-                          .toString(),
+                      value:
+                          '${Revenuecontroller.newCustomerReservationPercentage.value}%',
                     ),
                   ),
                   Obx(
                     () => SmallInfoCard(
                       title: 'returning_customer_order'.tr,
-                      value: Revenuecontroller
-                          .numberOfReturningReservations
-                          .value
-                          .toString(),
+                      value:
+                          '${Revenuecontroller.numberOfReturningReservations.value}%',
                     ),
                   ),
                   Obx(
@@ -397,10 +392,8 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                   Obx(
                     () => SmallInfoCard(
                       title: 'returning_customer_reservation'.tr,
-                      value: Revenuecontroller
-                          .returningCustomerReservationPercentage
-                          .value
-                          .toString(),
+                      value:
+                          '${Revenuecontroller.returningCustomerReservationPercentage.value}%',
                     ),
                   ),
                 ],
@@ -437,7 +430,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                 children: [
                   Obx(
                     () => Text(
-                      '\$${controller.totalRevenue.value.toStringAsFixed(2)}',
+                      '\€${controller.totalRevenue.value.toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -500,7 +493,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       () => InfoCard(
                         title: 'revenue_orders'.tr,
                         value:
-                            "\$${Revenuecontroller.totalRevenueOrder.value.toStringAsFixed(2)}",
+                            "\€${Revenuecontroller.totalRevenueOrder.value.toStringAsFixed(2)}",
                       ),
                     ),
                   ),
@@ -510,7 +503,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       () => InfoCard(
                         title: 'average_order_value'.tr,
                         value:
-                            "\$${Revenuecontroller.averageOrderValue.value.toStringAsFixed(2)}",
+                            "\€${Revenuecontroller.averageOrderValue.value.toStringAsFixed(2)}",
                       ),
                     ),
                   ),
@@ -567,8 +560,8 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                         Obx(
                           () => SmallInfoCard(
                             title: 'num_orders'.tr,
-                            value: Revenuecontroller.numberOfNewCustomers.value
-                                .toString(),
+                            value:
+                                '${Revenuecontroller.numberOfNewCustomers.value}%',
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -585,10 +578,8 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                         Obx(
                           () => SmallInfoCard(
                             title: 'new_customer_reservation%'.tr,
-                            value: Revenuecontroller
-                                .newCustomerReservationPercentage
-                                .value
-                                .toString(),
+                            value:
+                                '${Revenuecontroller.newCustomerReservationPercentage.value}%',
                           ),
                         ),
                       ],
@@ -603,10 +594,8 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                         Obx(
                           () => SmallInfoCard(
                             title: 'returning_customer_order'.tr,
-                            value: Revenuecontroller
-                                .numberOfReturningReservations
-                                .value
-                                .toString(),
+                            value:
+                                '${Revenuecontroller.numberOfReturningReservations.value}%',
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -623,10 +612,8 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                         Obx(
                           () => SmallInfoCard(
                             title: 'returning_customer_reservation'.tr,
-                            value: Revenuecontroller
-                                .returningCustomerReservationPercentage
-                                .value
-                                .toString(),
+                            value:
+                                '${Revenuecontroller.returningCustomerReservationPercentage.value}%',
                           ),
                         ),
                       ],
@@ -668,7 +655,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       children: [
                         Obx(
                           () => Text(
-                            '\$${controller.totalRevenue.value.toStringAsFixed(2)}',
+                            '\€${controller.totalRevenue.value.toStringAsFixed(2)}',
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,

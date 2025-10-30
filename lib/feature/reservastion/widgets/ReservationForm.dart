@@ -132,8 +132,8 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
           else
             Column(
               children: [
-                const Text(
-                  'Available Tables:',
+                Text(
+                  'available_tables'.tr,
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 ListView.builder(
@@ -162,7 +162,7 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {},
-              child: const Text('Confirm now'),
+              child: Text('confirm_now'.tr),
             ),
           ),
         ],
@@ -193,8 +193,8 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
                       Column(
                         children: [
                           SizedBox(height: 30),
-                          const Text(
-                            'Available Tables:',
+                          Text(
+                            'available_tables'.tr,
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           SizedBox(height: 15),
@@ -321,7 +321,7 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
                               EasyLoading.dismiss();
                               Get.to(ReservationScreen());
                             },
-                            child: const Text('Confirm now'),
+                            child: Text('confirm_now'.tr),
                           ),
                         ],
                       ),
@@ -339,39 +339,39 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
 
   Widget _buildInformationSection() {
     return _SectionCard(
-      title: 'Information',
+      title: 'information'.tr,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTextField(
-            label: 'Customer name',
-            hint: 'Type here',
+            label: 'customer_name'.tr,
+            hint: 'type_here'.tr,
             icon: Icons.person_outline,
             controller: _nameController,
           ),
           const SizedBox(height: 16),
           _buildTextField(
-            label: 'Phone num',
+            label: 'phone_num'.tr,
             hint: '+895 3467 458',
             icon: Icons.phone_android,
             controller: _phoneController,
           ),
           const SizedBox(height: 16),
           _buildTextField(
-            label: 'Email',
+            label: 'email'.tr,
             hint: 'User2025@gmail.com',
             icon: Icons.email_outlined,
             controller: _emailController,
           ),
           const SizedBox(height: 16),
           _buildTextField(
-            label: 'Number of people',
-            hint: 'Type here',
+            label: 'number_of_people'.tr,
+            hint: 'type_here'.tr,
             icon: Icons.group_outlined,
             controller: _peopleController,
           ),
           const SizedBox(height: 16),
-          _buildDateField(label: 'Date', controller: _dateController),
+          _buildDateField(label: 'date'.tr, controller: _dateController),
         ],
       ),
     );
@@ -379,12 +379,12 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
 
   Widget _buildTimeSelectionSection() {
     return _SectionCard(
-      title: 'Choose Time',
+      title: 'choose_time'.tr,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'From',
+          Text(
+            'from'.tr,
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 8),
@@ -399,8 +399,8 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
             },
           ),
           const SizedBox(height: 16),
-          const Text(
-            'To',
+          Text(
+            'to_time'.tr,
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 8),
@@ -421,7 +421,7 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
 
   Widget _buildSummarySection() {
     return _SectionCard(
-      title: 'Reserve a table',
+      title: 'reserve_a_table'.tr,
       child: Column(
         children: const [
           _SummaryRow(icon: Icons.person_outline, text: 'Jorge Doe'),
@@ -492,7 +492,7 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
           readOnly: true,
           decoration: InputDecoration(
             suffixIcon: const Icon(Icons.arrow_drop_down),
-            hintText: 'Select a date',
+            hintText: 'select_a_date'.tr,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(
                 12,
@@ -516,8 +516,8 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
-          'Reservation Form',
+        title: Text(
+          'reservation_form'.tr,
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
