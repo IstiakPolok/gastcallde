@@ -11,8 +11,9 @@ import 'package:google_fonts/google_fonts.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize services
-  Get.put(OrderController());
+  // Initialize only essential services at startup
+  // OrderController will be lazily initialized when needed
+  Get.lazyPut<OrderController>(() => OrderController(), fenix: true);
   Get.put(ConnectivityService(), permanent: true);
 
   configEasyLoading();

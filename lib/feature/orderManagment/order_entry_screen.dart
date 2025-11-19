@@ -20,7 +20,7 @@ class OrderEntryScreen extends StatelessWidget {
     // Fetch delivery areas once when screen builds
     deliveryController.fetchDeliveryAreas();
     return Scaffold(
-      resizeToAvoidBottomInset: false, // Keyboard overlays instead of resizing
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Order Entry'),
         leading: IconButton(
@@ -28,402 +28,503 @@ class OrderEntryScreen extends StatelessWidget {
           onPressed: () => Get.back(),
         ),
       ),
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Left side: Customer details and menu
-          Expanded(
-            flex: 2,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Customer Info',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: orderEntryController.customerNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Customer Name',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: orderEntryController.addressController,
-                    decoration: const InputDecoration(
-                      labelText: 'Address',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: orderEntryController.phoneController,
-                    decoration: const InputDecoration(
-                      labelText: 'Phone Number',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: orderEntryController.emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'Email (Optional)',
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  const SizedBox(height: 10),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          // Adjust flex based on screen width for better mobile experience
+          int leftFlex = constraints.maxWidth < 600 ? 1 : 2;
 
-                  // Order Type Selection
-                  Obx(
-                    () => Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Order Type',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: RadioListTile<String>(
-                                  title: const Text('Delivery'),
-                                  value: 'delivery',
-                                  groupValue:
-                                      orderEntryController.orderType.value,
-                                  onChanged: (value) {
-                                    orderEntryController.orderType.value =
-                                        value!;
-                                  },
-                                  contentPadding: EdgeInsets.zero,
-                                  dense: true,
-                                ),
-                              ),
-                              Expanded(
-                                child: RadioListTile<String>(
-                                  title: const Text('Pickup'),
-                                  value: 'pickup',
-                                  groupValue:
-                                      orderEntryController.orderType.value,
-                                  onChanged: (value) {
-                                    orderEntryController.orderType.value =
-                                        value!;
-                                  },
-                                  contentPadding: EdgeInsets.zero,
-                                  dense: true,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Delivery Area Dropdown (only for delivery orders)
-                  Obx(() {
-                    if (orderEntryController.orderType.value == 'delivery') {
-                      return Obx(() {
-                        if (deliveryController.isLoading.value) {
-                          return const LinearProgressIndicator();
-                        }
-
-                        if (deliveryController.deliveryAreas.isEmpty) {
-                          return const Text(
-                            'No delivery areas available',
-                            style: TextStyle(color: Colors.grey),
-                          );
-                        }
-
-                        return DropdownButtonFormField<int>(
-                          decoration: const InputDecoration(
-                            labelText: 'Delivery Area (Optional)',
-                            border: OutlineInputBorder(),
-                          ),
-                          value:
-                              orderEntryController.selectedDeliveryArea.value,
-                          items: deliveryController.deliveryAreas.map((area) {
-                            return DropdownMenuItem<int>(
-                              value: area['id'],
-                              child: Text(
-                                'PLZ ${area['postalcode']} - ${area['delivery_fee']} € (${area['estimated_delivery_time']} min)',
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            orderEntryController.selectedDeliveryArea.value =
-                                value;
-                          },
-                        );
-                      });
-                    }
-                    return const SizedBox.shrink();
-                  }),
-                  const SizedBox(height: 10),
-
-                  TextField(
-                    controller: orderEntryController.allergyController,
-                    decoration: const InputDecoration(
-                      labelText: 'Allergies (Optional)',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: orderEntryController.discountTextController,
-                    decoration: const InputDecoration(
-                      labelText: 'Discount Code (Optional)',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: orderEntryController.orderNotesController,
-                    decoration: const InputDecoration(
-                      labelText: 'Order Notes (Optional)',
-                      border: OutlineInputBorder(),
-                    ),
-                    maxLines: 3,
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Menu',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Category Filter
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Obx(() {
-                      return SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: menuController.categories.map((cat) {
-                            return FilterButton(
-                              text: cat,
-                              onPressed: () {
-                                orderEntryController.selectedCategory.value =
-                                    cat;
-                              },
-                            );
-                          }).toList(),
-                        ),
-                      );
-                    }),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // Menu items
-                  Obx(() {
-                    if (menuController.isLoading.value) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    final items = menuController.filteredItems(
-                      orderEntryController.selectedCategory.value,
-                    );
-
-                    return Column(
-                      children: items.map((foodItem) {
-                        return FoodMenuItem(
-                          id: foodItem.id,
-                          name: foodItem.name,
-                          price: foodItem.price,
-                          onAdd: (FoodItem item) {
-                            orderEntryController.addFoodItem(item);
-                          },
-                        );
-                      }).toList(),
-                    );
-                  }),
-                ],
-              ),
-            ),
-          ),
-          // Right side: Current order summary
-          Expanded(
-            flex: 1,
-            child: Container(
-              color: Colors.grey[100],
-              child: Obx(() {
-                double subtotal = orderEntryController.orderItems.fold(
-                  0.0,
-                  (sum, item) => sum + (item.totalPrice * item.quantity),
-                );
-
-                // Get delivery fee if delivery type is selected and area is chosen
-                double deliveryFee = 0.0;
-                if (orderEntryController.orderType.value == 'delivery' &&
-                    orderEntryController.selectedDeliveryArea.value != null) {
-                  final selectedArea = deliveryController.deliveryAreas
-                      .firstWhereOrNull(
-                        (area) =>
-                            area['id'] ==
-                            orderEntryController.selectedDeliveryArea.value,
-                      );
-                  if (selectedArea != null) {
-                    deliveryFee =
-                        double.tryParse(
-                          selectedArea['delivery_fee'].toString(),
-                        ) ??
-                        0.0;
-                  }
-                }
-
-                double total = subtotal + deliveryFee;
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Fixed header
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: const Text(
-                        'Current Order',
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left side: Customer details and menu
+              Expanded(
+                flex: leftFlex,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Customer Info',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-
-                    // Scrollable order items
-                    Expanded(
-                      child: orderEntryController.orderItems.isEmpty
-                          ? const Center(
-                              child: Text(
-                                'No items added',
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16.0,
-                              ),
-                              itemCount: orderEntryController.orderItems.length,
-                              itemBuilder: (context, index) {
-                                final item =
-                                    orderEntryController.orderItems[index];
-                                return OrderItemSummary(
-                                  item: item,
-                                  onIncrement: () => orderEntryController
-                                      .incrementQuantity(item),
-                                  onDecrement: () => orderEntryController
-                                      .decrementQuantity(item),
-                                  onRemove: () =>
-                                      orderEntryController.removeItem(item),
-                                );
-                              },
-                            ),
-                    ),
-
-                    // Fixed footer with totals and button
-                    Container(
-                      padding: const EdgeInsets.all(16.0),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        border: Border(
-                          top: BorderSide(
-                            color: Colors.grey.shade300,
-                            width: 1,
-                          ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: orderEntryController.customerNameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Customer Name',
+                          border: OutlineInputBorder(),
                         ),
                       ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Subtotal
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: orderEntryController.addressController,
+                        decoration: const InputDecoration(
+                          labelText: 'Address',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: orderEntryController.phoneController,
+                        decoration: const InputDecoration(
+                          labelText: 'Phone Number',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: orderEntryController.emailController,
+                        decoration: const InputDecoration(
+                          labelText: 'Email (Optional)',
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Order Type Selection
+                      Obx(() {
+                        // Check if mobile view
+                        bool isMobile = MediaQuery.of(context).size.width < 600;
+
+                        return Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                "Subtotal:",
-                                style: TextStyle(fontSize: 16),
+                                'Order Type',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
                               ),
-                              Text(
-                                "\$${subtotal.toStringAsFixed(2)}",
-                                style: const TextStyle(fontSize: 16),
-                              ),
+                              const SizedBox(height: 8),
+                              // Use Column for mobile, Row for desktop
+                              isMobile
+                                  ? Column(
+                                      children: [
+                                        RadioListTile<String>(
+                                          title: const Text('Delivery'),
+                                          value: 'delivery',
+                                          groupValue: orderEntryController
+                                              .orderType
+                                              .value,
+                                          onChanged: (value) {
+                                            orderEntryController
+                                                    .orderType
+                                                    .value =
+                                                value!;
+                                          },
+                                          contentPadding: EdgeInsets.zero,
+                                          dense: true,
+                                        ),
+                                        RadioListTile<String>(
+                                          title: const Text('Pickup'),
+                                          value: 'pickup',
+                                          groupValue: orderEntryController
+                                              .orderType
+                                              .value,
+                                          onChanged: (value) {
+                                            orderEntryController
+                                                    .orderType
+                                                    .value =
+                                                value!;
+                                          },
+                                          contentPadding: EdgeInsets.zero,
+                                          dense: true,
+                                        ),
+                                      ],
+                                    )
+                                  : Row(
+                                      children: [
+                                        Expanded(
+                                          child: RadioListTile<String>(
+                                            title: const Text('Delivery'),
+                                            value: 'delivery',
+                                            groupValue: orderEntryController
+                                                .orderType
+                                                .value,
+                                            onChanged: (value) {
+                                              orderEntryController
+                                                      .orderType
+                                                      .value =
+                                                  value!;
+                                            },
+                                            contentPadding: EdgeInsets.zero,
+                                            dense: true,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: RadioListTile<String>(
+                                            title: const Text('Pickup'),
+                                            value: 'pickup',
+                                            groupValue: orderEntryController
+                                                .orderType
+                                                .value,
+                                            onChanged: (value) {
+                                              orderEntryController
+                                                      .orderType
+                                                      .value =
+                                                  value!;
+                                            },
+                                            contentPadding: EdgeInsets.zero,
+                                            dense: true,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                             ],
                           ),
+                        );
+                      }),
+                      const SizedBox(height: 10),
 
-                          // Delivery Fee (only show if delivery is selected)
-                          if (orderEntryController.orderType.value ==
-                              'delivery') ...[
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  "Delivery Fee:",
-                                  style: TextStyle(fontSize: 16),
+                      // Delivery Area Dropdown (only for delivery orders)
+                      Obx(() {
+                        if (orderEntryController.orderType.value ==
+                            'delivery') {
+                          return Obx(() {
+                            if (deliveryController.isLoading.value) {
+                              return const LinearProgressIndicator();
+                            }
+
+                            if (deliveryController.deliveryAreas.isEmpty) {
+                              return const Text(
+                                'No delivery areas available',
+                                style: TextStyle(color: Colors.grey),
+                              );
+                            }
+
+                            return DropdownButtonFormField<int>(
+                              decoration: const InputDecoration(
+                                labelText: 'Delivery Area (Optional)',
+                                border: OutlineInputBorder(),
+                              ),
+                              isExpanded: true,
+                              value: orderEntryController
+                                  .selectedDeliveryArea
+                                  .value,
+                              items: deliveryController.deliveryAreas.map((
+                                area,
+                              ) {
+                                return DropdownMenuItem<int>(
+                                  value: area['id'],
+                                  child: Text(
+                                    'PLZ ${area['postalcode']} - €${area['delivery_fee']} (${area['estimated_delivery_time']}m)',
+                                    style: const TextStyle(fontSize: 13),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                orderEntryController
+                                        .selectedDeliveryArea
+                                        .value =
+                                    value;
+                              },
+                            );
+                          });
+                        }
+                        return const SizedBox.shrink();
+                      }),
+                      const SizedBox(height: 10),
+
+                      TextField(
+                        controller: orderEntryController.allergyController,
+                        decoration: const InputDecoration(
+                          labelText: 'Allergies (Optional)',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: orderEntryController.discountTextController,
+                        decoration: const InputDecoration(
+                          labelText: 'Discount Code (Optional)',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: orderEntryController.orderNotesController,
+                        decoration: const InputDecoration(
+                          labelText: 'Order Notes (Optional)',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Menu',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Category Filter
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Obx(() {
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: menuController.categories.map((cat) {
+                                return FilterButton(
+                                  text: cat,
+                                  onPressed: () {
+                                    orderEntryController
+                                            .selectedCategory
+                                            .value =
+                                        cat;
+                                  },
+                                );
+                              }).toList(),
+                            ),
+                          );
+                        }),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // Menu items
+                      Obx(() {
+                        if (menuController.isLoading.value) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+
+                        final items = menuController.filteredItems(
+                          orderEntryController.selectedCategory.value,
+                        );
+
+                        return Column(
+                          children: items.map((foodItem) {
+                            return FoodMenuItem(
+                              id: foodItem.id,
+                              name: foodItem.name,
+                              price: foodItem.price,
+                              onAdd: (FoodItem item) {
+                                orderEntryController.addFoodItem(item);
+                              },
+                            );
+                          }).toList(),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ),
+              // Right side: Current order summary
+              Expanded(
+                flex: 1,
+                child: Container(
+                  color: Colors.grey[100],
+                  child: Obx(() {
+                    double subtotal = orderEntryController.orderItems.fold(
+                      0.0,
+                      (sum, item) => sum + (item.totalPrice * item.quantity),
+                    );
+
+                    // Get delivery fee if delivery type is selected and area is chosen
+                    double deliveryFee = 0.0;
+                    if (orderEntryController.orderType.value == 'delivery' &&
+                        orderEntryController.selectedDeliveryArea.value !=
+                            null) {
+                      final selectedArea = deliveryController.deliveryAreas
+                          .firstWhereOrNull(
+                            (area) =>
+                                area['id'] ==
+                                orderEntryController.selectedDeliveryArea.value,
+                          );
+                      if (selectedArea != null) {
+                        deliveryFee =
+                            double.tryParse(
+                              selectedArea['delivery_fee'].toString(),
+                            ) ??
+                            0.0;
+                      }
+                    }
+
+                    double total = subtotal + deliveryFee;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Fixed header
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: const Text(
+                            'Current Order',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+
+                        // Scrollable order items
+                        Expanded(
+                          child: orderEntryController.orderItems.isEmpty
+                              ? const Center(
+                                  child: Text(
+                                    'No items added',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
+                                )
+                              : ListView.builder(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0,
+                                  ),
+                                  itemCount:
+                                      orderEntryController.orderItems.length,
+                                  itemBuilder: (context, index) {
+                                    final item =
+                                        orderEntryController.orderItems[index];
+                                    return OrderItemSummary(
+                                      item: item,
+                                      onIncrement: () => orderEntryController
+                                          .incrementQuantity(item),
+                                      onDecrement: () => orderEntryController
+                                          .decrementQuantity(item),
+                                      onRemove: () =>
+                                          orderEntryController.removeItem(item),
+                                    );
+                                  },
                                 ),
-                                Text(
-                                  "€${deliveryFee.toStringAsFixed(2)}",
-                                  style: const TextStyle(fontSize: 16),
+                        ),
+
+                        // Fixed footer with totals and button
+                        Container(
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            border: Border(
+                              top: BorderSide(
+                                color: Colors.grey.shade300,
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Subtotal
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Flexible(
+                                    child: Text(
+                                      "Subtotal:",
+                                      style: TextStyle(fontSize: 14),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Flexible(
+                                    child: Text(
+                                      "\$${subtotal.toStringAsFixed(2)}",
+                                      style: const TextStyle(fontSize: 14),
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.right,
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              // Delivery Fee (only show if delivery is selected)
+                              if (orderEntryController.orderType.value ==
+                                  'delivery') ...[
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Flexible(
+                                      child: Text(
+                                        "Delivery Fee:",
+                                        style: TextStyle(fontSize: 14),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Flexible(
+                                      child: Text(
+                                        "€${deliveryFee.toStringAsFixed(2)}",
+                                        style: const TextStyle(fontSize: 14),
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.right,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
-                            ),
-                          ],
 
-                          const SizedBox(height: 8),
-                          const Divider(thickness: 1),
-                          const SizedBox(height: 8),
+                              const SizedBox(height: 8),
+                              const Divider(thickness: 1),
+                              const SizedBox(height: 8),
 
-                          // Total amount display
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                "Total:",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              // Total amount display
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Flexible(
+                                    child: Text(
+                                      "Total:",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Flexible(
+                                    child: Text(
+                                      "\$${total.toStringAsFixed(2)}",
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.right,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                "\$${total.toStringAsFixed(2)}",
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: orderEntryController.createOrder,
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(50),
+                                  backgroundColor: AppColors.primaryColor,
+                                  foregroundColor: Colors.white,
                                 ),
+                                child: const Text('Create Order'),
                               ),
                             ],
                           ),
-
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: orderEntryController.createOrder,
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: const Size.fromHeight(50),
-                              backgroundColor: AppColors.primaryColor,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: const Text('Create Order'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              }),
-            ),
-          ),
-        ],
+                        ),
+                      ],
+                    );
+                  }),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -606,18 +707,15 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
         //   alignment: Alignment.centerLeft,
         //   child: Image.asset(widget.imagePath, width: 60, height: 60),
         // ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Text(
-            widget.name,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+        Text(
+          widget.name,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: Text(
             '\$${widget.price.toStringAsFixed(2)}',
-            style: const TextStyle(fontSize: 16, color: Colors.grey),
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
           ),
         ),
         ElevatedButton(
@@ -664,7 +762,7 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
             );
           },
 
-          child: const Text('Add to Order'),
+          child: const Text('Add'),
         ),
       ],
     );

@@ -178,13 +178,16 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
   }
 
   Widget _buildChartFilterButton(String text, Color color) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isMobile = screenWidth <= 600;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: isMobile ? 8 : 12, vertical: 4),
       child: Text(
         text,
         overflow: TextOverflow.ellipsis,
         style: GoogleFonts.inter(
-          fontSize: 12,
+          fontSize: isMobile ? 10 : 12,
           fontWeight: FontWeight.bold,
           color: color,
         ),
@@ -206,36 +209,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
 
     return Scaffold(
       appBar: isMobile
-          ? AppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 1,
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'restaurant_overview'.tr,
-                    style: GoogleFonts.inter(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'live_overview'.tr,
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                      LanguageToggleButton(),
-                    ],
-                  ),
-                ],
-              ),
-            )
+          ? null
           : AppBar(
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -303,7 +277,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                           () => InfoCard(
                             title: 'revenue_orders'.tr,
                             value:
-                                "\€${Revenuecontroller.totalRevenueOrder.value.toStringAsFixed(2)}",
+                                "€${Revenuecontroller.totalRevenueOrder.value.toStringAsFixed(2)}",
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -311,7 +285,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                           () => InfoCard(
                             title: 'average_order_value'.tr,
                             value:
-                                "\€${Revenuecontroller.averageOrderValue.value.toStringAsFixed(2)}",
+                                "€${Revenuecontroller.averageOrderValue.value.toStringAsFixed(2)}",
                           ),
                         ),
                       ],
@@ -330,7 +304,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                 physics: const NeverScrollableScrollPhysics(),
                 mainAxisSpacing: 12,
                 crossAxisSpacing: 12,
-                childAspectRatio: 1.7,
+                childAspectRatio: 2.2,
                 children: [
                   Obx(
                     () => SmallInfoCard(
@@ -430,7 +404,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                 children: [
                   Obx(
                     () => Text(
-                      '\€${controller.totalRevenue.value.toStringAsFixed(2)}',
+                      '€${controller.totalRevenue.value.toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -493,7 +467,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       () => InfoCard(
                         title: 'revenue_orders'.tr,
                         value:
-                            "\€${Revenuecontroller.totalRevenueOrder.value.toStringAsFixed(2)}",
+                            "€${Revenuecontroller.totalRevenueOrder.value.toStringAsFixed(2)}",
                       ),
                     ),
                   ),
@@ -503,7 +477,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       () => InfoCard(
                         title: 'average_order_value'.tr,
                         value:
-                            "\€${Revenuecontroller.averageOrderValue.value.toStringAsFixed(2)}",
+                            "€${Revenuecontroller.averageOrderValue.value.toStringAsFixed(2)}",
                       ),
                     ),
                   ),
@@ -655,7 +629,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       children: [
                         Obx(
                           () => Text(
-                            '\€${controller.totalRevenue.value.toStringAsFixed(2)}',
+                            '€${controller.totalRevenue.value.toStringAsFixed(2)}',
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -748,9 +722,12 @@ class SmallInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isMobile = screenWidth <= 600;
+
     return Container(
-      width: 200,
-      padding: const EdgeInsets.all(16.0),
+      width: isMobile ? null : 200,
+      padding: EdgeInsets.all(isMobile ? 12.0 : 16.0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
@@ -758,23 +735,30 @@ class SmallInfoCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            title,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey.shade600,
+          Flexible(
+            child: Text(
+              title,
+              style: GoogleFonts.inter(
+                fontSize: isMobile ? 12 : 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade600,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: isMobile ? 4 : 8),
           Text(
             value,
             style: GoogleFonts.inter(
-              fontSize: 24,
+              fontSize: isMobile ? 20 : 24,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

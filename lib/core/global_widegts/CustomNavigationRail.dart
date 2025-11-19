@@ -21,7 +21,7 @@ class CustomNavigationRail extends StatefulWidget {
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
 
-  CustomNavigationRail({
+  const CustomNavigationRail({
     super.key,
     required this.selectedIndex,
     required this.onDestinationSelected,
@@ -33,41 +33,93 @@ class CustomNavigationRail extends StatefulWidget {
 
 class _CustomNavigationRailState extends State<CustomNavigationRail> {
   final subscriptionController = Get.put(SubscriptionCountController());
-  bool _isExpanded = true;
+  static bool _persistentExpanded = true;
+  bool get _isExpanded => _persistentExpanded;
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 600 && screenWidth < 1024;
+    final logoWidth = isTablet ? 80.0 : 100.0;
+    final iconSize = isTablet ? 20.0 : 24.0;
+
     return Container(
+      width: _isExpanded
+          ? (isTablet ? 200 : 240)
+          : (isTablet ? 56 : 60), // Minimum width when collapsed
       color: Colors.white,
       child: Column(
         children: [
           // Logo and toggle button
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              IconButton(
-                icon: Icon(
-                  _isExpanded ? Icons.menu_open : Icons.menu,
-                  color: AppColors.primaryColor,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _isExpanded = !_isExpanded;
-                  });
-                },
-                tooltip: _isExpanded ? 'Collapse' : 'Expand',
+          Container(
+            color: _isExpanded ? AppColors.primaryColor : Colors.white,
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: _isExpanded ? 8.0 : 4.0,
+                vertical: 8.0,
               ),
-              if (_isExpanded)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
-                  child: Image.asset('assets/icons/logo.png', width: 100),
-                ),
-            ],
+              child: Row(
+                children: [
+                  if (_isExpanded)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: IconButton(
+                        icon: Icon(
+                          _isExpanded ? Icons.menu_open : Icons.menu,
+                          color: _isExpanded
+                              ? AppColors.primaryColor
+                              : Colors.white,
+                          size: iconSize,
+                        ),
+                        onPressed: () {},
+                        tooltip: _isExpanded ? 'Collapse' : 'Expand',
+                        padding: EdgeInsets.all(isTablet ? 8.0 : 12.0),
+                        constraints: BoxConstraints(
+                          minWidth: isTablet ? 36 : 40,
+                          minHeight: isTablet ? 36 : 40,
+                        ),
+                      ),
+                    ),
+                  Expanded(
+                    child: Center(
+                      child: Image.asset(
+                        'assets/icons/logo.png',
+                        width: logoWidth,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      icon: Icon(
+                        _isExpanded ? Icons.menu_open : Icons.menu,
+                        color: _isExpanded
+                            ? Colors.white
+                            : AppColors.primaryColor,
+                        size: iconSize,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _persistentExpanded = !_persistentExpanded;
+                        });
+                      },
+                      tooltip: _isExpanded ? 'Collapse' : 'Expand',
+                      padding: EdgeInsets.all(isTablet ? 8.0 : 12.0),
+                      constraints: BoxConstraints(
+                        minWidth: isTablet ? 36 : 40,
+                        minHeight: isTablet ? 36 : 40,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
           // Navigation items
           Expanded(
             child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(vertical: isTablet ? 4.0 : 8.0),
               child: Column(
                 children: [
                   // Navigation Rail Items
@@ -82,6 +134,8 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
                       labelType: _isExpanded
                           ? NavigationRailLabelType.all
                           : NavigationRailLabelType.none,
+                      minWidth: isTablet ? 56 : 72,
+                      minExtendedWidth: isTablet ? 180 : 200,
                       destinations: [
                         _buildDestination(
                           'assets/icons/svg/1.svg',
@@ -133,35 +187,43 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
                   ),
                   // Bottom section (after Settings)
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: EdgeInsets.all(isTablet ? 6.0 : 8.0),
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            Get.off(SubscriptionPlans());
-                            _showSubscriptionDialog(context);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryColor,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Get.off(SubscriptionPlans());
+                              _showSubscriptionDialog(context);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryColor,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                vertical: isTablet ? 6 : 8,
+                                horizontal: _isExpanded ? 12 : 8,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.flash_on, size: 16),
+                                Icon(Icons.flash_on, size: isTablet ? 18 : 20),
                                 if (_isExpanded) ...[
-                                  SizedBox(width: 8),
-                                  const Text(
-                                    'Upgrade Now',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
+                                  SizedBox(width: isTablet ? 6 : 8),
+                                  Flexible(
+                                    child: Text(
+                                      'Upgrade Now',
+                                      style: TextStyle(
+                                        fontSize: isTablet ? 10 : 11,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],
@@ -169,30 +231,34 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
                             ),
                           ),
                         ),
-                        SizedBox(height: 10),
+                        SizedBox(height: isTablet ? 8 : 10),
                         if (_isExpanded)
                           Obx(() {
                             if (subscriptionController.isLoading.value) {
-                              return const Text(
+                              return Text(
                                 'Checking subscription...',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: isTablet ? 10 : 11,
                                   color: Colors.black54,
                                 ),
                                 textAlign: TextAlign.center,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
                               );
                             } else {
                               return Text(
                                 'You have ${subscriptionController.remainingDays.value} days of Free Limit',
-                                style: const TextStyle(
-                                  fontSize: 11,
+                                style: TextStyle(
+                                  fontSize: isTablet ? 10 : 11,
                                   color: Colors.black54,
                                 ),
                                 textAlign: TextAlign.center,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
                               );
                             }
                           }),
-                        SizedBox(height: 10),
+                        SizedBox(height: isTablet ? 8 : 10),
                         TextButton(
                           onPressed: () {
                             print('Log out button pressed');
@@ -201,24 +267,41 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
                           },
                           style: TextButton.styleFrom(
                             foregroundColor: const Color(0xFFE53935),
+                            padding: _isExpanded
+                                ? EdgeInsets.symmetric(
+                                    horizontal: isTablet ? 8 : 12,
+                                    vertical: isTablet ? 6 : 8,
+                                  )
+                                : EdgeInsets.zero,
+                            minimumSize: _isExpanded ? null : Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.logout_sharp, size: 28),
-                              if (_isExpanded) ...[
-                                SizedBox(width: 8),
-                                const Text(
-                                  'Log out',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                          child: _isExpanded
+                              ? Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.logout_sharp,
+                                      size: isTablet ? 22 : 24,
+                                    ),
+                                    SizedBox(width: isTablet ? 6 : 8),
+                                    Flexible(
+                                      child: Text(
+                                        'Log out',
+                                        style: TextStyle(
+                                          fontSize: isTablet ? 11 : 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Icon(
+                                  Icons.logout_sharp,
+                                  size: isTablet ? 22 : 24,
                                 ),
-                              ],
-                            ],
-                          ),
                         ),
                       ],
                     ),
@@ -277,12 +360,16 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
     String label,
     bool isSelected,
   ) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 600 && screenWidth < 1024;
+    final iconSize = isTablet ? 18.0 : 20.0;
+
     return NavigationRailDestination(
       icon: SvgPicture.asset(
         assetPath,
         colorFilter: const ColorFilter.mode(Colors.grey, BlendMode.srcIn),
-        width: 20,
-        height: 20,
+        width: iconSize,
+        height: iconSize,
       ),
       selectedIcon: SvgPicture.asset(
         assetPath,
@@ -290,10 +377,15 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
           AppColors.primaryColor,
           BlendMode.srcIn,
         ),
-        width: 20,
-        height: 20,
+        width: iconSize,
+        height: iconSize,
       ),
-      label: Text(label),
+      label: Text(
+        label,
+        style: TextStyle(fontSize: isTablet ? 11 : 12),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 2,
+      ),
     );
   }
 

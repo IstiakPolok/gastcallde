@@ -10,6 +10,7 @@ import 'package:get/get_core/src/get_main.dart';
 
 import '../controllers/RestaurantSettingsController.dart';
 import '../controllers/AssistantController.dart';
+import '../controllers/WeeklyScheduleController.dart';
 
 class settingScreen extends StatelessWidget {
   settingScreen({super.key});
@@ -84,25 +85,13 @@ class _SettingsScreenState extends State<SettingsScreen>
   final AssistantController assistantController = Get.put(
     AssistantController(),
   );
+  final WeeklyScheduleController scheduleController = Get.put(
+    WeeklyScheduleController(),
+  );
   late TabController _tabController;
 
   final TextEditingController _addressController = TextEditingController();
   bool _isUpdatingAddress = false;
-
-  TimeOfDay? _openingTime;
-  TimeOfDay? _closingTime;
-  bool _isUpdatingBusinessHours = false;
-
-  // Weekly schedule
-  Map<String, Map<String, TimeOfDay?>> _weeklySchedule = {
-    'Monday': {'opening': null, 'closing': null},
-    'Tuesday': {'opening': null, 'closing': null},
-    'Wednesday': {'opening': null, 'closing': null},
-    'Thursday': {'opening': null, 'closing': null},
-    'Friday': {'opening': null, 'closing': null},
-    'Saturday': {'opening': null, 'closing': null},
-    'Sunday': {'opening': null, 'closing': null},
-  };
 
   @override
   void initState() {
@@ -113,30 +102,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       if (restaurantController.address.value.isNotEmpty) {
         _addressController.text = restaurantController.address.value;
       }
-      // Initialize business hours
-      _initializeBusinessHours();
     });
-  }
-
-  void _initializeBusinessHours() {
-    if (restaurantController.openingTime.value.isNotEmpty) {
-      final parts = restaurantController.openingTime.value.split(':');
-      if (parts.length >= 2) {
-        _openingTime = TimeOfDay(
-          hour: int.tryParse(parts[0]) ?? 0,
-          minute: int.tryParse(parts[1]) ?? 0,
-        );
-      }
-    }
-    if (restaurantController.closingTime.value.isNotEmpty) {
-      final parts = restaurantController.closingTime.value.split(':');
-      if (parts.length >= 2) {
-        _closingTime = TimeOfDay(
-          hour: int.tryParse(parts[0]) ?? 0,
-          minute: int.tryParse(parts[1]) ?? 0,
-        );
-      }
-    }
   }
 
   @override
@@ -873,177 +839,275 @@ class _SettingsScreenState extends State<SettingsScreen>
 
         // Weekly Schedule Section
         _buildSectionTitle('Weekly Schedule'),
-        _buildCard(
-          children: [
-            const Text(
-              'Set opening and closing hours for each day of the week',
-              style: TextStyle(color: Colors.grey, fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            ..._weeklySchedule.keys.map((day) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      day,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: InkWell(
-                            onTap: () async {
-                              final TimeOfDay? picked = await showTimePicker(
-                                context: context,
-                                initialTime:
-                                    _weeklySchedule[day]!['opening'] ??
-                                    TimeOfDay.now(),
-                              );
-                              if (picked != null) {
-                                setState(() {
-                                  _weeklySchedule[day]!['opening'] = picked;
-                                });
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12.0,
-                                vertical: 12.0,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF8F9FB),
-                                borderRadius: BorderRadius.circular(8.0),
-                                border: Border.all(color: Colors.grey[300]!),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.access_time,
-                                    color: Colors.grey,
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      _weeklySchedule[day]!['opening'] != null
-                                          ? _weeklySchedule[day]!['opening']!
-                                                .format(context)
-                                          : 'Opening',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color:
-                                            _weeklySchedule[day]!['opening'] !=
-                                                null
-                                            ? Colors.black
-                                            : Colors.grey,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Text('to', style: TextStyle(color: Colors.grey)),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: InkWell(
-                            onTap: () async {
-                              final TimeOfDay? picked = await showTimePicker(
-                                context: context,
-                                initialTime:
-                                    _weeklySchedule[day]!['closing'] ??
-                                    TimeOfDay.now(),
-                              );
-                              if (picked != null) {
-                                setState(() {
-                                  _weeklySchedule[day]!['closing'] = picked;
-                                });
-                              }
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12.0,
-                                vertical: 12.0,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF8F9FB),
-                                borderRadius: BorderRadius.circular(8.0),
-                                border: Border.all(color: Colors.grey[300]!),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.access_time,
-                                    color: Colors.grey,
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      _weeklySchedule[day]!['closing'] != null
-                                          ? _weeklySchedule[day]!['closing']!
-                                                .format(context)
-                                          : 'Closing',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color:
-                                            _weeklySchedule[day]!['closing'] !=
-                                                null
-                                            ? Colors.black
-                                            : Colors.grey,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Save weekly schedule - show success message
-                  Get.snackbar(
-                    'Success',
-                    'Weekly schedule saved successfully',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: Colors.green,
-                    colorText: Colors.white,
-                    duration: const Duration(seconds: 3),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryColor,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Save Weekly Schedule',
-                  style: TextStyle(fontSize: 14, color: Colors.white),
-                ),
+        Obx(() {
+          if (scheduleController.isLoading.value) {
+            return _buildCard(
+              children: [const Center(child: CircularProgressIndicator())],
+            );
+          }
+
+          return _buildCard(
+            children: [
+              const Text(
+                'Set opening and closing hours for each day of the week',
+                style: TextStyle(color: Colors.grey, fontSize: 14),
               ),
-            ),
-          ],
-        ),
+              const SizedBox(height: 16),
+              ...scheduleController.weeklySchedule.keys.map((day) {
+                final dayCapitalized = day[0].toUpperCase() + day.substring(1);
+                final schedule = scheduleController.weeklySchedule[day]!;
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        dayCapitalized,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () async {
+                                final TimeOfDay? picked = await showTimePicker(
+                                  context: context,
+                                  initialTime:
+                                      schedule['opening'] ?? TimeOfDay.now(),
+                                );
+                                if (picked != null) {
+                                  scheduleController.updateTime(
+                                    day,
+                                    'opening',
+                                    picked,
+                                  );
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12.0,
+                                  vertical: 12.0,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF8F9FB),
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  border: Border.all(color: Colors.grey[300]!),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.access_time,
+                                      color: Colors.grey,
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Obx(
+                                        () => Text(
+                                          scheduleController
+                                                      .weeklySchedule[day]!['opening'] !=
+                                                  null
+                                              ? scheduleController
+                                                    .weeklySchedule[day]!['opening']!
+                                                    .format(context)
+                                              : 'Opening',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color:
+                                                scheduleController
+                                                        .weeklySchedule[day]!['opening'] !=
+                                                    null
+                                                ? Colors.black
+                                                : Colors.grey,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'to',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () async {
+                                final TimeOfDay? picked = await showTimePicker(
+                                  context: context,
+                                  initialTime:
+                                      schedule['closing'] ?? TimeOfDay.now(),
+                                );
+                                if (picked != null) {
+                                  scheduleController.updateTime(
+                                    day,
+                                    'closing',
+                                    picked,
+                                  );
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12.0,
+                                  vertical: 12.0,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF8F9FB),
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  border: Border.all(color: Colors.grey[300]!),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.access_time,
+                                      color: Colors.grey,
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Obx(
+                                        () => Text(
+                                          scheduleController
+                                                      .weeklySchedule[day]!['closing'] !=
+                                                  null
+                                              ? scheduleController
+                                                    .weeklySchedule[day]!['closing']!
+                                                    .format(context)
+                                              : 'Closing',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color:
+                                                scheduleController
+                                                        .weeklySchedule[day]!['closing'] !=
+                                                    null
+                                                ? Colors.black
+                                                : Colors.grey,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton(
+                            onPressed: () async {
+                              final success = await scheduleController
+                                  .saveDaySchedule(day);
+
+                              if (success) {
+                                Get.snackbar(
+                                  'Success',
+                                  '$dayCapitalized schedule updated successfully',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.green,
+                                  colorText: Colors.white,
+                                  duration: const Duration(seconds: 2),
+                                );
+                              } else {
+                                Get.snackbar(
+                                  'Error',
+                                  'Failed to update $dayCapitalized schedule',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.red,
+                                  colorText: Colors.white,
+                                  duration: const Duration(seconds: 2),
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryColor,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              'Update',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              const SizedBox(height: 12),
+              // SizedBox(
+              //   width: double.infinity,
+              //   child: Obx(
+              //     () => ElevatedButton(
+              //       onPressed: scheduleController.isSaving.value
+              //           ? null
+              //           : () async {
+              //               final success = await scheduleController
+              //                   .saveWeeklySchedule();
+
+              //               if (success) {
+              //                 Get.snackbar(
+              //                   'Success',
+              //                   'Weekly schedule saved successfully',
+              //                   snackPosition: SnackPosition.BOTTOM,
+              //                   backgroundColor: Colors.green,
+              //                   colorText: Colors.white,
+              //                   duration: const Duration(seconds: 3),
+              //                 );
+              //               } else {
+              //                 Get.snackbar(
+              //                   'Error',
+              //                   'Failed to save weekly schedule',
+              //                   snackPosition: SnackPosition.BOTTOM,
+              //                   backgroundColor: Colors.red,
+              //                   colorText: Colors.white,
+              //                   duration: const Duration(seconds: 3),
+              //                 );
+              //               }
+              //             },
+              //       style: ElevatedButton.styleFrom(
+              //         backgroundColor: AppColors.primaryColor,
+              //         padding: const EdgeInsets.symmetric(vertical: 12),
+              //         shape: RoundedRectangleBorder(
+              //           borderRadius: BorderRadius.circular(8),
+              //         ),
+              //       ),
+              //       child: scheduleController.isSaving.value
+              //           ? const SizedBox(
+              //               height: 20,
+              //               width: 20,
+              //               child: CircularProgressIndicator(
+              //                 color: Colors.white,
+              //                 strokeWidth: 2,
+              //               ),
+              //             )
+              //           : const Text(
+              //               'Save Weekly Schedule',
+              //               style: TextStyle(fontSize: 14, color: Colors.white),
+              //             ),
+              //     ),
+              //   ),
+              // ),
+            ],
+          );
+        }),
 
         const SizedBox(height: 24),
 

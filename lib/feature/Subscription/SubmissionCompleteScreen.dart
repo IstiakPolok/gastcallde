@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gastcallde/feature/auth/login/screens/loginScreen.dart';
 import 'package:get/get.dart';
 
+import '../../core/const/app_colors.dart';
 import '../dashboard/screens/dashboard.dart';
 
 class paymentCompleteScreen extends StatelessWidget {
@@ -47,7 +48,7 @@ class paymentCompleteScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12.0),
                 decoration: const BoxDecoration(
-                  color: Color(0xFF4C8D9B),
+                  color: AppColors.primaryColor,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.check, color: Colors.white, size: 48),
@@ -66,7 +67,7 @@ class paymentCompleteScreen extends StatelessWidget {
               const SizedBox(height: 8.0),
 
               // Sub text 1
-              const SizedBox(height: 40.0),
+
               // "Wait for Admin Approval" button
               ElevatedButton(
                 onPressed: () {

@@ -14,8 +14,8 @@ class ReservationSettingsScreen extends StatefulWidget {
 }
 
 class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
-  bool _automaticTableAssignment = true;
-  bool _manageTableAssignmentManually = false;
+  final bool _automaticTableAssignment = true;
+  final bool _manageTableAssignmentManually = false;
   final TextEditingController _numberOfTablesController =
       TextEditingController();
   final TextEditingController _perTableCapacityController =

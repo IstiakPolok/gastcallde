@@ -8,6 +8,7 @@ import 'package:gastcallde/core/network_caller/endpoints.dart';
 import 'package:gastcallde/feature/calls/widgets/calldetaildilog.dart';
 import 'package:http/http.dart' as http show get;
 import 'package:intl/intl.dart';
+import 'package:get/get.dart';
 
 import '../../../core/services_class/local_service/shared_preferences_helper.dart';
 
@@ -23,7 +24,7 @@ class callScreen extends StatelessWidget {
     final isMobile = screenWidth < breakpoint;
 
     return Scaffold(
-      appBar: isMobile ? AppBar(title: const Text('Calls Overview')) : null,
+      appBar: isMobile ? AppBar(title: Text('calls_overview'.tr)) : null,
       drawer: isMobile
           ? ValueListenableBuilder<int>(
               valueListenable: _selectedIndexNotifier,
@@ -109,8 +110,8 @@ class _callDashboardState extends State<callDashboard> {
   DateTime _currentDate = DateTime.now();
   List<CallEntry> _apiCallLogs = [];
   bool _isLoading = false;
-  TextEditingController _searchController = TextEditingController();
-  ValueNotifier<String> _searchQuery = ValueNotifier<String>('');
+  final TextEditingController _searchController = TextEditingController();
+  final ValueNotifier<String> _searchQuery = ValueNotifier<String>('');
 
   @override
   void initState() {
@@ -290,8 +291,23 @@ class _callDashboardState extends State<callDashboard> {
           entry.callbackStatus == _selectedCallbackTab;
 
       // Filter by call type
-      bool matchesCallType =
-          _selectedCallType == 'All Calls' || entry.type == _selectedCallType;
+      bool matchesCallType = false;
+      switch (_selectedCallType) {
+        case 'All Calls':
+          matchesCallType = true;
+          break;
+        case 'Customer Services':
+          matchesCallType = entry.type.toLowerCase().contains('service');
+          break;
+        case 'Reservation':
+          matchesCallType = entry.type.toLowerCase().contains('reservation');
+          break;
+        case 'Order':
+          matchesCallType = entry.type.toLowerCase().contains('order');
+          break;
+        default:
+          matchesCallType = true;
+      }
 
       // Filter by search query (phone or customer)
       bool matchesSearch =
@@ -325,7 +341,10 @@ class _callDashboardState extends State<callDashboard> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
         icon: Icon(icon, size: 20),
-        label: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+        label: Text(
+          title.tr,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
       ),
     );
   }
@@ -350,7 +369,7 @@ class _callDashboardState extends State<callDashboard> {
           ),
         ),
         child: Text(
-          title,
+          title.tr,
           style: TextStyle(
             color: isSelected ? AppColors.primaryColor : Colors.grey.shade700,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -364,7 +383,14 @@ class _callDashboardState extends State<callDashboard> {
   Widget build(BuildContext context) {
     // Determine screen size for responsiveness
     bool isTablet = MediaQuery.of(context).size.width > 600;
-    String displayDate = DateFormat('dd MMM yyyy').format(_currentDate);
+    DateTime now = DateTime.now();
+    bool isToday =
+        _currentDate.year == now.year &&
+        _currentDate.month == now.month &&
+        _currentDate.day == now.day;
+    String displayDate = isToday
+        ? 'today'.tr
+        : DateFormat('dd MMM yyyy').format(_currentDate);
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -374,11 +400,14 @@ class _callDashboardState extends State<callDashboard> {
           children: [
             Row(
               children: [
-                const Text(
-                  'Calls',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                Text(
+                  'calls'.tr,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
                 ),
-                Spacer(),
+                const Spacer(),
                 LayoutBuilder(
                   builder: (context, constraints) {
                     // Get screen width to decide layout
@@ -389,10 +418,7 @@ class _callDashboardState extends State<callDashboard> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(10),
@@ -435,23 +461,28 @@ class _callDashboardState extends State<callDashboard> {
               children: [
                 Container(
                   alignment: Alignment.centerLeft,
-
-                  child: const Text(
-                    'Live Overview of your restaurant\'s',
-                    style: TextStyle(fontSize: 14),
+                  child: Text(
+                    'live_overview'.tr,
+                    style: const TextStyle(fontSize: 14),
                   ),
                 ),
               ],
             ),
 
+            const SizedBox(height: 8),
+
             // Call Type Tabs
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: Text(
-                'Call Type',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                'call_type'.tr,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
+            const SizedBox(height: 8),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -480,7 +511,7 @@ class _callDashboardState extends State<callDashboard> {
                     child: TextField(
                       controller: _searchController, // add controller
                       decoration: InputDecoration(
-                        hintText: 'Search',
+                        hintText: 'search'.tr,
                         prefixIcon: const Icon(Icons.search),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -519,8 +550,8 @@ class _callDashboardState extends State<callDashboard> {
         child: Center(
           child: Text(
             _searchQuery.value.isNotEmpty
-                ? 'No search results found'
-                : 'No calls available',
+                ? 'no_search_results_found'.tr
+                : 'no_calls_available'.tr,
             style: const TextStyle(color: Colors.grey, fontSize: 16),
           ),
         ),
@@ -537,15 +568,15 @@ class _callDashboardState extends State<callDashboard> {
               horizontal: 16.0,
             ),
             color: Colors.white,
-            child: const Row(
+            child: Row(
               children: [
-                Expanded(flex: 2, child: Text('Date')),
-                Expanded(flex: 2, child: Text('Phone')),
-                Expanded(flex: 2, child: Text('Customer')),
-                Expanded(flex: 1, child: Text('Type')),
-                Expanded(flex: 2, child: Text('Call back')),
-                Expanded(flex: 2, child: Text('Duration')),
-                Expanded(flex: 1, child: Text('Action')),
+                Expanded(flex: 2, child: Text('date'.tr)),
+                Expanded(flex: 2, child: Text('phone'.tr)),
+                Expanded(flex: 2, child: Text('customer'.tr)),
+                Expanded(flex: 2, child: Text('type'.tr)),
+                Expanded(flex: 2, child: Text('callback'.tr)),
+                Expanded(flex: 2, child: Text('duration'.tr)),
+                Expanded(flex: 1, child: Text('action'.tr)),
               ],
             ),
           ),
@@ -587,7 +618,7 @@ class _callDashboardState extends State<callDashboard> {
         ),
         Expanded(flex: 2, child: Text(entry.phone)),
         Expanded(flex: 2, child: Text(entry.customer)),
-        Expanded(flex: 1, child: Text(entry.type)),
+        Expanded(flex: 2, child: Text(entry.type)),
         Expanded(
           flex: 2,
           child: Container(
@@ -615,7 +646,7 @@ class _callDashboardState extends State<callDashboard> {
           child: Align(
             alignment: Alignment.centerLeft,
             child: IconButton(
-              tooltip: 'View Details',
+              tooltip: 'view_details'.tr,
               icon: Icon(
                 Icons.visibility_outlined,
                 color: AppColors.primaryColor, // match your theme
@@ -646,11 +677,11 @@ class _callDashboardState extends State<callDashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Date: ${entry.date}',
+                  '${'date'.tr}: ${entry.date}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  'Time: ${entry.time}',
+                  '${'time'.tr}: ${entry.time}',
                   style: const TextStyle(color: Colors.grey),
                 ),
               ],
@@ -680,18 +711,26 @@ class _callDashboardState extends State<callDashboard> {
         const SizedBox(height: 8),
         const Divider(),
         const SizedBox(height: 8),
-        _buildPhoneDetailRow('Customer', entry.customer),
-        _buildPhoneDetailRow('Phone', entry.phone),
-        _buildPhoneDetailRow('Type', entry.type),
-        _buildPhoneDetailRow('Duration', entry.duration),
+        _buildPhoneDetailRow('customer', entry.customer),
+        _buildPhoneDetailRow('phone', entry.phone),
+        _buildPhoneDetailRow('type', entry.type),
+        _buildPhoneDetailRow('duration', entry.duration),
         const SizedBox(height: 8),
         Align(
           alignment: Alignment.centerRight,
-          child: Text(
-            'Details',
-            style: TextStyle(
-              color: Colors.blue.shade800,
-              fontWeight: FontWeight.bold,
+          child: TextButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => CallDetailsDialog(entry),
+              );
+            },
+            child: Text(
+              'details'.tr,
+              style: TextStyle(
+                color: Colors.blue.shade800,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
@@ -707,7 +746,7 @@ class _callDashboardState extends State<callDashboard> {
         children: [
           SizedBox(
             width: 100,
-            child: Text(label, style: const TextStyle(color: Colors.grey)),
+            child: Text(label.tr, style: const TextStyle(color: Colors.grey)),
           ),
           Text(value),
         ],

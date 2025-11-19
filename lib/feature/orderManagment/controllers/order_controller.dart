@@ -2,7 +2,6 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:gastcallde/feature/orderManagment/models/order_model.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -52,6 +51,14 @@ class OrderController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Don't fetch immediately - wait until after first frame is rendered
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    // Fetch orders after the widget is fully initialized and first frame is rendered
+    // This prevents blocking the main thread during app startup
     fetchOrders();
   }
 

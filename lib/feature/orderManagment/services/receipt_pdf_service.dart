@@ -116,7 +116,7 @@ class ReceiptPdfService {
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat(
-          2.25 * PdfPageFormat.inch, // 80mm (3.15 inches) width
+          2.25 * PdfPageFormat.inch, // 2.25 inches width
           double.infinity, // Auto height based on content
           marginAll: 10,
         ),
@@ -315,7 +315,7 @@ class ReceiptPdfService {
                       pw.SizedBox(height: 4),
                     ],
                   );
-                }).toList(),
+                }),
 
                 pw.Divider(),
                 pw.SizedBox(height: 4),

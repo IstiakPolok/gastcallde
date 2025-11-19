@@ -147,7 +147,7 @@ class DeliveryInfoScreen extends StatelessWidget {
                             const SizedBox(height: 10),
                           ],
                         );
-                      }).toList(),
+                      }),
                     ],
                   ),
                 ),

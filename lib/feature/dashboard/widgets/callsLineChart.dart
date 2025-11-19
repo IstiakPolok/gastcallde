@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -157,30 +159,43 @@ class MonthlyStatsController extends GetxController {
     return interval > 0 ? interval : 1;
   }
 
-  Future<void> fetchMonthlyStats() async {
+  Future<void> fetchMonthlyStats({int retryCount = 0}) async {
     try {
       isLoading.value = true;
 
       final token = await SharedPreferencesHelper.getAccessToken();
       if (token == null) {
-        Get.snackbar("Error", "Token not found");
+        print('⚠️ Token not found');
+        Get.snackbar(
+          "Error",
+          "Authentication required. Please login again.",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
         return;
       }
 
-      print('🔍 Fetching monthly stats...');
+      print('🔍 Fetching monthly stats... (Attempt ${retryCount + 1}/3)');
       final url = Uri.parse("${Urls.baseUrl}/owner/restaurant/monthly-stats/");
       print('📍 URL: $url');
 
-      final response = await http.get(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+      final response = await http
+          .get(
+            url,
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+          )
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              throw TimeoutException('Request timeout after 30 seconds');
+            },
+          );
 
-      print('📡 Response Status Code: ${response.statusCode}');
-      print('📦 Response Body: ${response.body}');
+      print('� Response Status Code: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -206,15 +221,93 @@ class MonthlyStatsController extends GetxController {
 
         print('📈 Order Data: $orderData');
         print('📈 Reservation Data: $reservationData');
+      } else if (response.statusCode == 401) {
+        print("🔒 Unauthorized - Token may be expired");
+        Get.snackbar(
+          "Session Expired",
+          "Please login again",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
       } else {
         print(
           "❌ Error: Failed to fetch monthly stats - Status ${response.statusCode}",
         );
         print("❌ Error Body: ${response.body}");
+
+        // Retry on server errors
+        if (response.statusCode >= 500 && retryCount < 2) {
+          print('🔄 Retrying request...');
+          await Future.delayed(Duration(seconds: 2 * (retryCount + 1)));
+          return fetchMonthlyStats(retryCount: retryCount + 1);
+        }
       }
+    } on SocketException catch (e) {
+      print("🌐 Network Error: ${e.toString()}");
+      Get.snackbar(
+        "Network Error",
+        "No internet connection. Please check your network.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } on TimeoutException catch (e) {
+      print("⏱️ Timeout: ${e.toString()}");
+      if (retryCount < 2) {
+        print('� Retrying after timeout...');
+        await Future.delayed(Duration(seconds: 2 * (retryCount + 1)));
+        return fetchMonthlyStats(retryCount: retryCount + 1);
+      } else {
+        Get.snackbar(
+          "Connection Timeout",
+          "Server is taking too long to respond. Please try again later.",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+      }
+    } on http.ClientException catch (e) {
+      print("🚨 Client Exception: ${e.toString()}");
+      if (retryCount < 2) {
+        print('🔄 Retrying after connection error...');
+        await Future.delayed(Duration(seconds: 2 * (retryCount + 1)));
+        return fetchMonthlyStats(retryCount: retryCount + 1);
+      } else {
+        Get.snackbar(
+          "Connection Error",
+          "Unable to connect to server. Please check your internet connection.",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } on FormatException catch (e) {
+      print("📝 Data Format Error: ${e.toString()}");
+      Get.snackbar(
+        "Data Error",
+        "Received invalid data from server.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
     } catch (e) {
-      print("🚨 Exception: ${e.toString()}");
+      print("�🚨 Exception: ${e.toString()}");
       print("🚨 Stack Trace: ${StackTrace.current}");
+
+      if (retryCount < 2) {
+        print('🔄 Retrying after error...');
+        await Future.delayed(Duration(seconds: 2 * (retryCount + 1)));
+        return fetchMonthlyStats(retryCount: retryCount + 1);
+      } else {
+        Get.snackbar(
+          "Error",
+          "Failed to load statistics. Please try again.",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
     } finally {
       isLoading.value = false;
       print('✅ Loading complete');

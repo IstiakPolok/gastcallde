@@ -103,7 +103,7 @@ class Item {
 
 class ItemsScreen extends StatefulWidget {
   // Changed from StatelessWidget to StatefulWidget
-  ItemsScreen({super.key});
+  const ItemsScreen({super.key});
 
   @override
   State<ItemsScreen> createState() => _ItemsScreenState();
@@ -119,12 +119,21 @@ class _ItemsScreenState extends State<ItemsScreen> {
   @override
   void initState() {
     super.initState();
-    fetchItems().then((items) {
-      setState(() {
-        _allItems = items;
-        _filteredItems = items;
-      });
-    });
+    fetchItems()
+        .then((items) {
+          setState(() {
+            _allItems = items;
+            _filteredItems = items;
+          });
+        })
+        .catchError((error) {
+          print('Error loading menu items: $error');
+          // Don't throw - just show empty state
+          setState(() {
+            _allItems = [];
+            _filteredItems = [];
+          });
+        });
 
     // Listen to search input changes
     _searchController.addListener(() {

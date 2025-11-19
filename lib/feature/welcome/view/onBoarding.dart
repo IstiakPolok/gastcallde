@@ -15,7 +15,7 @@ class OnBoarding extends StatelessWidget {
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.primaryColor,
       body: Stack(
         children: [
           // Background image
@@ -58,7 +58,7 @@ class OnBoarding extends StatelessWidget {
                     outerColor: Colors.white.withOpacity(0.3),
                     sliderButtonIcon: const Icon(
                       Icons.arrow_forward_ios,
-                      color: Colors.white,
+                      color: AppColors.accentColor,
                       size: 24,
                     ),
                     alignment: Alignment.center,
@@ -90,6 +90,7 @@ class OnBoarding extends StatelessWidget {
                           color: AppColors.primaryColor,
                           size: 35,
                         ),
+                        SizedBox(width: 20),
                       ],
                     ),
                   ),

@@ -18,7 +18,7 @@ class orderManagmentscreen extends StatelessWidget {
     final isMobile = screenWidth < breakpoint;
 
     return Scaffold(
-      appBar: isMobile ? AppBar(title: const Text(' S')) : null,
+      appBar: isMobile ? AppBar(title: const Text(' ')) : null,
       drawer: isMobile
           ? ValueListenableBuilder<int>(
               valueListenable: _selectedIndexNotifier,

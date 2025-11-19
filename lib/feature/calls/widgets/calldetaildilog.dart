@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
+import 'package:get/get.dart';
 import 'package:gastcallde/core/network_caller/endpoints.dart';
 import 'package:gastcallde/core/services_class/local_service/shared_preferences_helper.dart';
 import 'package:gastcallde/feature/calls/screens/callScreen.dart';
@@ -106,9 +107,9 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Call Details',
-                        style: TextStyle(
+                      Text(
+                        'call_details'.tr,
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -142,7 +143,7 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
                           vertical: 8.0,
                         ),
                       ),
-                      child: const Text('Callback'),
+                      child: Text('callback'.tr),
                     )
                   else
                     Container(
@@ -154,9 +155,9 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
                         color: Colors.green.shade100,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text(
-                        "Done",
-                        style: TextStyle(color: Colors.green),
+                      child: Text(
+                        "done".tr,
+                        style: const TextStyle(color: Colors.green),
                       ),
                     ),
                 ],
@@ -205,21 +206,21 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
       children: [
         _buildCard(
           titleIcon: Icons.person,
-          title: 'Customer Information',
+          title: 'customer_information'.tr,
           info: [
-            ['Name', (widget.entry.customer)],
-            ['Phone', (widget.entry.phone)],
+            ['name'.tr, (widget.entry.customer)],
+            ['phone'.tr, (widget.entry.phone)],
           ],
         ),
         const SizedBox(height: 16),
         _buildCard(
           titleIcon: Icons.access_time,
-          title: 'Call Information',
+          title: 'call_information'.tr,
           info: [
-            ['Date', (widget.entry.date)],
-            ['Time', (widget.entry.time)],
-            ['Duration', (widget.entry.duration)],
-            ['Type', (widget.entry.type)],
+            ['date'.tr, (widget.entry.date)],
+            ['time'.tr, (widget.entry.time)],
+            ['duration'.tr, (widget.entry.duration)],
+            ['type'.tr, (widget.entry.type)],
           ],
         ),
       ],
@@ -240,9 +241,9 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Call Summary',
-              style: TextStyle(
+            Text(
+              'call_summary'.tr,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF1F2937),
@@ -258,7 +259,7 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
               child: Text(
                 widget.entry.summary.isNotEmpty
                     ? widget.entry.summary
-                    : 'No summary available',
+                    : 'no_summary_available'.tr,
                 style: const TextStyle(
                   fontSize: 14,
                   height: 1.5,

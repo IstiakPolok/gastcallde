@@ -24,7 +24,16 @@ Future<List<Item>> fetchItems() async {
     print("➡️ URL: $url");
     print("➡️ Headers: $headers");
 
-    final response = await http.get(Uri.parse(url), headers: headers);
+    final response = await http
+        .get(Uri.parse(url), headers: headers)
+        .timeout(
+          const Duration(seconds: 30),
+          onTimeout: () {
+            throw Exception(
+              'Connection timeout - Server took too long to respond',
+            );
+          },
+        );
 
     print("✅ Response Status: ${response.statusCode}");
     print("📦 Response Body: ${response.body}");
@@ -44,7 +53,14 @@ Future<List<Item>> fetchItems() async {
   } catch (error, stackTrace) {
     print("⚠️ Error occurred: $error");
     print("📌 Stack Trace: $stackTrace");
-    throw Exception('Failed to load items: $error');
+
+    // Return empty list instead of throwing to prevent app crash
+    Get.snackbar(
+      'Connection Error',
+      'Unable to fetch menu items. Please check your internet connection.',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+    return [];
   }
 }
 

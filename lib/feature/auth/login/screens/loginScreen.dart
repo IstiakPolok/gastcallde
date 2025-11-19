@@ -35,6 +35,7 @@ class LoginScreen extends StatelessWidget {
                     child: LanguageToggleButton(),
                   ),
                   Image.asset('assets/icons/logo.png', width: 200, height: 200),
+                  const SizedBox(height: 16),
                   Text(
                     'welcome'.tr,
                     style: GoogleFonts.inter(

@@ -30,7 +30,7 @@ class SidebarItemData {
 }
 
 class CustomSidebar extends StatefulWidget {
-  const CustomSidebar({Key? key}) : super(key: key);
+  const CustomSidebar({super.key});
 
   @override
   _CustomSidebarState createState() => _CustomSidebarState();
