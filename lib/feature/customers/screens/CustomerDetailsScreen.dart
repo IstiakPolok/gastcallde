@@ -33,7 +33,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
     final phone = Get.arguments?['phone'];
     print("📞 Debug: Phone argument received: $phone");
     if (phone == null) {
-      Get.snackbar('Error', 'No phone number provided');
+      Get.snackbar('error'.tr, 'no_phone_provided'.tr);
       return;
     }
 
@@ -41,7 +41,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
       final token = await SharedPreferencesHelper.getAccessToken();
       print("🔑 Debug: Access token: $token");
       if (token == null) {
-        Get.snackbar('Error', 'User not authenticated');
+        Get.snackbar('error'.tr, 'user_not_authenticated'.tr);
         return;
       }
 
@@ -89,12 +89,12 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
         print(
           "❌ Debug: Failed to fetch details, status: ${response.statusCode}",
         );
-        Get.snackbar('Error', 'Failed to fetch customer details');
+        Get.snackbar('error'.tr, 'failed_fetch_customer_details'.tr);
       }
     } catch (e, stacktrace) {
       print("🔥 Debug: Exception: $e");
       print("🛠️ Debug: Stacktrace: $stacktrace");
-      Get.snackbar('Error', 'Something went wrong: $e');
+      Get.snackbar('error'.tr, "${'something_went_wrong'.tr}: $e");
     } finally {
       isLoading.value = false;
       print("⏳ Debug: Loading set to false");
@@ -119,9 +119,9 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
             Navigator.pop(context);
           },
         ),
-        title: const Text(
-          'Customer Details',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        title: Text(
+          'customer_details'.tr,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -133,7 +133,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
         }
 
         if (customerInfo == null) {
-          return const Center(child: Text('No customer data found'));
+          return Center(child: Text('no_customer_data_found'.tr));
         }
 
         return SingleChildScrollView(
@@ -143,9 +143,9 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
             children: <Widget>[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: const Text(
-                  'View and manage customer information',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                child: Text(
+                  'view_manage_customer_info'.tr,
+                  style: const TextStyle(color: Colors.grey, fontSize: 14),
                 ),
               ),
               const SizedBox(height: 20),
@@ -168,7 +168,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                           children: <Widget>[
                             // Inside build -> LayoutBuilder (Customer Info Card)
                             Text(
-                              customerInfo?['name'] ?? 'Unknown Customer',
+                              customerInfo?['name'] ?? 'unknown_customer'.tr,
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 20,
@@ -176,23 +176,31 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                             ),
 
                             const SizedBox(height: 8),
-                            Text('Email: ${customerInfo?['email'] ?? '-'}'),
-                            Text('Phone: ${customerInfo?['phone'] ?? '-'}'),
-                            Text('Address: ${customerInfo?['address'] ?? '-'}'),
-                            Text('Joined: ${customerInfo?['joined'] ?? '-'}'),
+                            Text(
+                              "${'email'.tr}: ${customerInfo?['email'] ?? '-'}",
+                            ),
+                            Text(
+                              "${'phone'.tr}: ${customerInfo?['phone'] ?? '-'}",
+                            ),
+                            Text(
+                              "${'address'.tr}: ${customerInfo?['address'] ?? '-'}",
+                            ),
+                            Text(
+                              "${'joined'.tr}: ${customerInfo?['joined'] ?? '-'}",
+                            ),
 
                             const SizedBox(height: 20),
                             Text(
-                              'First Order: ${(customerInfo?['first_order_create_date'] ?? '').toString().substring(0, 10)}',
+                              "${'first_order'.tr}: ${(customerInfo?['first_order_create_date'] ?? '').toString().substring(0, 10)}",
                             ),
                             Text(
-                              'Last Order: ${(customerInfo?['last_order_date'] ?? '').toString().substring(0, 10)}',
+                              "${'last_order'.tr}: ${(customerInfo?['last_order_date'] ?? '').toString().substring(0, 10)}",
                             ),
                             Text(
-                              'Total Orders: ${customerInfo?['total_order'] ?? 0}',
+                              "${'total_orders'.tr}: ${customerInfo?['total_order'] ?? 0}",
                             ),
                             Text(
-                              'Total Spent: \$${customerInfo?['total_order_price'] ?? 0}',
+                              "${'total_spent'.tr}: \$${customerInfo?['total_order_price'] ?? 0}",
                             ),
 
                             Row(
@@ -244,10 +252,18 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                Text('Email: ${customerInfo?['email']}'),
-                                Text('Phone: ${customerInfo?['phone']}'),
-                                Text('Address: ${customerInfo?['address']}'),
-                                Text('Joined: ${customerInfo?['joined']}'),
+                                Text(
+                                  "${'email'.tr}: ${customerInfo?['email']}",
+                                ),
+                                Text(
+                                  "${'phone'.tr}: ${customerInfo?['phone']}",
+                                ),
+                                Text(
+                                  "${'address'.tr}: ${customerInfo?['address']}",
+                                ),
+                                Text(
+                                  "${'joined'.tr}: ${customerInfo?['joined']}",
+                                ),
                                 const SizedBox(height: 20),
                               ],
                             ),
@@ -280,9 +296,12 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                 },
               ),
 
-              const Text(
-                'Order History',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              Text(
+                'order_history'.tr,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
               ),
               const SizedBox(height: 15),
 
@@ -310,7 +329,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      'Order ID: ${orderHistory[index]['id']}',
+                                      "${'order_id'.tr}: ${orderHistory[index]['id']}",
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -328,10 +347,10 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                                   ],
                                 ),
                                 Text(
-                                  'Date: ${orderHistory[index]['created_at']}',
+                                  "${'date'.tr}: ${orderHistory[index]['created_at']}",
                                 ),
                                 Text(
-                                  'Status: ${orderHistory[index]['status']}',
+                                  "${'status'.tr}: ${orderHistory[index]['status']}",
                                   style: TextStyle(
                                     color:
                                         orderHistory[index]['status'] ==
@@ -342,7 +361,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                                   ),
                                 ),
                                 Text(
-                                  'Total: ${orderHistory[index]['total_price']}',
+                                  "${'total'.tr}: ${orderHistory[index]['total_price']}",
                                 ),
                                 if (orderHistory[index]['isExpanded'])
                                   Column(
@@ -460,7 +479,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                     color: Colors.grey[600],
                   ),
                   label: Text(
-                    'View',
+                    'view'.tr,
                     style: TextStyle(color: Colors.grey[600]),
                   ),
                   style: TextButton.styleFrom(

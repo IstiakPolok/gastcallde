@@ -17,9 +17,7 @@ class SubscriptionPlans extends StatelessWidget {
     final isMobile = screenWidth < breakpoint;
 
     return Scaffold(
-      appBar: isMobile
-          ? AppBar(title: const Text('Restaurant Overview'))
-          : null,
+      appBar: isMobile ? AppBar(title: Text('restaurant_overview'.tr)) : null,
       drawer: isMobile
           ? ValueListenableBuilder<int>(
               valueListenable: _selectedIndexNotifier,
@@ -78,14 +76,14 @@ class SubscriptionPlansScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Subscription Plans',
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+            Text(
+              'subscription_plans'.tr,
+              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const Text(
-              "Choose the best plan for your restaurant",
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+            Text(
+              'choose_best_plan'.tr,
+              style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 40),
             Expanded(
@@ -95,7 +93,7 @@ class SubscriptionPlansScreen extends StatelessWidget {
                 }
 
                 if (controller.plans.isEmpty) {
-                  return const Center(child: Text("No plans available"));
+                  return Center(child: Text('no_plans_available'.tr));
                 }
 
                 return LayoutBuilder(
@@ -124,8 +122,8 @@ class SubscriptionPlansScreen extends StatelessWidget {
                                     );
                                   } else {
                                     Get.snackbar(
-                                      "Error",
-                                      "Price ID is missing for this plan",
+                                      'error'.tr,
+                                      'price_id_missing'.tr,
                                     );
                                   }
                                 },
@@ -184,9 +182,9 @@ class SubscriptionPlansScreen extends StatelessWidget {
                         color: AppColors.primaryColor,
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Text(
-                        'Active',
-                        style: TextStyle(
+                      child: Text(
+                        'active'.tr,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -212,7 +210,7 @@ class SubscriptionPlansScreen extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
                     child: Text(
-                      "per ${plan.billingInterval}",
+                      "${'per'.tr} ${plan.billingInterval}",
                       style: const TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   ),
@@ -234,9 +232,12 @@ class SubscriptionPlansScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text(
-                    'Get Started',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  child: Text(
+                    'get_started'.tr,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),

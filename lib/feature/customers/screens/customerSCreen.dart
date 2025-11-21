@@ -124,7 +124,7 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
       print("Access token: $token"); // debug
 
       if (token == null) {
-        Get.snackbar('Error', 'User not authenticated');
+        Get.snackbar('error'.tr, 'user_not_authenticated'.tr);
         print("Token is null, stopping fetch."); // debug
         isLoading.value = false;
         return;
@@ -173,12 +173,15 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
 
         print("Final customerData list: ${customerData.value}"); // debug
       } else {
-        Get.snackbar('Error', 'Failed to fetch data: ${response.statusCode}');
+        Get.snackbar(
+          'error'.tr,
+          "${'failed_fetch_data'.tr}: ${response.statusCode}",
+        );
         customerData.value = [];
         print("Failed to fetch data."); // debug
       }
     } catch (e) {
-      Get.snackbar('Error', 'Something went wrong: $e');
+      Get.snackbar('error'.tr, "${'something_went_wrong'.tr}: $e");
       customerData.value = [];
       print("Exception caught: $e"); // debug
     } finally {
@@ -193,27 +196,27 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
         selectedDate.day == DateTime.now().day &&
             selectedDate.month == DateTime.now().month &&
             selectedDate.year == DateTime.now().year
-        ? "Today"
+        ? "today".tr
         : "${selectedDate.day}-${selectedDate.month}-${selectedDate.year}";
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         toolbarHeight: 80, // Increased height for better spacing
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Customer Section',
-              style: TextStyle(
+              'customer_section'.tr,
+              style: const TextStyle(
                 color: Colors.black,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
             Text(
-              "Live Overview of your restaurant's",
-              style: TextStyle(color: Colors.grey, fontSize: 14),
+              'live_overview_restaurant'.tr,
+              style: const TextStyle(color: Colors.grey, fontSize: 14),
             ),
           ],
         ),
@@ -289,7 +292,7 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                     child: TextFormField(
                       controller: searchController,
                       decoration: InputDecoration(
-                        hintText: 'Search by phone',
+                        hintText: 'search_by_phone'.tr,
                         prefixIcon: const Icon(
                           Icons.search,
                           color: Colors.grey,
@@ -355,12 +358,12 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                         ),
                       ),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
                         Expanded(
                           flex: 2,
                           child: Text(
-                            'Name',
+                            'name'.tr, // Removed const
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey,
@@ -370,7 +373,7 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                         Expanded(
                           flex: 2,
                           child: Text(
-                            'Phone',
+                            'phone'.tr, // Removed const
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey,
@@ -380,7 +383,7 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                         Expanded(
                           flex: 3,
                           child: Text(
-                            'Date',
+                            'date'.tr, // Removed const
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey,
@@ -390,7 +393,7 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                         Expanded(
                           flex: 2,
                           child: Text(
-                            'No of call',
+                            'no_of_call'.tr, // Removed const
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey,
@@ -400,7 +403,7 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                         Expanded(
                           flex: 2,
                           child: Text(
-                            'Last Orders',
+                            'last_orders'.tr, // Removed const
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey,
@@ -410,7 +413,7 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                         Expanded(
                           flex: 1,
                           child: Text(
-                            'Action',
+                            'action'.tr, // Removed const
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey,
@@ -454,12 +457,16 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Name: ${data['name']}'),
-                                  Text('Phone: ${data['phone']}'),
-                                  Text('Date: ${data['date']}'),
-                                  Text('Time: ${data['time']}'),
-                                  Text('No of Calls: ${data['noOfCall']}'),
-                                  Text('Last Orders: ${data['lastOrders']}'),
+                                  Text("${'name'.tr}: ${data['name']}"),
+                                  Text("${'phone'.tr}: ${data['phone']}"),
+                                  Text("${'date'.tr}: ${data['date']}"),
+                                  Text("${'time'.tr}: ${data['time']}"),
+                                  Text(
+                                    "${'no_of_call'.tr}: ${data['noOfCall']}",
+                                  ),
+                                  Text(
+                                    "${'last_orders'.tr}: ${data['lastOrders']}",
+                                  ),
                                   const SizedBox(height: 8),
                                   Align(
                                     alignment: Alignment.centerRight,
@@ -493,9 +500,9 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                                         Icons.remove_red_eye_outlined,
                                         size: 18,
                                       ),
-                                      label: const Text(
-                                        'View',
-                                        style: TextStyle(fontSize: 12),
+                                      label: Text(
+                                        'view'.tr,
+                                        style: const TextStyle(fontSize: 12),
                                       ),
                                     ),
                                   ),
@@ -525,8 +532,8 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text('Date: ${data['date']!}'),
-                                      Text('Time: ${data['time']!}'),
+                                      Text('${'date'.tr}: ${data['date']!}'),
+                                      Text('${'time'.tr}: ${data['time']!}'),
                                     ],
                                   ),
                                 ),
@@ -568,15 +575,15 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                                     ),
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
-                                      children: const [
-                                        Icon(
+                                      children: [
+                                        const Icon(
                                           Icons.remove_red_eye_outlined,
                                           size: 18,
                                         ),
-                                        SizedBox(height: 4),
+                                        const SizedBox(height: 4),
                                         Text(
-                                          'View',
-                                          style: TextStyle(fontSize: 12),
+                                          'view'.tr,
+                                          style: const TextStyle(fontSize: 12),
                                         ),
                                       ],
                                     ),

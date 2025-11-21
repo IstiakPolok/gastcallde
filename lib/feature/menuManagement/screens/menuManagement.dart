@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
@@ -110,13 +111,12 @@ class ItemsScreen extends StatefulWidget {
 }
 
 class _ItemsScreenState extends State<ItemsScreen> {
-  final ValueNotifier<int> _selectedIndexNotifier = ValueNotifier<int>(0);
-
   List<Item> _allItems = []; // Store all items
   List<Item> _filteredItems = []; // Filtered items for search
   final TextEditingController _searchController = TextEditingController();
   bool _isLoading = true;
   String? _errorMessage;
+  Timer? _debounce; // Timer for debounce
 
   @override
   void initState() {
@@ -125,8 +125,18 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
     // Listen to search input changes
     _searchController.addListener(() {
-      _filterItems();
+      if (_debounce?.isActive ?? false) _debounce!.cancel();
+      _debounce = Timer(const Duration(milliseconds: 500), () {
+        _filterItems();
+      });
     });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadItems() async {
@@ -157,6 +167,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
   }
 
   void _filterItems() {
+    if (!mounted) return;
     final query = _searchController.text.toLowerCase();
 
     setState(() {
@@ -175,9 +186,12 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Items',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        title: Text(
+          'items'.tr,
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -198,10 +212,13 @@ class _ItemsScreenState extends State<ItemsScreen> {
                     ),
                     child: TextField(
                       controller: _searchController, // <-- Added controller
-                      decoration: const InputDecoration(
-                        hintText: 'Search by name or category', // Updated hint
+                      decoration: InputDecoration(
+                        hintText: 'search_hint'.tr, // Updated hint
                         border: InputBorder.none,
-                        prefixIcon: Icon(Icons.search, color: Colors.grey),
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Colors.grey,
+                        ),
                       ),
                     ),
                   ),
@@ -213,7 +230,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                   },
                   icon: const Icon(Icons.add, color: Colors.white),
                   label: Text(
-                    'Add Item',
+                    'add_item'.tr,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: isTablet ? 16 : 12,
@@ -239,7 +256,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                   : _errorMessage != null
                   ? Center(child: Text('Error: $_errorMessage'))
                   : _filteredItems.isEmpty
-                  ? const Center(child: Text('No items found'))
+                  ? Center(child: Text('no_items_found'.tr))
                   : isTablet
                   ? Column(
                       children: [
@@ -254,15 +271,15 @@ class _ItemsScreenState extends State<ItemsScreen> {
                             ),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12.0),
-                          child: const Row(
+                          child: Row(
                             children: [
                               Expanded(
                                 flex: 3,
                                 child: Padding(
                                   padding: EdgeInsets.only(left: 8.0),
                                   child: Text(
-                                    'Item',
-                                    style: TextStyle(
+                                    'item'.tr,
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -271,29 +288,37 @@ class _ItemsScreenState extends State<ItemsScreen> {
                               Expanded(
                                 flex: 2,
                                 child: Text(
-                                  'Status',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  'status'.tr,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                               Expanded(
                                 flex: 2,
                                 child: Text(
-                                  'Category',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  'category'.tr,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                               Expanded(
                                 flex: 1,
                                 child: Text(
-                                  'Price',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  'price'.tr,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                               Expanded(
                                 flex: 2,
                                 child: Text(
-                                  'Action',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  'action'.tr,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                   textAlign: TextAlign.center,
                                 ),
                               ),

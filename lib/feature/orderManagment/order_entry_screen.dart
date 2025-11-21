@@ -8,21 +8,31 @@ import 'package:get/get.dart';
 import 'controllers/OrderEntryController.dart';
 import 'controllers/MenuController.dart';
 
-class OrderEntryScreen extends StatelessWidget {
-  OrderEntryScreen({super.key});
+class OrderEntryScreen extends StatefulWidget {
+  const OrderEntryScreen({super.key});
 
+  @override
+  State<OrderEntryScreen> createState() => _OrderEntryScreenState();
+}
+
+class _OrderEntryScreenState extends State<OrderEntryScreen> {
   final menuController = Get.put(Menu_Controller());
   final orderEntryController = Get.put(OrderEntryController());
   final deliveryController = Get.put(DeliveryInfoController());
 
   @override
-  Widget build(BuildContext context) {
-    // Fetch delivery areas once when screen builds
+  void initState() {
+    super.initState();
+    // Fetch delivery areas once when screen initializes
     deliveryController.fetchDeliveryAreas();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text('Order Entry'),
+        title: Text('order_entry'.tr),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
@@ -44,9 +54,9 @@ class OrderEntryScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Customer Info',
-                        style: TextStyle(
+                      Text(
+                        'customer_info'.tr,
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -54,33 +64,33 @@ class OrderEntryScreen extends StatelessWidget {
                       const SizedBox(height: 10),
                       TextField(
                         controller: orderEntryController.customerNameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Customer Name',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: 'customer_name'.tr,
+                          border: const OutlineInputBorder(),
                         ),
                       ),
                       const SizedBox(height: 10),
                       TextField(
                         controller: orderEntryController.addressController,
-                        decoration: const InputDecoration(
-                          labelText: 'Address',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: 'address'.tr,
+                          border: const OutlineInputBorder(),
                         ),
                       ),
                       const SizedBox(height: 10),
                       TextField(
                         controller: orderEntryController.phoneController,
-                        decoration: const InputDecoration(
-                          labelText: 'Phone Number',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: 'phone_number'.tr,
+                          border: const OutlineInputBorder(),
                         ),
                       ),
                       const SizedBox(height: 10),
                       TextField(
                         controller: orderEntryController.emailController,
-                        decoration: const InputDecoration(
-                          labelText: 'Email (Optional)',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: 'email_optional'.tr,
+                          border: const OutlineInputBorder(),
                         ),
                         keyboardType: TextInputType.emailAddress,
                       ),
@@ -100,9 +110,9 @@ class OrderEntryScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Order Type',
-                                style: TextStyle(
+                              Text(
+                                'order_type'.tr,
+                                style: const TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey,
                                 ),
@@ -113,7 +123,7 @@ class OrderEntryScreen extends StatelessWidget {
                                   ? Column(
                                       children: [
                                         RadioListTile<String>(
-                                          title: const Text('Delivery'),
+                                          title: Text('delivery'.tr),
                                           value: 'delivery',
                                           groupValue: orderEntryController
                                               .orderType
@@ -128,7 +138,7 @@ class OrderEntryScreen extends StatelessWidget {
                                           dense: true,
                                         ),
                                         RadioListTile<String>(
-                                          title: const Text('Pickup'),
+                                          title: Text('pickup'.tr),
                                           value: 'pickup',
                                           groupValue: orderEntryController
                                               .orderType
@@ -148,7 +158,7 @@ class OrderEntryScreen extends StatelessWidget {
                                       children: [
                                         Expanded(
                                           child: RadioListTile<String>(
-                                            title: const Text('Delivery'),
+                                            title: Text('delivery'.tr),
                                             value: 'delivery',
                                             groupValue: orderEntryController
                                                 .orderType
@@ -165,7 +175,7 @@ class OrderEntryScreen extends StatelessWidget {
                                         ),
                                         Expanded(
                                           child: RadioListTile<String>(
-                                            title: const Text('Pickup'),
+                                            title: Text('pickup'.tr),
                                             value: 'pickup',
                                             groupValue: orderEntryController
                                                 .orderType
@@ -198,16 +208,16 @@ class OrderEntryScreen extends StatelessWidget {
                             }
 
                             if (deliveryController.deliveryAreas.isEmpty) {
-                              return const Text(
-                                'No delivery areas available',
-                                style: TextStyle(color: Colors.grey),
+                              return Text(
+                                'no_delivery_areas_available'.tr,
+                                style: const TextStyle(color: Colors.grey),
                               );
                             }
 
                             return DropdownButtonFormField<int>(
-                              decoration: const InputDecoration(
-                                labelText: 'Delivery Area (Optional)',
-                                border: OutlineInputBorder(),
+                              decoration: InputDecoration(
+                                labelText: 'delivery_area_optional'.tr,
+                                border: const OutlineInputBorder(),
                               ),
                               isExpanded: true,
                               value: orderEntryController
@@ -241,32 +251,32 @@ class OrderEntryScreen extends StatelessWidget {
 
                       TextField(
                         controller: orderEntryController.allergyController,
-                        decoration: const InputDecoration(
-                          labelText: 'Allergies (Optional)',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: 'allergies_optional'.tr,
+                          border: const OutlineInputBorder(),
                         ),
                       ),
                       const SizedBox(height: 10),
                       TextField(
                         controller: orderEntryController.discountTextController,
-                        decoration: const InputDecoration(
-                          labelText: 'Discount Code (Optional)',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: 'discount_code_optional'.tr,
+                          border: const OutlineInputBorder(),
                         ),
                       ),
                       const SizedBox(height: 10),
                       TextField(
                         controller: orderEntryController.orderNotesController,
-                        decoration: const InputDecoration(
-                          labelText: 'Order Notes (Optional)',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: 'order_notes_optional'.tr,
+                          border: const OutlineInputBorder(),
                         ),
                         maxLines: 3,
                       ),
                       const SizedBox(height: 20),
-                      const Text(
-                        'Menu',
-                        style: TextStyle(
+                      Text(
+                        'menu'.tr,
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -366,9 +376,9 @@ class OrderEntryScreen extends StatelessWidget {
                         // Fixed header
                         Padding(
                           padding: const EdgeInsets.all(16.0),
-                          child: const Text(
-                            'Current Order',
-                            style: TextStyle(
+                          child: Text(
+                            'current_order'.tr,
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -378,10 +388,10 @@ class OrderEntryScreen extends StatelessWidget {
                         // Scrollable order items
                         Expanded(
                           child: orderEntryController.orderItems.isEmpty
-                              ? const Center(
+                              ? Center(
                                   child: Text(
-                                    'No items added',
-                                    style: TextStyle(color: Colors.grey),
+                                    'no_items_added'.tr,
+                                    style: const TextStyle(color: Colors.grey),
                                   ),
                                 )
                               : ListView.builder(
@@ -426,10 +436,10 @@ class OrderEntryScreen extends StatelessWidget {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Flexible(
+                                  Flexible(
                                     child: Text(
-                                      "Subtotal:",
-                                      style: TextStyle(fontSize: 14),
+                                      "${'subtotal'.tr}:",
+                                      style: const TextStyle(fontSize: 14),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
@@ -452,10 +462,10 @@ class OrderEntryScreen extends StatelessWidget {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Flexible(
+                                    Flexible(
                                       child: Text(
-                                        "Delivery Fee:",
-                                        style: TextStyle(fontSize: 14),
+                                        "${'delivery_fee'.tr}:",
+                                        style: const TextStyle(fontSize: 14),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
@@ -480,10 +490,10 @@ class OrderEntryScreen extends StatelessWidget {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Flexible(
+                                  Flexible(
                                     child: Text(
-                                      "Total:",
-                                      style: TextStyle(
+                                      "${'total'.tr}:",
+                                      style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -512,7 +522,7 @@ class OrderEntryScreen extends StatelessWidget {
                                   backgroundColor: AppColors.primaryColor,
                                   foregroundColor: Colors.white,
                                 ),
-                                child: const Text('Create Order'),
+                                child: Text('create_order'.tr),
                               ),
                             ],
                           ),
@@ -630,55 +640,67 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: 16.0,
                     vertical: 8.0,
                   ),
                   child: Text(
-                    'Extras',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    'extras'.tr,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                _buildText('Bacon (+\$2.50)', _baconSelected, (value) {
+                _buildText('${'bacon'.tr} (+\$2.50)', _baconSelected, (value) {
                   setState(() {
                     _baconSelected = value!;
                   });
                 }),
-                _buildText('Cheese (+\$1.50)', _cheeseSelected, (value) {
+                _buildText('${'cheese'.tr} (+\$1.50)', _cheeseSelected, (
+                  value,
+                ) {
                   setState(() {
                     _cheeseSelected = value!;
                   });
                 }),
-                _buildText('Avocado (+\$2.00)', _avocadoSelected, (value) {
+                _buildText('${'avocado'.tr} (+\$2.00)', _avocadoSelected, (
+                  value,
+                ) {
                   setState(() {
                     _avocadoSelected = value!;
                   });
                 }),
                 const Divider(height: 1, thickness: 1),
-                _buildText('Extra Patty (+\$4.00)', _extraPattySelected, (
-                  value,
-                ) {
-                  setState(() {
-                    _extraPattySelected = value!;
-                  });
-                }),
+                _buildText(
+                  '${'extra_patty'.tr} (+\$4.00)',
+                  _extraPattySelected,
+                  (value) {
+                    setState(() {
+                      _extraPattySelected = value!;
+                    });
+                  },
+                ),
                 const Divider(height: 1, thickness: 1),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: 16.0,
                     vertical: 8.0,
                   ),
                   child: Text(
-                    'Special Instructions',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    'special_instructions'.tr,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: TextField(
                     decoration: InputDecoration(
-                      hintText: 'Add special instructions',
+                      hintText: 'add_special_instructions'.tr,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
                       ),
@@ -762,7 +784,7 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
             );
           },
 
-          child: const Text('Add'),
+          child: Text('add'.tr),
         ),
       ],
     );

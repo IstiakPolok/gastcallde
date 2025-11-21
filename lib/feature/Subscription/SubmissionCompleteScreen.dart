@@ -55,9 +55,9 @@ class paymentCompleteScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20.0),
               // Main text
-              const Text(
-                'Submission Complete!',
-                style: TextStyle(
+              Text(
+                'submission_complete'.tr,
+                style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF003D5C),
@@ -87,9 +87,9 @@ class paymentCompleteScreen extends StatelessWidget {
                   ),
                   elevation: 0,
                 ),
-                child: const Text(
-                  'Back',
-                  style: TextStyle(
+                child: Text(
+                  'back'.tr,
+                  style: const TextStyle(
                     fontSize: 16,
                     color: Color(0xFF4C8D9B), // Custom blue text color
                   ),

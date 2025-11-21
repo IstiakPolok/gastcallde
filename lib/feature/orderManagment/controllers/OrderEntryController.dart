@@ -76,17 +76,8 @@ class OrderEntryController extends GetxController {
         "order_type": orderType.value,
       };
 
-      print("\n📦 ========== ORDER PAYLOAD DEBUG ==========");
-      print("📝 Raw Body Map:");
-      print(body);
-      print("\n📝 JSON Encoded Body:");
-      final jsonBody = jsonEncode(body);
-      print(jsonBody);
-      print("\n📝 Pretty JSON:");
-      print(JsonEncoder.withIndent('  ').convert(body));
-      print("📦 ========================================\n");
-
-      print("Sending order payload: $body");
+      // print("\n📦 ========== ORDER PAYLOAD DEBUG ==========");
+      // print("📝 Raw Body Map: $body");
 
       final response = await http.post(
         url,
@@ -98,7 +89,7 @@ class OrderEntryController extends GetxController {
       );
 
       print("Response status: ${response.statusCode}");
-      print("Response body: ${response.body}");
+      // print("Response body: ${response.body}");
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         Get.snackbar("Success", "Order Created Successfully!");

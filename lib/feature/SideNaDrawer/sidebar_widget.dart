@@ -42,42 +42,42 @@ class _CustomSidebarState extends State<CustomSidebar> {
 
   final List<SidebarItemData> _items = [
     SidebarItemData(
-      label: 'Overview',
+      label: 'overview'.tr,
       svgAsset: 'assets/icons/svg/1.svg',
       page: Dashboard(),
     ),
     SidebarItemData(
-      label: 'Calls',
+      label: 'calls'.tr,
       svgAsset: 'assets/icons/svg/2.svg',
       page: callScreen(),
     ),
     SidebarItemData(
-      label: 'Order Management',
+      label: 'order_management'.tr,
       svgAsset: 'assets/icons/svg/3.svg',
       page: orderManagmentscreen(),
     ),
     SidebarItemData(
-      label: 'Reservation',
+      label: 'reservation'.tr,
       svgAsset: 'assets/icons/svg/4.svg',
       page: ReservationScreen(),
     ),
     SidebarItemData(
-      label: 'Menu Management',
+      label: 'menu_management'.tr,
       svgAsset: 'assets/icons/svg/5.svg',
       page: menuManagement(),
     ),
     SidebarItemData(
-      label: 'Customers',
+      label: 'customers'.tr,
       svgAsset: 'assets/icons/svg/6.svg',
       page: Customerscreen(),
     ),
     SidebarItemData(
-      label: 'Subscription Plans',
+      label: 'subscription_plans'.tr,
       svgAsset: 'assets/icons/svg/8.svg',
       page: SubscriptionPlans(),
     ),
     SidebarItemData(
-      label: 'Settings',
+      label: 'settings'.tr,
       svgAsset: 'assets/icons/svg/7.svg',
       page: settingScreen(),
     ),
@@ -144,7 +144,7 @@ class _CustomSidebarState extends State<CustomSidebar> {
                       ElevatedButton.icon(
                         icon: Icon(Icons.flash_on, size: 20),
                         label: Text(
-                          'Upgrade Now',
+                          'upgrade_now'.tr,
                           style: TextStyle(fontSize: 12),
                         ),
                         onPressed: () {
@@ -165,9 +165,9 @@ class _CustomSidebarState extends State<CustomSidebar> {
                       SizedBox(height: 10),
                       Obx(() {
                         if (subscriptionController.isLoading.value) {
-                          return const Text(
-                            'Checking subscription...',
-                            style: TextStyle(
+                          return Text(
+                            'checking_subscription'.tr,
+                            style: const TextStyle(
                               fontSize: 11,
                               color: Colors.black54,
                             ),
@@ -175,7 +175,10 @@ class _CustomSidebarState extends State<CustomSidebar> {
                           );
                         } else {
                           return Text(
-                            'You have ${subscriptionController.remainingDays.value} days of Free Limit',
+                            'free_limit_days'.trParams({
+                              'days': subscriptionController.remainingDays.value
+                                  .toString(),
+                            }),
                             style: const TextStyle(
                               fontSize: 11,
                               color: Colors.black54,
@@ -192,7 +195,7 @@ class _CustomSidebarState extends State<CustomSidebar> {
                           color: Color(0xFFE53935),
                         ),
                         label: Text(
-                          'Log out',
+                          'logout'.tr,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -239,25 +242,25 @@ class _CustomSidebarState extends State<CustomSidebar> {
             ),
             SizedBox(height: 20),
             Text(
-              'Subscription Needed',
+              'subscription_needed'.tr,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
             Text(
-              'Your 10 days Free trial limit Reached',
+              'trial_limit_reached'.tr,
               style: TextStyle(color: AppColors.primaryColor),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 4),
             Text(
-              'Need to Upgrade your plan',
+              'need_upgrade'.tr,
               style: TextStyle(color: Colors.grey),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 20),
             ElevatedButton.icon(
               icon: Icon(Icons.flash_on, size: 20),
-              label: Text('Upgrade Now', style: TextStyle(fontSize: 12)),
+              label: Text('upgrade_now'.tr, style: TextStyle(fontSize: 12)),
               onPressed: () {
                 Get.off(SubscriptionPlans());
               },

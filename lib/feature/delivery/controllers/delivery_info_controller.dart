@@ -1,8 +1,14 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart'; // For compute
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/services_class/local_service/shared_preferences_helper.dart';
 import '../../../core/network_caller/endpoints.dart';
+
+// Top-level function for background parsing
+List parseDeliveryAreas(String responseBody) {
+  return jsonDecode(responseBody);
+}
 
 class DeliveryInfoController extends GetxController {
   var deliveryAreas = [].obs;
@@ -16,31 +22,32 @@ class DeliveryInfoController extends GetxController {
     try {
       isLoading(true);
       final token = await SharedPreferencesHelper.getAccessToken();
-      print("🔑 Access Token: $token");
+      // print("🔑 Access Token: $token");
 
       final url = '${Urls.baseUrl}/owner/areas/';
-      print("🌐 Request URL: $url");
+      // print("🌐 Request URL: $url");
 
       final response = await http.get(
         Uri.parse(url),
         headers: {'Authorization': 'Bearer $token'},
       );
 
-      print("📡 Response Status: ${response.statusCode}");
-      print("📦 Response Body: ${response.body}");
+      // print("📡 Response Status: ${response.statusCode}");
+      // print("📦 Response Body: ${response.body}");
 
       if (response.statusCode == 200) {
-        deliveryAreas.value = jsonDecode(response.body);
+        // Use compute for background parsing
+        deliveryAreas.value = await compute(parseDeliveryAreas, response.body);
         print(
           "✅ Delivery areas fetched successfully (${deliveryAreas.length} items)",
         );
       } else {
         print("❌ Failed to fetch delivery areas: ${response.statusCode}");
-        Get.snackbar('Error', 'Failed to fetch delivery areas');
+        Get.snackbar('error'.tr, 'failed_fetch_delivery_areas'.tr);
       }
     } catch (e) {
       print("🔥 Exception in fetchDeliveryAreas: $e");
-      Get.snackbar('Error', 'Something went wrong while fetching areas');
+      Get.snackbar('error'.tr, 'error_fetching_areas'.tr);
     } finally {
       isLoading(false);
       print("🏁 [FETCH] Completed fetching areas\n");

@@ -201,9 +201,41 @@ class AppTranslations extends Translations {
       'available': 'Available',
       'unavailable': 'Unavailable',
       'no_tables_found': 'No tables found',
-      'delete_table': 'Delete Table',
       'delete_table_confirm': 'Are you sure you want to delete table',
       'table_deleted_successfully': '✅ Table deleted successfully',
+      // Removed duplicate keys
+      'search_by_phone': 'Search by phone',
+      // 'name': 'Name', // Duplicate
+      // 'phone': 'Phone', // Duplicate
+      // 'date': 'Date', // Duplicate
+      // 'time': 'Time', // Duplicate
+      'no_of_call': 'No of call',
+      'last_orders': 'Last Orders',
+      // 'action': 'Action', // Duplicate
+      // 'today': 'Today', // Duplicate
+      'view': 'View',
+      'user_not_authenticated': 'User not authenticated',
+      'failed_fetch_data': 'Failed to fetch data',
+      'something_went_wrong': 'Something went wrong',
+
+      // Customer Details Screen
+      'customer_details': 'Customer Details',
+      'view_manage_customer_info': 'View and manage customer information',
+      'no_customer_data_found': 'No customer data found',
+      'unknown_customer': 'Unknown Customer',
+      'email': 'Email',
+      // 'address': 'Address', // Duplicate
+      'joined': 'Joined',
+      'first_order': 'First Order',
+      'last_order': 'Last Order',
+      'total_orders': 'Total Orders',
+      'total_spent': 'Total Spent',
+      'order_history': 'Order History',
+      'order_id': 'Order ID',
+      // 'status': 'Status', // Duplicate
+      // 'total': 'Total', // Duplicate
+      'no_phone_provided': 'No phone number provided',
+      'failed_fetch_customer_details': 'Failed to fetch customer details',
       'failed_to_delete_table': '❌ Failed to delete table',
       'save': 'Save',
       'search': 'Search',
@@ -268,6 +300,63 @@ class AppTranslations extends Translations {
       'time': 'Time',
       'name': 'Name',
       'no_reservations_found': 'No reservations found',
+
+      // Order Entry
+      'order_entry': 'Order Entry',
+      'customer_info': 'Customer Info',
+      'address': 'Address',
+      'email_optional': 'Email (Optional)',
+      'order_type': 'Order Type',
+      'pickup': 'Pickup',
+      'delivery': 'Delivery',
+      'delivery_area_optional': 'Delivery Area (Optional)',
+      'no_delivery_areas_available': 'No delivery areas available',
+      'allergies_optional': 'Allergies (Optional)',
+      'discount_code_optional': 'Discount Code (Optional)',
+      'order_notes_optional': 'Order Notes (Optional)',
+      'current_order': 'Current Order',
+      'no_items_added': 'No items added',
+      'create_order': 'Create Order',
+      'add_special_instructions': 'Add special instructions',
+      'items': 'Items',
+      'search_hint': 'Search by name or category',
+      'add_item': 'Add Item',
+      'no_items_found': 'No items found',
+      'item': 'Item',
+
+      // Sidebar
+      'overview': 'Overview',
+      'calls': 'Calls',
+      'order_management': 'Order Management',
+      'reservation': 'Reservation',
+      'menu_management': 'Menu Management',
+      'customers': 'Customers',
+      'subscription_plans': 'Subscription Plans',
+      'settings': 'Settings',
+      'upgrade_now': 'Upgrade Now',
+      'checking_subscription': 'Checking subscription...',
+      'free_limit_days': 'You have @days days of Free Limit',
+      'logout': 'Log out',
+      'subscription_needed': 'Subscription Needed',
+
+      // Subscription Screens
+      'restaurant_overview': 'Restaurant Overview',
+      'choose_best_plan': 'Choose the best plan for your restaurant',
+      'no_plans_available': 'No plans available',
+      'price_id_missing': 'Price ID is missing for this plan',
+      'active': 'Active',
+      'per': 'per',
+      'get_started': 'Get Started',
+      'submission_complete': 'Submission Complete!',
+      'back': 'Back',
+      'trial_limit_reached': 'Your 10 days Free trial limit Reached',
+      'need_upgrade': 'Need to Upgrade your plan',
+
+      // Extras
+      'bacon': 'Bacon',
+      'cheese': 'Cheese',
+      'avocado': 'Avocado',
+      'extra_patty': 'Extra Patty',
     },
 
     'de_DE': {
@@ -495,6 +584,46 @@ class AppTranslations extends Translations {
       'confirm_now': 'Jetzt bestätigen',
       'available_tables': 'Verfügbare Tische:',
       'seats': 'Sitzplätze',
+      'failed_fetch_delivery_areas':
+          'Liefergebiete konnten nicht abgerufen werden',
+      'error_fetching_areas':
+          'Beim Abrufen der Gebiete ist ein Fehler aufgetreten',
+
+      // Customer Screen
+      'customer_section': 'Kundenbereich',
+      'live_overview_restaurant': "Live-Übersicht Ihres Restaurants",
+      'search_by_phone': 'Suche nach Telefonnummer',
+      // 'name': 'Name', // Duplicate
+      // 'date': 'Datum', // Duplicate
+      // 'time': 'Zeit', // Duplicate
+      'no_of_call': 'Anzahl Anrufe',
+      'last_orders': 'Letzte Bestellungen',
+      // 'action': 'Aktion', // Duplicate
+      // 'today': 'Heute', // Duplicate
+      'view': 'Ansehen',
+      'user_not_authenticated': 'Benutzer nicht authentifiziert',
+      'failed_fetch_data': 'Daten konnten nicht abgerufen werden',
+      'something_went_wrong': 'Etwas ist schief gelaufen',
+
+      // Customer Details Screen
+      'customer_details': 'Kundendetails',
+      'view_manage_customer_info': 'Kundeninformationen ansehen und verwalten',
+      'no_customer_data_found': 'Keine Kundendaten gefunden',
+      'unknown_customer': 'Unbekannter Kunde',
+      'email': 'E-Mail',
+      // 'address': 'Adresse', // Duplicate
+      'joined': 'Beigetreten',
+      'first_order': 'Erste Bestellung',
+      'last_order': 'Letzte Bestellung',
+      'total_orders': 'Gesamtbestellungen',
+      'total_spent': 'Gesamtausgaben',
+      'order_history': 'Bestellhistorie',
+      'order_id': 'Bestell-ID',
+      // 'status': 'Status', // Duplicate
+      // 'total': 'Gesamt', // Duplicate
+      'no_phone_provided': 'Keine Telefonnummer angegeben',
+      'failed_fetch_customer_details':
+          'Kundendetails konnten nicht abgerufen werden',
       'failed_to_fetch_tables': 'Tische konnten nicht abgerufen werden',
 
       // Time/Date
@@ -535,6 +664,64 @@ class AppTranslations extends Translations {
       'time': 'Zeit',
       'name': 'Name',
       'no_reservations_found': 'Keine Reservierungen gefunden',
+
+      // Order Entry
+      'order_entry': 'Bestellungseingabe',
+      'customer_info': 'Kundeninfo',
+      'address': 'Adresse',
+      'email_optional': 'E-Mail (Optional)',
+      'order_type': 'Bestellart',
+      'pickup': 'Abholung',
+      'delivery': 'Lieferung',
+      'delivery_area_optional': 'Liefergebiet (Optional)',
+      'no_delivery_areas_available': 'Keine Liefergebiete verfügbar',
+      'allergies_optional': 'Allergien (Optional)',
+      'discount_code_optional': 'Rabattcode (Optional)',
+      'order_notes_optional': 'Bestellnotizen (Optional)',
+      'current_order': 'Aktuelle Bestellung',
+      'no_items_added': 'Keine Artikel hinzugefügt',
+      'create_order': 'Bestellung erstellen',
+      'add_special_instructions': 'Spezielle Anweisungen hinzufügen',
+      'items': 'Artikel',
+      'search_hint': 'Suche nach Name oder Kategorie',
+      'add_item': 'Artikel hinzufügen',
+      'no_items_found': 'Keine Artikel gefunden',
+      'item': 'Artikel',
+
+      // Sidebar
+      'overview': 'Übersicht',
+      'calls': 'Anrufe',
+      'order_management': 'Bestellverwaltung',
+      'reservation': 'Reservierung',
+      'menu_management': 'Menüverwaltung',
+      'customers': 'Kunden',
+      'subscription_plans': 'Abo-Pläne',
+      'settings': 'Einstellungen',
+      'upgrade_now': 'Jetzt upgraden',
+      'checking_subscription': 'Abo wird geprüft...',
+      'free_limit_days': 'Sie haben noch @days Tage kostenloses Limit',
+      'logout': 'Abmelden',
+      'subscription_needed': 'Abo erforderlich',
+
+      // Subscription Screens
+      'restaurant_overview': 'Restaurant-Übersicht',
+      'choose_best_plan': 'Wählen Sie den besten Plan für Ihr Restaurant',
+      'no_plans_available': 'Keine Pläne verfügbar',
+      'price_id_missing': 'Preis-ID fehlt für diesen Plan',
+      'active': 'Aktiv',
+      'per': 'pro',
+      'get_started': 'Loslegen',
+      'submission_complete': 'Einreichung abgeschlossen!',
+      'back': 'Zurück',
+      'trial_limit_reached':
+          'Ihr 10-tägiges kostenloses Testlimit ist erreicht',
+      'need_upgrade': 'Sie müssen Ihren Plan upgraden',
+
+      // Extras
+      'bacon': 'Speck',
+      'cheese': 'Käse',
+      'avocado': 'Avocado',
+      'extra_patty': 'Extra Patty',
     },
   };
 }
