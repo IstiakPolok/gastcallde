@@ -64,10 +64,6 @@ class DeliveryInfoScreen extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (controller.deliveryAreas.isEmpty) {
-          return Center(child: Text('no_delivery_areas'.tr));
-        }
-
         return SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
           child: Column(
@@ -113,45 +109,56 @@ class DeliveryInfoScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 2,
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
+              if (controller.deliveryAreas.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(40.0),
+                    child: Text(
+                      'no_delivery_areas'.tr,
+                      style: const TextStyle(fontSize: 16, color: Colors.grey),
                     ),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      _buildHeader(),
-                      const SizedBox(height: 10),
-                      ...controller.deliveryAreas.map((area) {
-                        return Column(
-                          children: [
-                            _buildDataRow(
-                              postalCode: area['postalcode'] ?? '-',
-                              deliveryTime:
-                                  "${area['estimated_delivery_time']} mins",
-                              fee: "${area['delivery_fee']} €",
-                              id: area['id'],
-                              controller: controller,
-                              context: context,
-                            ),
-                            const SizedBox(height: 10),
-                          ],
-                        );
-                      }),
+                  ),
+                )
+              else
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 2,
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
                     ],
                   ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        _buildHeader(),
+                        const SizedBox(height: 10),
+                        ...controller.deliveryAreas.map((area) {
+                          return Column(
+                            children: [
+                              _buildDataRow(
+                                postalCode: area['postalcode'] ?? '-',
+                                deliveryTime:
+                                    "${area['estimated_delivery_time']} mins",
+                                fee: "${area['delivery_fee']} €",
+                                id: area['id'],
+                                controller: controller,
+                                context: context,
+                              ),
+                              const SizedBox(height: 10),
+                            ],
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
         );

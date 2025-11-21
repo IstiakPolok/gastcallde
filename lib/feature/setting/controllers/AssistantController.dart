@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:audioplayers/audioplayers.dart';
@@ -50,7 +51,9 @@ class AssistantController extends GetxController {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         assistantId.value = data['id'] ?? 0;
-        voice.value = data['voice'] ?? 'matilda';
+        // Ensure voice is always lowercase and not null/empty
+        final voiceValue = data['voice'] ?? 'matilda';
+        voice.value = voiceValue.toString().toLowerCase();
         // Handle both int and double from API
         final speedValue = data['speed'];
         speed.value = (speedValue is int)
@@ -59,6 +62,16 @@ class AssistantController extends GetxController {
             ? speedValue
             : 1.0;
         print('Loaded assistant: voice=${voice.value}, speed=${speed.value}');
+      } else if (response.statusCode == 404) {
+        print('No AI assistant assigned from admin');
+        Get.snackbar(
+          'No AI Assistant',
+          'No AI assistant assigned from admin',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+          duration: Duration(seconds: 3),
+        );
       } else {
         print('Failed to load assistant info: ${response.statusCode}');
       }

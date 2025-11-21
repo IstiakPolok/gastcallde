@@ -49,12 +49,6 @@ class OrderController extends GetxController {
   final isLoading = false.obs;
 
   @override
-  void onInit() {
-    super.onInit();
-    // Don't fetch immediately - wait until after first frame is rendered
-  }
-
-  @override
   void onReady() {
     super.onReady();
     // Fetch orders after the widget is fully initialized and first frame is rendered

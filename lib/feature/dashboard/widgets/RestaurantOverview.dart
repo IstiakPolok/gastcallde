@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:gastcallde/core/global_widegts/LanguageToggleWidget.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/const/app_colors.dart';
 import '../controllers/RestaurantOverviewController.dart';
 import 'OrdersBarChart.dart';
 import 'RevenueController.dart';

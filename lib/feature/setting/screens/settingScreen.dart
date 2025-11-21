@@ -6,7 +6,6 @@ import 'package:gastcallde/feature/setting/screens/ReportIssue.dart';
 import 'package:gastcallde/feature/setting/screens/ReservationSettings.dart';
 import 'package:gastcallde/feature/setting/screens/callforward.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 import '../controllers/RestaurantSettingsController.dart';
 import '../controllers/AssistantController.dart';
@@ -225,74 +224,86 @@ class _SettingsScreenState extends State<SettingsScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            assistantController.getVoiceDisplayName(
-                              assistantController.voice.value,
-                            ),
+                            assistantController.assistantId.value == 0
+                                ? 'No AI Assistant'
+                                : assistantController.getVoiceDisplayName(
+                                    assistantController.voice.value,
+                                  ),
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          const Text(
-                            'AI Voice Assistant',
-                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                          Text(
+                            assistantController.assistantId.value == 0
+                                ? 'Not assigned from admin'
+                                : 'AI Voice Assistant',
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    IconButton(
-                      icon: Obx(
-                        () => Icon(
-                          assistantController.isPlaying.value
-                              ? Icons.stop_circle
-                              : Icons.play_circle_fill,
-                          color: Colors.black,
+                    if (assistantController.assistantId.value != 0)
+                      IconButton(
+                        icon: Obx(
+                          () => Icon(
+                            assistantController.isPlaying.value
+                                ? Icons.stop_circle
+                                : Icons.play_circle_fill,
+                            color: Colors.black,
+                          ),
                         ),
-                      ),
-                      onPressed: () async {
-                        if (assistantController.isPlaying.value) {
-                          await assistantController.stopVoicePreview();
-                        } else {
-                          await assistantController.playVoicePreview(
-                            assistantController.voice.value,
-                          );
-                        }
-                      },
-                    ),
-                    DropdownButton<String>(
-                      value: assistantController.voice.value.toLowerCase(),
-                      onChanged: (newVoice) async {
-                        if (newVoice != null) {
-                          final success = await assistantController
-                              .updateVoiceSettings(
-                                newVoice,
-                                assistantController.speed.value,
-                              );
-                          if (success) {
-                            Get.snackbar(
-                              'Success',
-                              'Voice updated to ${assistantController.getVoiceDisplayName(newVoice)}',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Colors.green,
-                              colorText: Colors.white,
-                            );
+                        onPressed: () async {
+                          if (assistantController.isPlaying.value) {
+                            await assistantController.stopVoicePreview();
                           } else {
-                            Get.snackbar(
-                              'Error',
-                              'Failed to update voice',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Colors.red,
-                              colorText: Colors.white,
+                            await assistantController.playVoicePreview(
+                              assistantController.voice.value,
                             );
                           }
-                        }
-                      },
-                      items: assistantController.voiceOptions.entries.map((
-                        entry,
-                      ) {
-                        return DropdownMenuItem<String>(
-                          value: entry.key,
-                          child: Text(entry.value),
-                        );
-                      }).toList(),
-                    ),
+                        },
+                      ),
+                    if (assistantController.assistantId.value != 0)
+                      DropdownButton<String>(
+                        value: assistantController.voice.value.isEmpty
+                            ? null
+                            : assistantController.voice.value.toLowerCase(),
+                        hint: const Text('Select Voice'),
+                        onChanged: (newVoice) async {
+                          if (newVoice != null) {
+                            final success = await assistantController
+                                .updateVoiceSettings(
+                                  newVoice,
+                                  assistantController.speed.value,
+                                );
+                            if (success) {
+                              Get.snackbar(
+                                'Success',
+                                'Voice updated to ${assistantController.getVoiceDisplayName(newVoice)}',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: Colors.green,
+                                colorText: Colors.white,
+                              );
+                            } else {
+                              Get.snackbar(
+                                'Error',
+                                'Failed to update voice',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: Colors.red,
+                                colorText: Colors.white,
+                              );
+                            }
+                          }
+                        },
+                        items: assistantController.voiceOptions.entries.map((
+                          entry,
+                        ) {
+                          return DropdownMenuItem<String>(
+                            value: entry.key,
+                            child: Text(entry.value),
+                          );
+                        }).toList(),
+                      ),
                   ],
                 ),
               ),
@@ -300,8 +311,11 @@ class _SettingsScreenState extends State<SettingsScreen>
           );
         }),
         const SizedBox(height: 16),
-        Obx(
-          () => _buildCard(
+        Obx(() {
+          if (assistantController.assistantId.value == 0) {
+            return const SizedBox.shrink();
+          }
+          return _buildCard(
             children: [
               _buildSettingRow(
                 'Voice speed',
@@ -310,9 +324,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                   children: [
                     Slider(
                       value: assistantController.speed.value,
-                      min: 0.5,
-                      max: 2.0,
-                      divisions: 15,
+                      min: 0.7,
+                      max: 1.2,
+                      divisions: 5,
                       label: assistantController.speed.value.toStringAsFixed(1),
                       activeColor: AppColors.primaryColor,
                       inactiveColor: Colors.grey[300],
@@ -355,8 +369,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
               ),
             ],
-          ),
-        ),
+          );
+        }),
         const SizedBox(height: 16),
 
         // Call Transfer Section

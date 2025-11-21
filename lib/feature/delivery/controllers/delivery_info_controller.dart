@@ -91,7 +91,8 @@ class DeliveryInfoController extends GetxController {
       if (response.statusCode == 201) {
         print("✅ Delivery area added successfully");
         Get.snackbar("Success", "Delivery area added successfully");
-        await fetchDeliveryAreas(); // refresh list
+        // Refresh the list to show newly added data
+        await fetchDeliveryAreas();
       } else {
         print("❌ Failed to add delivery area: ${response.body}");
         Get.snackbar("Error", "Failed to add delivery area");
@@ -150,7 +151,8 @@ class DeliveryInfoController extends GetxController {
       if (response.statusCode == 200) {
         print("✅ Delivery area updated successfully");
         Get.snackbar("Success", "Delivery area updated successfully");
-        await fetchDeliveryAreas(); // refresh list
+        // Refresh the list to show updated data
+        await fetchDeliveryAreas();
       } else {
         print("❌ Failed to update delivery area: ${response.body}");
         Get.snackbar("Error", "Failed to update delivery area");
@@ -183,9 +185,10 @@ class DeliveryInfoController extends GetxController {
       print("📦 Response Body: ${response.body}");
 
       if (response.statusCode == 204) {
-        deliveryAreas.removeWhere((area) => area['id'] == id);
         print("✅ Delivery area deleted successfully (ID: $id)");
         Get.snackbar('Success', 'Area deleted successfully');
+        // Refresh the list to show updated data
+        await fetchDeliveryAreas();
       } else {
         print(
           "❌ Failed to delete area (${response.statusCode}): ${response.body}",

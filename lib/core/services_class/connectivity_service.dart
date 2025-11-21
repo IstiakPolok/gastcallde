@@ -1,16 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../const/app_colors.dart';
 
 class ConnectivityService extends GetxService {
-  final InternetConnectionChecker _connectionChecker =
-      InternetConnectionChecker.createInstance();
+  final Connectivity _connectivity = Connectivity();
 
   final RxBool isConnected = true.obs;
-  StreamSubscription<InternetConnectionStatus>? _subscription;
+  StreamSubscription<List<ConnectivityResult>>? _subscription;
   bool _isDialogShowing = false;
 
   @override
@@ -26,12 +25,12 @@ class ConnectivityService extends GetxService {
     });
 
     // Listen to connectivity changes
-    _subscription = _connectionChecker.onStatusChange.listen((
-      InternetConnectionStatus status,
+    _subscription = _connectivity.onConnectivityChanged.listen((
+      List<ConnectivityResult> results,
     ) {
-      final connected = status == InternetConnectionStatus.connected;
+      final connected = _hasConnection(results);
 
-      print('🌐 Connection status changed: $connected');
+      print('🌐 Connection status changed: $connected (${results.join(', ')})');
 
       if (isConnected.value != connected) {
         isConnected.value = connected;
@@ -47,11 +46,22 @@ class ConnectivityService extends GetxService {
     });
   }
 
+  bool _hasConnection(List<ConnectivityResult> results) {
+    // Check if any connection type is available (excluding none)
+    return results.any(
+      (result) =>
+          result == ConnectivityResult.wifi ||
+          result == ConnectivityResult.mobile ||
+          result == ConnectivityResult.ethernet,
+    );
+  }
+
   Future<void> _checkConnection() async {
-    final connected = await _connectionChecker.hasConnection;
+    final results = await _connectivity.checkConnectivity();
+    final connected = _hasConnection(results);
     isConnected.value = connected;
 
-    print('🔍 Initial connection check: $connected');
+    print('🔍 Initial connection check: $connected (${results.join(', ')})');
 
     if (!connected) {
       _showNoInternetDialog();

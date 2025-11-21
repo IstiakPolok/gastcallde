@@ -115,30 +115,45 @@ class _ItemsScreenState extends State<ItemsScreen> {
   List<Item> _allItems = []; // Store all items
   List<Item> _filteredItems = []; // Filtered items for search
   final TextEditingController _searchController = TextEditingController();
+  bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    fetchItems()
-        .then((items) {
-          setState(() {
-            _allItems = items;
-            _filteredItems = items;
-          });
-        })
-        .catchError((error) {
-          print('Error loading menu items: $error');
-          // Don't throw - just show empty state
-          setState(() {
-            _allItems = [];
-            _filteredItems = [];
-          });
-        });
+    _loadItems();
 
     // Listen to search input changes
     _searchController.addListener(() {
       _filterItems();
     });
+  }
+
+  Future<void> _loadItems() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final items = await fetchItems();
+      if (!mounted) return;
+      setState(() {
+        _allItems = items;
+        _filteredItems = items;
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = error.toString();
+        _isLoading = false;
+        _allItems = [];
+        _filteredItems = [];
+      });
+      print('Error loading menu items: $error');
+    }
   }
 
   void _filterItems() {
@@ -219,37 +234,14 @@ class _ItemsScreenState extends State<ItemsScreen> {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: FutureBuilder<List<Item>>(
-                future: fetchItems(), // API call
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  }
-
-                  final allItems = snapshot.data ?? [];
-
-                  // Filter items based on search text
-                  final query = _searchController.text
-                      .toLowerCase(); // <-- search controller
-                  final filteredItems = allItems.where((item) {
-                    final nameMatch = item.name.toLowerCase().contains(query);
-                    final categoryMatch = item.category.toLowerCase().contains(
-                      query,
-                    );
-                    return nameMatch ||
-                        categoryMatch; // search in name OR category
-                  }).toList();
-
-                  if (filteredItems.isEmpty) {
-                    return const Center(child: Text('No items found'));
-                  }
-
-                  // Tablet layout
-                  if (isTablet) {
-                    return Column(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _errorMessage != null
+                  ? Center(child: Text('Error: $_errorMessage'))
+                  : _filteredItems.isEmpty
+                  ? const Center(child: Text('No items found'))
+                  : isTablet
+                  ? Column(
                       children: [
                         Container(
                           decoration: BoxDecoration(
@@ -310,9 +302,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
                         ),
                         Expanded(
                           child: ListView.builder(
-                            itemCount: filteredItems.length,
+                            itemCount: _filteredItems.length,
                             itemBuilder: (context, index) {
-                              final item = filteredItems[index];
+                              final item = _filteredItems[index];
                               return Padding(
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 8.0,
@@ -323,19 +315,14 @@ class _ItemsScreenState extends State<ItemsScreen> {
                           ),
                         ),
                       ],
-                    );
-                  }
-
-                  // Mobile layout
-                  return ListView.builder(
-                    itemCount: filteredItems.length,
-                    itemBuilder: (context, index) {
-                      final item = filteredItems[index];
-                      return _buildMobileItemCard(item, context);
-                    },
-                  );
-                },
-              ),
+                    )
+                  : ListView.builder(
+                      itemCount: _filteredItems.length,
+                      itemBuilder: (context, index) {
+                        final item = _filteredItems[index];
+                        return _buildMobileItemCard(item, context);
+                      },
+                    ),
             ),
           ],
         ),
