@@ -72,7 +72,7 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
                           size: iconSize,
                         ),
                         onPressed: () {},
-                        tooltip: _isExpanded ? 'Collapse' : 'Expand',
+                        tooltip: _isExpanded ? 'collapse'.tr : 'expand'.tr,
                         padding: EdgeInsets.all(isTablet ? 8.0 : 12.0),
                         constraints: BoxConstraints(
                           minWidth: isTablet ? 36 : 40,
@@ -104,7 +104,7 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
                           _persistentExpanded = !_persistentExpanded;
                         });
                       },
-                      tooltip: _isExpanded ? 'Collapse' : 'Expand',
+                      tooltip: _isExpanded ? 'collapse'.tr : 'expand'.tr,
                       padding: EdgeInsets.all(isTablet ? 8.0 : 12.0),
                       constraints: BoxConstraints(
                         minWidth: isTablet ? 36 : 40,
@@ -139,47 +139,47 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
                       destinations: [
                         _buildDestination(
                           'assets/icons/svg/1.svg',
-                          'Overview',
+                          'overview'.tr,
                           widget.selectedIndex == 0,
                         ),
                         _buildDestination(
                           'assets/icons/svg/2.svg',
-                          'Calls',
+                          'calls'.tr,
                           widget.selectedIndex == 1,
                         ),
                         _buildDestination(
                           'assets/icons/svg/3.svg',
-                          'Order Management',
+                          'order_management'.tr,
                           widget.selectedIndex == 2,
                         ),
                         _buildDestination(
                           'assets/icons/svg/4.svg',
-                          'Reservation',
+                          'reservation'.tr,
                           widget.selectedIndex == 3,
                         ),
                         _buildDestination(
                           'assets/icons/svg/5.svg',
-                          'Menu Management',
+                          'menu_management'.tr,
                           widget.selectedIndex == 4,
                         ),
                         _buildDestination(
                           'assets/icons/svg/6.svg',
-                          'Customers',
+                          'customers'.tr,
                           widget.selectedIndex == 5,
                         ),
                         _buildDestination(
                           'assets/icons/svg/9.svg',
-                          'Delivery Management',
+                          'delivery_management'.tr,
                           widget.selectedIndex == 6,
                         ),
                         _buildDestination(
                           'assets/icons/svg/8.svg',
-                          'Subscription Plans',
+                          'subscription_plans'.tr,
                           widget.selectedIndex == 7,
                         ),
                         _buildDestination(
                           'assets/icons/svg/7.svg',
-                          'Settings',
+                          'settings'.tr,
                           widget.selectedIndex == 8,
                         ),
                       ],
@@ -218,7 +218,7 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
                                   SizedBox(width: isTablet ? 6 : 8),
                                   Flexible(
                                     child: Text(
-                                      'Upgrade Now',
+                                      'upgrade_now'.tr,
                                       style: TextStyle(
                                         fontSize: isTablet ? 10 : 11,
                                         fontWeight: FontWeight.bold,
@@ -236,7 +236,7 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
                           Obx(() {
                             if (subscriptionController.isLoading.value) {
                               return Text(
-                                'Checking subscription...',
+                                'checking_subscription'.tr,
                                 style: TextStyle(
                                   fontSize: isTablet ? 10 : 11,
                                   color: Colors.black54,
@@ -247,7 +247,12 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
                               );
                             } else {
                               return Text(
-                                'You have ${subscriptionController.remainingDays.value} days of Free Limit',
+                                'free_limit_days'.trParams({
+                                  'days': subscriptionController
+                                      .remainingDays
+                                      .value
+                                      .toString(),
+                                }),
                                 style: TextStyle(
                                   fontSize: isTablet ? 10 : 11,
                                   color: Colors.black54,
@@ -288,7 +293,7 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
                                     SizedBox(width: isTablet ? 6 : 8),
                                     Flexible(
                                       child: Text(
-                                        'Log out',
+                                        'logout'.tr,
                                         style: TextStyle(
                                           fontSize: isTablet ? 11 : 12,
                                           fontWeight: FontWeight.w600,
@@ -447,13 +452,13 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  const Text(
-                    'Subscription Needed',
+                  Text(
+                    'subscription_needed'.tr,
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Your 10 days Free trial limit Reached',
+                  Text(
+                    'trial_limit_reached'.tr,
                     style: TextStyle(
                       fontSize: 16,
                       color: AppColors.primaryColor,
@@ -461,8 +466,8 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Need to Upgrade your plan',
+                  Text(
+                    'need_upgrade'.tr,
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                     textAlign: TextAlign.center,
                   ),
@@ -489,13 +494,13 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
                       ),
                       elevation: 5,
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.flash_on, size: 28),
                         SizedBox(width: 10),
                         Text(
-                          'Upgrade Now',
+                          'upgrade_now'.tr,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,

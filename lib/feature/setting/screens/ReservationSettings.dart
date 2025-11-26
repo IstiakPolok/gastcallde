@@ -80,9 +80,15 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
 
   Widget _buildTableList() {
     return Obx(() {
+      if (widget.tableController.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
       if (widget.tableController.tables.isEmpty) {
-        return const Center(
-          child: Text('No tables found', style: TextStyle(color: Colors.grey)),
+        return Center(
+          child: Text(
+            'no_tables_found'.tr,
+            style: TextStyle(color: Colors.grey),
+          ),
         );
       }
       return Container(
@@ -110,7 +116,7 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
               subtitle: Text(
-                'Capacity: ${table.capacity} | Status: ${table.status} | Reservation: ${table.reservationStatus}',
+                '${'capacity'.tr}: ${table.capacity} | ${'status'.tr}: ${table.status} | ${'reservation'.tr}: ${table.reservationStatus}',
                 style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
               ),
               trailing: Row(
@@ -133,15 +139,15 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                         final confirm = await showDialog<bool>(
                           context: context,
                           builder: (context) => AlertDialog(
-                            title: const Text('Delete Table'),
+                            title: Text('delete_table'.tr),
                             content: Text(
-                              'Are you sure you want to delete table "${table.name}"?',
+                              '${'delete_table_confirm'.tr} "${table.name}"?',
                             ),
                             actions: [
                               TextButton(
                                 onPressed: () =>
                                     Navigator.of(context).pop(false),
-                                child: const Text('Cancel'),
+                                child: Text('cancel'.tr),
                               ),
                               ElevatedButton(
                                 onPressed: () =>
@@ -149,8 +155,8 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.red,
                                 ),
-                                child: const Text(
-                                  'Delete',
+                                child: Text(
+                                  'delete'.tr,
                                   style: TextStyle(color: Colors.white),
                                 ),
                               ),
@@ -163,15 +169,15 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                               .deleteTable(table.id!);
                           if (success) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('✅ Table deleted successfully'),
+                              SnackBar(
+                                content: Text('table_deleted_successfully'.tr),
                                 backgroundColor: Colors.green,
                               ),
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('❌ Failed to delete table'),
+                              SnackBar(
+                                content: Text('failed_to_delete_table'.tr),
                                 backgroundColor: Colors.red,
                               ),
                             );
@@ -199,14 +205,14 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Edit Table'),
+          title: Text('edit_table'.tr),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Table Name',
+                Text(
+                  'table_name'.tr,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF475569),
@@ -216,7 +222,7 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                 TextField(
                   controller: nameController,
                   decoration: InputDecoration(
-                    hintText: 'Table Name',
+                    hintText: 'table_name'.tr,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 10,
@@ -239,8 +245,8 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Table Capacity',
+                Text(
+                  'table_capacity'.tr,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF475569),
@@ -251,7 +257,7 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                   controller: capacityController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    hintText: 'Capacity',
+                    hintText: 'capacity'.tr,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 10,
@@ -274,8 +280,8 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Status',
+                Text(
+                  'status'.tr,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF475569),
@@ -317,8 +323,8 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Reservation Status',
+                Text(
+                  'reservation_status'.tr,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF475569),
@@ -367,32 +373,37 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Cancel'),
+              child: Text('cancel'.tr),
             ),
             ElevatedButton(
               onPressed: () async {
                 if (table.id != null) {
+                  // Capture values before closing dialog/disposing controllers
+                  final String newName = nameController.text;
+                  final String newCapacity = capacityController.text;
+                  final messenger = ScaffoldMessenger.of(context);
+
                   Navigator.of(context).pop(); // Close dialog first
 
                   final success = await widget.tableController.updateTable(
                     table.id!,
-                    nameController.text,
-                    capacityController.text,
+                    newName,
+                    newCapacity,
                     selectedStatus,
                     selectedReservationStatus,
                   );
 
                   if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('✅ Table updated successfully'),
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text('table_updated_success'.tr),
                         backgroundColor: Colors.green,
                       ),
                     );
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('❌ Failed to update table'),
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text('table_update_failed'.tr),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -402,19 +413,12 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
               ),
-              child: const Text(
-                'Update',
-                style: TextStyle(color: Colors.white),
-              ),
+              child: Text('update'.tr, style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
       ),
-    ).then((_) {
-      // Dispose controllers after dialog is completely closed
-      nameController.dispose();
-      capacityController.dispose();
-    });
+    );
   }
 
   InputDecoration _dropdownDecoration() {
@@ -454,7 +458,7 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Reservation settings',
+                'reservation_settings'.tr,
                 style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
@@ -462,15 +466,15 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              _buildSectionTitle('Existing Tables', Icons.table_chart),
+              _buildSectionTitle('existing_tables'.tr, Icons.table_chart),
               const SizedBox(height: 16),
               _buildTableList(),
               const SizedBox(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Add Table',
+                  Text(
+                    'add_table'.tr,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -514,10 +518,10 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                 child: Column(
                   children: [
                     Row(
-                      children: const [
+                      children: [
                         Expanded(
                           child: Text(
-                            'Table Name',
+                            'table_name'.tr,
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF475569),
@@ -527,7 +531,7 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                         SizedBox(width: 16),
                         Expanded(
                           child: Text(
-                            'Table Capacity',
+                            'table_capacity'.tr,
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF475569),
@@ -552,7 +556,7 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                                   // Table Name
                                   Expanded(
                                     child: _buildSmallTextField(
-                                      'Table ${index + 1}',
+                                      '${'table'.tr} ${index + 1}',
                                       _tables[index].name,
                                     ),
                                   ),
@@ -561,7 +565,7 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                                   // Capacity
                                   Expanded(
                                     child: _buildSmallTextField(
-                                      'Capacity',
+                                      'capacity'.tr,
                                       _tables[index].capacity,
                                       keyboardType: TextInputType.number,
                                     ),
@@ -581,10 +585,10 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                               ),
                               const SizedBox(height: 12),
                               Row(
-                                children: const [
+                                children: [
                                   Expanded(
                                     child: Text(
-                                      'Status',
+                                      'status'.tr,
                                       style: TextStyle(
                                         fontWeight: FontWeight.w600,
                                         color: Color(0xFF475569),
@@ -594,7 +598,7 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                                   SizedBox(width: 16),
                                   Expanded(
                                     child: Text(
-                                      'Reservation Status',
+                                      'reservation_status'.tr,
                                       style: TextStyle(
                                         fontWeight: FontWeight.w600,
                                         color: Color(0xFF475569),
@@ -694,8 +698,8 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
-                        child: const Text(
-                          'Save',
+                        child: Text(
+                          'save'.tr,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

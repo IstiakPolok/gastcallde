@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:ui';
-import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPreferencesHelper {
@@ -25,16 +24,16 @@ class SharedPreferencesHelper {
   }
 
   // Load language at app start
-  static Future<void> loadSavedLanguage() async {
+  static Future<Locale> loadSavedLanguage() async {
     final prefs = await SharedPreferences.getInstance();
     final code = prefs.getString('language_code') ?? 'EN';
     print('Loaded saved language: $code'); // 🔹 Debug print
-    if (code == 'de') {
-      Get.updateLocale(const Locale('de', 'DE'));
+    if (code.toLowerCase() == 'de') {
       print('Locale set to Deutsch'); // 🔹 Debug print
+      return const Locale('de', 'DE');
     } else {
-      Get.updateLocale(const Locale('en', 'US'));
       print('Locale set to English'); // 🔹 Debug print
+      return const Locale('en', 'US');
     }
   }
 

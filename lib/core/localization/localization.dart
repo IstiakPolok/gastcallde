@@ -338,6 +338,9 @@ class AppTranslations extends Translations {
       'free_limit_days': 'You have @days days of Free Limit',
       'logout': 'Log out',
       'subscription_needed': 'Subscription Needed',
+      'delivery_management': 'Delivery Management',
+      'collapse': 'Collapse',
+      'expand': 'Expand',
 
       // Subscription Screens
       'restaurant_overview': 'Restaurant Overview',
@@ -357,6 +360,67 @@ class AppTranslations extends Translations {
       'cheese': 'Cheese',
       'avocado': 'Avocado',
       'extra_patty': 'Extra Patty',
+
+      // Call Screen
+      'play_recording': 'Play Recording',
+      'close': 'Close',
+      'callback_status': 'Callback Status',
+      'order': 'Order',
+
+      // Report Issue
+      'report_issue': 'Report an Issue',
+      'issue_hint': 'e.g., Issue with approval process',
+      'issue_details': 'Issue details',
+      'drop_files': 'Drop your files here or ',
+      'click_to_upload': 'Click to upload',
+      'selected': 'Selected',
+      'file_format_hint': 'SVG, PNG, JPG or GIF (max. 800x400px)',
+      'submit': 'Submit',
+      'issue_submitted_success': '✅ Issue submitted successfully',
+      'issue_submit_failed': '❌ Failed to submit issue',
+      'no_token_found': '❌ No token found',
+
+      // Reservation Settings
+      'edit_table': 'Edit Table',
+      'table_updated_success': '✅ Table updated successfully',
+      'table_update_failed': '❌ Failed to update table',
+
+      // Settings Screen
+      'general': 'General',
+      'call_forwarding': 'Call Forwarding',
+      'admin_support': 'Admin Support',
+      'ai_voice_settings': 'AI Voice Settings',
+      'choose_voice': 'Choose voice',
+      'select_ai_voice_desc': 'Select AI voice for restaurant calls',
+      'no_ai_assistant': 'No AI Assistant',
+      'not_assigned_admin': 'Not assigned from admin',
+      'ai_voice_assistant': 'AI Voice Assistant',
+      'select_voice': 'Select Voice',
+      'voice_speed': 'Voice speed',
+      'adjust_voice_speed_desc': 'Adjust the speaking speed of AI voice',
+      'enter_restaurant_address': 'Enter restaurant address',
+      'update_address': 'Update Address',
+      'address_empty_error': 'Address cannot be empty',
+      'address_update_success': 'Restaurant address updated successfully',
+      'address_update_failed': 'Failed to update address',
+
+      // Call Forwarding
+      'how_to_forward': 'How to Forward a call',
+      'call_forwarding_desc':
+          'Call forwarding ensures you never miss a customer call, even when you\'re away from the restaurant...',
+      'original_number': 'Original Number (Your restaurant)',
+      'ai_assigned_number': 'AI-Assigned Number',
+      'copied_to_clipboard': 'Copied to clipboard!',
+      'forwarding_mode': 'Forwarding Mode',
+      'always_forward': 'Always Forward',
+      'forward_during_opening_hours': 'Forward During Opening Hours',
+      'disable_forwarding': 'Disable Forwarding',
+      'phone_number_empty_error': 'Phone number cannot be empty',
+      'select_forwarding_mode_error': 'Please select a forwarding mode',
+      'settings_updated_success':
+          'Phone number and forwarding mode updated successfully',
+      'settings_update_failed': 'Failed to update settings',
+      'enter_phone_number': 'Enter phone number',
     },
 
     'de_DE': {
@@ -702,6 +766,9 @@ class AppTranslations extends Translations {
       'free_limit_days': 'Sie haben noch @days Tage kostenloses Limit',
       'logout': 'Abmelden',
       'subscription_needed': 'Abo erforderlich',
+      'delivery_management': 'Lieferverwaltung',
+      'collapse': 'Einklappen',
+      'expand': 'Ausklappen',
 
       // Subscription Screens
       'restaurant_overview': 'Restaurant-Übersicht',
@@ -722,6 +789,69 @@ class AppTranslations extends Translations {
       'cheese': 'Käse',
       'avocado': 'Avocado',
       'extra_patty': 'Extra Patty',
+
+      // Call Screen
+      'play_recording': 'Aufnahme abspielen',
+      'close': 'Schließen',
+      'callback_status': 'Rückrufstatus',
+      'order': 'Bestellung',
+
+      // Report Issue
+      'report_issue': 'Problem melden',
+      'issue_hint': 'z. B. Problem mit dem Genehmigungsprozess',
+      'issue_details': 'Problemdetails',
+      'drop_files': 'Dateien hier ablegen oder ',
+      'click_to_upload': 'Klicken zum Hochladen',
+      'selected': 'Ausgewählt',
+      'file_format_hint': 'SVG, PNG, JPG oder GIF (max. 800x400px)',
+      'submit': 'Absenden',
+      'issue_submitted_success': '✅ Problem erfolgreich gemeldet',
+      'issue_submit_failed': '❌ Problem konnte nicht gemeldet werden',
+      'no_token_found': '❌ Kein Token gefunden',
+
+      // Reservation Settings
+      'edit_table': 'Tisch bearbeiten',
+      'table_updated_success': '✅ Tisch erfolgreich aktualisiert',
+      'table_update_failed': '❌ Tisch konnte nicht aktualisiert werden',
+
+      // Settings Screen
+      'general': 'Allgemein',
+      'call_forwarding': 'Rufumleitung',
+      'admin_support': 'Admin-Support',
+      'ai_voice_settings': 'KI-Spracheinstellungen',
+      'choose_voice': 'Stimme wählen',
+      'select_ai_voice_desc': 'Wählen Sie eine KI-Stimme für Restaurantanrufe',
+      'no_ai_assistant': 'Kein KI-Assistent',
+      'not_assigned_admin': 'Nicht vom Admin zugewiesen',
+      'ai_voice_assistant': 'KI-Sprachassistent',
+      'select_voice': 'Stimme auswählen',
+      'voice_speed': 'Sprachgeschwindigkeit',
+      'adjust_voice_speed_desc': 'Sprechgeschwindigkeit der KI anpassen',
+      'enter_restaurant_address': 'Restaurantadresse eingeben',
+      'update_address': 'Adresse aktualisieren',
+      'address_empty_error': 'Adresse darf nicht leer sein',
+      'address_update_success': 'Restaurantadresse erfolgreich aktualisiert',
+      'address_update_failed': 'Adresse konnte nicht aktualisiert werden',
+
+      // Call Forwarding
+      'how_to_forward': 'Wie man einen Anruf weiterleitet',
+      'call_forwarding_desc':
+          'Die Anrufweiterleitung stellt sicher, dass Sie keinen Kundenanruf verpassen, auch wenn Sie nicht im Restaurant sind...',
+      'original_number': 'Originalnummer (Ihr Restaurant)',
+      'ai_assigned_number': 'KI-zugewiesene Nummer',
+      'copied_to_clipboard': 'In die Zwischenablage kopiert!',
+      'forwarding_mode': 'Weiterleitungsmodus',
+      'always_forward': 'Immer weiterleiten',
+      'forward_during_opening_hours': 'Während der Öffnungszeiten weiterleiten',
+      'disable_forwarding': 'Weiterleitung deaktivieren',
+      'phone_number_empty_error': 'Telefonnummer darf nicht leer sein',
+      'select_forwarding_mode_error':
+          'Bitte wählen Sie einen Weiterleitungsmodus',
+      'settings_updated_success':
+          'Telefonnummer und Weiterleitungsmodus erfolgreich aktualisiert',
+      'settings_update_failed':
+          'Einstellungen konnten nicht aktualisiert werden',
+      'enter_phone_number': 'Telefonnummer eingeben',
     },
   };
 }

@@ -183,10 +183,10 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                               "${'phone'.tr}: ${customerInfo?['phone'] ?? '-'}",
                             ),
                             Text(
-                              "${'address'.tr}: ${customerInfo?['address'] ?? '-'}",
+                              "${'address'.tr}: ${orderHistory?[0]?['address'] ?? '-'}",
                             ),
                             Text(
-                              "${'joined'.tr}: ${customerInfo?['joined'] ?? '-'}",
+                              "${'joined'.tr}: ${customerInfo?['first_order_create_date'] ?? '-'}",
                             ),
 
                             const SizedBox(height: 20),
@@ -201,28 +201,6 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                             ),
                             Text(
                               "${'total_spent'.tr}: \$${customerInfo?['total_order_price'] ?? 0}",
-                            ),
-
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: <Widget>[
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: const <Widget>[
-                                    Text('Total Orders:'),
-                                    Text('Total Spent:'),
-                                    Text('Last Order:'),
-                                  ],
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: const <Widget>[
-                                    Text('12'),
-                                    Text('\$2450.00'),
-                                    Text('2024-01-15'),
-                                  ],
-                                ),
-                              ],
                             ),
                           ],
                         ),
@@ -265,26 +243,17 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                                   "${'joined'.tr}: ${customerInfo?['joined']}",
                                 ),
                                 const SizedBox(height: 20),
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: <Widget>[
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: const <Widget>[
-                                    Text('Total Orders:'),
-                                    Text('Total Spent:'),
-                                    Text('Last Order:'),
-                                  ],
+                                Text(
+                                  "${'first_order'.tr}: ${(customerInfo?['first_order_create_date'] ?? '').toString().substring(0, 10)}",
                                 ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: const <Widget>[
-                                    Text('12'),
-                                    Text('\$2450.00'),
-                                    Text('2024-01-15'),
-                                  ],
+                                Text(
+                                  "${'last_order'.tr}: ${(customerInfo?['last_order_date'] ?? '').toString().substring(0, 10)}",
+                                ),
+                                Text(
+                                  "${'total_orders'.tr}: ${customerInfo?['total_order'] ?? 0}",
+                                ),
+                                Text(
+                                  "${'total_spent'.tr}: \$${customerInfo?['total_order_price'] ?? 0}",
                                 ),
                               ],
                             ),
@@ -371,7 +340,8 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                                       ...List<Map<String, dynamic>>.from(
                                         orderHistory[index]['order_items'],
                                       ).map((item) {
-                                        final itemData = item['item'] ?? {};
+                                        final itemData =
+                                            item['item_json'] ?? {};
                                         return MenuItemCard(
                                           imagePath:
                                               (itemData['image'] ?? '')
@@ -501,7 +471,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                 ...List<Map<String, dynamic>>.from(
                   orderHistory[index]['order_items'] ?? [],
                 ).map((item) {
-                  final itemData = item['item'] ?? {};
+                  final itemData = item['item_json'] ?? {};
                   return MenuItemCard(
                     imagePath: (itemData['image'] ?? '').isNotEmpty
                         ? itemData['image']
@@ -554,12 +524,6 @@ class MenuItemCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            // Adjust size of avatar based on screen width
-            CircleAvatar(
-              radius: screenWidth < 600 ? 25 : 30, // Smaller radius for mobile
-              backgroundImage: NetworkImage(imagePath),
-              backgroundColor: Colors.grey[200], // Fallback background
-            ),
             const SizedBox(width: 15),
             Expanded(
               child: Row(

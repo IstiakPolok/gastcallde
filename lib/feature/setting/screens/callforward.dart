@@ -51,8 +51,8 @@ class _CallForwardingScreenState extends State<CallForwardingScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Call Forwarding',
+              Text(
+                'call_forwarding'.tr,
                 style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
@@ -60,8 +60,8 @@ class _CallForwardingScreenState extends State<CallForwardingScreen> {
                 ),
               ),
               const SizedBox(height: 15),
-              const Text(
-                'How to Forward a call',
+              Text(
+                'how_to_forward'.tr,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -75,8 +75,8 @@ class _CallForwardingScreenState extends State<CallForwardingScreen> {
                   color: Colors.blue.shade50,
                   borderRadius: BorderRadius.circular(8.0),
                 ),
-                child: const Text(
-                  'Call forwarding ensures you never miss a customer call, even when you\'re away from the restaurant...',
+                child: Text(
+                  'call_forwarding_desc'.tr,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.black54,
@@ -92,7 +92,7 @@ class _CallForwardingScreenState extends State<CallForwardingScreen> {
                   Expanded(
                     child: _buildEditableTextField(
                       controller: _phoneController,
-                      labelText: 'Original Number (Your restaurant)',
+                      labelText: 'original_number'.tr,
                       hintText: restaurantController.phoneNumber1.value,
                     ),
                   ),
@@ -100,7 +100,7 @@ class _CallForwardingScreenState extends State<CallForwardingScreen> {
                   Expanded(
                     child: _buildTextField(
                       initialValue: restaurantController.twilioNumber.value,
-                      labelText: 'AI-Assigned Number',
+                      labelText: 'ai_assigned_number'.tr,
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.copy, color: Colors.grey),
                         onPressed: () {
@@ -110,9 +110,7 @@ class _CallForwardingScreenState extends State<CallForwardingScreen> {
                             ),
                           );
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Copied to clipboard!'),
-                            ),
+                            SnackBar(content: Text('copied_to_clipboard'.tr)),
                           );
                         },
                       ),
@@ -123,8 +121,8 @@ class _CallForwardingScreenState extends State<CallForwardingScreen> {
               const SizedBox(height: 24),
 
               // Forwarding Mode section
-              const Text(
-                'Forwarding Mode',
+              Text(
+                'forwarding_mode'.tr,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -148,15 +146,15 @@ class _CallForwardingScreenState extends State<CallForwardingScreen> {
                 child: Column(
                   children: [
                     _buildRadioListTile(
-                      title: 'Always Forward',
+                      title: 'always_forward'.tr,
                       value: 'always_forward',
                     ),
                     _buildRadioListTile(
-                      title: 'Forward During Opening Hours',
+                      title: 'forward_during_opening_hours'.tr,
                       value: 'forward_during_opening_hours',
                     ),
                     _buildRadioListTile(
-                      title: 'Disable Forwarding',
+                      title: 'disable_forwarding'.tr,
                       value: 'disable_forwarding',
                     ),
                   ],
@@ -181,8 +179,8 @@ class _CallForwardingScreenState extends State<CallForwardingScreen> {
 
                               if (newPhoneNumber.isEmpty) {
                                 Get.snackbar(
-                                  'Error',
-                                  'Phone number cannot be empty',
+                                  'error'.tr,
+                                  'phone_number_empty_error'.tr,
                                   snackPosition: SnackPosition.BOTTOM,
                                   backgroundColor: Colors.red,
                                   colorText: Colors.white,
@@ -195,8 +193,8 @@ class _CallForwardingScreenState extends State<CallForwardingScreen> {
 
                               if (_forwardingMode == null) {
                                 Get.snackbar(
-                                  'Error',
-                                  'Please select a forwarding mode',
+                                  'error'.tr,
+                                  'select_forwarding_mode_error'.tr,
                                   snackPosition: SnackPosition.BOTTOM,
                                   backgroundColor: Colors.red,
                                   colorText: Colors.white,
@@ -219,16 +217,16 @@ class _CallForwardingScreenState extends State<CallForwardingScreen> {
 
                               if (success) {
                                 Get.snackbar(
-                                  'Success',
-                                  'Phone number and forwarding mode updated successfully',
+                                  'success'.tr,
+                                  'settings_updated_success'.tr,
                                   snackPosition: SnackPosition.BOTTOM,
                                   backgroundColor: Colors.green,
                                   colorText: Colors.white,
                                 );
                               } else {
                                 Get.snackbar(
-                                  'Error',
-                                  'Failed to update settings',
+                                  'error'.tr,
+                                  'settings_update_failed'.tr,
                                   snackPosition: SnackPosition.BOTTOM,
                                   backgroundColor: Colors.red,
                                   colorText: Colors.white,
@@ -251,8 +249,8 @@ class _CallForwardingScreenState extends State<CallForwardingScreen> {
                                 strokeWidth: 2,
                               ),
                             )
-                          : const Text(
-                              'Save',
+                          : Text(
+                              'save'.tr,
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.white,
@@ -399,7 +397,7 @@ class _CallForwardingScreenState extends State<CallForwardingScreen> {
               borderRadius: BorderRadius.circular(8.0),
               borderSide: const BorderSide(color: Colors.teal, width: 2),
             ),
-            hintText: hintText ?? 'Enter phone number',
+            hintText: hintText ?? 'enter_phone_number'.tr,
             hintStyle: const TextStyle(color: Colors.grey),
           ),
         ),

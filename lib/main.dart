@@ -3,6 +3,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gastcallde/core/localization/localization.dart';
 import 'package:gastcallde/core/services_class/connectivity_service.dart';
+import 'package:gastcallde/core/services_class/local_service/shared_preferences_helper.dart';
 import 'package:gastcallde/feature/orderManagment/controllers/order_controller.dart';
 import 'package:gastcallde/route/app_routes.dart';
 import 'package:get/get.dart';
@@ -11,6 +12,9 @@ import 'package:google_fonts/google_fonts.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Load saved language preference before starting the app
+  final savedLocale = await SharedPreferencesHelper.loadSavedLanguage();
+
   // Initialize only essential services at startup
   // OrderController will be lazily initialized when needed
   Get.lazyPut<OrderController>(() => OrderController(), fenix: true);
@@ -18,7 +22,7 @@ void main() async {
 
   configEasyLoading();
 
-  runApp(MyApp());
+  runApp(MyApp(initialLocale: savedLocale));
 }
 
 void configEasyLoading() {
@@ -33,8 +37,9 @@ void configEasyLoading() {
 }
 
 class MyApp extends StatelessWidget {
-  @override
-  const MyApp({super.key});
+  final Locale initialLocale;
+
+  const MyApp({super.key, required this.initialLocale});
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +54,7 @@ class MyApp extends StatelessWidget {
         getPages: AppRoute.routes,
         initialRoute: AppRoute.splashScreen,
         translations: AppTranslations(),
-        locale: const Locale('en', 'US'),
+        locale: initialLocale,
         fallbackLocale: const Locale('en', 'US'),
         theme: ThemeData(
           scaffoldBackgroundColor: Colors.white,

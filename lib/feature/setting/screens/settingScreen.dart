@@ -23,7 +23,7 @@ class settingScreen extends StatelessWidget {
     final isMobile = screenWidth < breakpoint;
 
     return Scaffold(
-      appBar: isMobile ? AppBar(title: const Text(' ')) : null,
+      appBar: isMobile ? AppBar(title: Text(' ')) : null,
       drawer: isMobile
           ? ValueListenableBuilder<int>(
               valueListenable: _selectedIndexNotifier,
@@ -134,9 +134,9 @@ class _SettingsScreenState extends State<SettingsScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,
-            children: const [
+            children: [
               Text(
-                'Settings',
+                'settings'.tr,
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -145,7 +145,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               ),
               SizedBox(height: 8),
               Text(
-                'Live Overview of your restaurant\'s',
+                'live_overview'.tr,
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
             ],
@@ -164,11 +164,11 @@ class _SettingsScreenState extends State<SettingsScreen>
               indicatorWeight: 3.0,
               indicatorSize: TabBarIndicatorSize.label,
               labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-              tabs: const [
-                Tab(text: 'General'),
-                Tab(text: 'Call Forwarding'),
-                Tab(text: 'Reservation Settings'),
-                Tab(text: 'Admin Support'),
+              tabs: [
+                Tab(text: 'general'.tr),
+                Tab(text: 'call_forwarding'.tr),
+                Tab(text: 'reservation_settings'.tr),
+                Tab(text: 'admin_support'.tr),
               ],
             ),
           ),
@@ -190,7 +190,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: [
-        _buildSectionTitle('AI Voice Settings'),
+        _buildSectionTitle('ai_voice_settings'.tr),
         Obx(() {
           if (assistantController.isLoading.value) {
             return _buildCard(
@@ -201,8 +201,8 @@ class _SettingsScreenState extends State<SettingsScreen>
           return _buildCard(
             children: [
               _buildSettingRow(
-                'Choose voice',
-                'Select AI voice for restaurant calls',
+                'choose_voice'.tr,
+                'select_ai_voice_desc'.tr,
                 Row(
                   children: [
                     Container(
@@ -225,7 +225,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         children: [
                           Text(
                             assistantController.assistantId.value == 0
-                                ? 'No AI Assistant'
+                                ? 'no_ai_assistant'.tr
                                 : assistantController.getVoiceDisplayName(
                                     assistantController.voice.value,
                                   ),
@@ -233,8 +233,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                           ),
                           Text(
                             assistantController.assistantId.value == 0
-                                ? 'Not assigned from admin'
-                                : 'AI Voice Assistant',
+                                ? 'not_assigned_admin'.tr
+                                : 'ai_voice_assistant'.tr,
                             style: const TextStyle(
                               color: Colors.grey,
                               fontSize: 12,
@@ -268,7 +268,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         value: assistantController.voice.value.isEmpty
                             ? null
                             : assistantController.voice.value.toLowerCase(),
-                        hint: const Text('Select Voice'),
+                        hint: Text('select_voice'.tr),
                         onChanged: (newVoice) async {
                           if (newVoice != null) {
                             final success = await assistantController
@@ -318,8 +318,8 @@ class _SettingsScreenState extends State<SettingsScreen>
           return _buildCard(
             children: [
               _buildSettingRow(
-                'Voice speed',
-                'Adjust the speaking speed of AI voice',
+                'voice_speed'.tr,
+                'adjust_voice_speed_desc'.tr,
                 Column(
                   children: [
                     Slider(
@@ -405,7 +405,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         // ),
         const SizedBox(height: 24),
 
-        _buildSectionTitle('Restaurant Address'),
+        _buildSectionTitle('restaurant_address'.tr),
         _buildCard(
           children: [
             Obx(() {
@@ -424,7 +424,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                         color: Colors.grey,
                       ),
                       hintText: restaurantController.address.value.isEmpty
-                          ? 'Enter restaurant address'
+                          ? 'enter_restaurant_address'.tr
                           : restaurantController.address.value,
                       hintStyle: const TextStyle(color: Colors.grey),
                       filled: true,
@@ -462,7 +462,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                               if (newAddress.isEmpty) {
                                 Get.snackbar(
                                   'Error',
-                                  'Address cannot be empty',
+                                  'address_empty_error'.tr,
                                   snackPosition: SnackPosition.BOTTOM,
                                   backgroundColor: Colors.red,
                                   colorText: Colors.white,
@@ -483,7 +483,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                               if (success) {
                                 Get.snackbar(
                                   'Success',
-                                  'Restaurant address updated successfully',
+                                  'address_update_success'.tr,
                                   snackPosition: SnackPosition.BOTTOM,
                                   backgroundColor: Colors.green,
                                   colorText: Colors.white,
@@ -491,7 +491,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                               } else {
                                 Get.snackbar(
                                   'Error',
-                                  'Failed to update address',
+                                  'address_update_failed'.tr,
                                   snackPosition: SnackPosition.BOTTOM,
                                   backgroundColor: Colors.red,
                                   colorText: Colors.white,
@@ -514,8 +514,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                                 strokeWidth: 2,
                               ),
                             )
-                          : const Text(
-                              'Update Address',
+                          : Text(
+                              'update_address'.tr,
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.white,
@@ -763,7 +763,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         //                   strokeWidth: 2,
         //                 ),
         //               )
-        //             : const Text(
+        //             : Text(
         //                 'Update Business Hours',
         //                 style: TextStyle(fontSize: 14, color: Colors.white),
         //               ),
@@ -841,7 +841,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         //     //               strokeWidth: 2,
         //     //             ),
         //     //           )
-        //     //         : const Text(
+        //     //         : Text(
         //     //             'Update Business Hours',
         //     //             style: TextStyle(fontSize: 14, color: Colors.white),
         //     //           ),
@@ -1051,7 +1051,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Update',
                               style: TextStyle(
                                 fontSize: 13,
@@ -1112,7 +1112,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               //                 strokeWidth: 2,
               //               ),
               //             )
-              //           : const Text(
+              //           : Text(
               //               'Save Weekly Schedule',
               //               style: TextStyle(fontSize: 14, color: Colors.white),
               //             ),

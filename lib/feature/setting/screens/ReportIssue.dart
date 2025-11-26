@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 
 import '../../../core/network_caller/endpoints.dart';
 import '../../../core/services_class/local_service/shared_preferences_helper.dart';
+import 'package:get/get.dart';
 
 class ReportIssue extends StatefulWidget {
   const ReportIssue({super.key});
@@ -39,7 +40,7 @@ class _ReportIssueState extends State<ReportIssue> {
     if (token == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text("❌ No token found")));
+      ).showSnackBar(SnackBar(content: Text("no_token_found".tr)));
       return;
     }
 
@@ -67,9 +68,9 @@ class _ReportIssueState extends State<ReportIssue> {
         if (!mounted) return;
 
         // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("✅ Issue submitted successfully")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("issue_submitted_success".tr)));
 
         // ⬅️ Clear the form
         setState(() {
@@ -81,9 +82,9 @@ class _ReportIssueState extends State<ReportIssue> {
         print("❌ Failed to submit issue: $body");
 
         if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("❌ Failed: $body")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("${'issue_submit_failed'.tr}: $body")),
+        );
       }
     } catch (e) {
       print("🔥 Exception: $e");
@@ -91,7 +92,7 @@ class _ReportIssueState extends State<ReportIssue> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("🔥 Error: $e")));
+      ).showSnackBar(SnackBar(content: Text("${'error'.tr}: $e")));
     }
   }
 
@@ -114,7 +115,7 @@ class _ReportIssueState extends State<ReportIssue> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Report an Issue',
+                'report_issue'.tr,
                 style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
@@ -124,13 +125,13 @@ class _ReportIssueState extends State<ReportIssue> {
               const SizedBox(height: 24),
               _buildTextField(
                 controller: _issueSummaryController,
-                hintText: 'e.g., Issue with approval process',
+                hintText: 'issue_hint'.tr,
               ),
               const SizedBox(height: 24),
 
               // Issue Details Section
-              const Text(
-                'Issue details',
+              Text(
+                'issue_details'.tr,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -146,8 +147,8 @@ class _ReportIssueState extends State<ReportIssue> {
               const SizedBox(height: 24),
 
               // Upload File Section
-              const Text(
-                'Upload File',
+              Text(
+                'upload_file'.tr,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -170,8 +171,8 @@ class _ReportIssueState extends State<ReportIssue> {
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  child: const Text(
-                    'Submit',
+                  child: Text(
+                    'submit'.tr,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -303,9 +304,9 @@ class _ReportIssueState extends State<ReportIssue> {
               text: TextSpan(
                 style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
                 children: [
-                  const TextSpan(text: 'Drop your files here or '),
+                  TextSpan(text: 'drop_files'.tr),
                   TextSpan(
-                    text: 'Click to upload',
+                    text: 'click_to_upload'.tr,
                     style: const TextStyle(
                       color: Color(0xFF007BFF), // Blue color for link
                       fontWeight: FontWeight.bold,
@@ -318,14 +319,14 @@ class _ReportIssueState extends State<ReportIssue> {
             if (_selectedFile != null) ...[
               const SizedBox(height: 8),
               Text(
-                "Selected: ${_selectedFile!.path.split('/').last}",
+                "${'selected'.tr}: ${_selectedFile!.path.split('/').last}",
                 style: const TextStyle(fontSize: 12, color: Colors.green),
               ),
             ],
 
             const SizedBox(height: 5),
-            const Text(
-              'SVG, PNG, JPG or GIF (max. 800x400px)',
+            Text(
+              'file_format_hint'.tr,
               style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
             ),
           ],

@@ -44,8 +44,10 @@ class TableModel {
 
 class TableController extends GetxController {
   var tables = <TableModel>[].obs; // Observable list of TableModel
+  var isLoading = false.obs;
 
   Future<void> fetchTables() async {
+    isLoading.value = true;
     final prefs = await SharedPreferences.getInstance();
     final code = prefs.getString('language_code') ?? 'EN';
     final String? token = await SharedPreferencesHelper.getAccessToken();
@@ -79,6 +81,8 @@ class TableController extends GetxController {
       }
     } catch (e) {
       print("Error fetching tables: $e");
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -124,6 +128,7 @@ class TableController extends GetxController {
     }
 
     print("Finished saving tables.");
+    await fetchTables();
   }
 
   // Add tables locally to the observable list

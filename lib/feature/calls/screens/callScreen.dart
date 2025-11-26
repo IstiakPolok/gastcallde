@@ -94,7 +94,7 @@ class CallEntry {
     required this.recording,
   });
 
-  String get callbackStatus => callback ? "Done" : "Callback";
+  String get callbackStatus => callback ? "done" : "callback";
 }
 
 class callDashboard extends StatefulWidget {
@@ -105,8 +105,8 @@ class callDashboard extends StatefulWidget {
 }
 
 class _callDashboardState extends State<callDashboard> {
-  String _selectedCallType = 'All Calls';
-  String _selectedCallbackTab = 'All';
+  String _selectedCallType = 'all_calls';
+  String _selectedCallbackTab = 'all';
   DateTime _currentDate = DateTime.now();
   List<CallEntry> _apiCallLogs = [];
   bool _isLoading = false;
@@ -238,22 +238,22 @@ class _callDashboardState extends State<callDashboard> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Call Details'),
+          title: Text('call_details'.tr),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Date: ${entry.date}'),
-                Text('Time: ${entry.time}'),
-                Text('Customer: ${entry.customer}'),
-                Text('Type: ${entry.type}'),
-                Text('Callback Status: ${entry.callbackStatus}'),
-                Text('Duration: ${entry.duration}'),
+                Text('${'date'.tr}: ${entry.date}'),
+                Text('${'time'.tr}: ${entry.time}'),
+                Text('${'customer'.tr}: ${entry.customer}'),
+                Text('${'type'.tr}: ${entry.type}'),
+                Text('${'callback_status'.tr}: ${entry.callbackStatus.tr}'),
+                Text('${'duration'.tr}: ${entry.duration}'),
                 if (recordingUrl != null)
                   TextButton(
                     onPressed: () {
                       // open link with url_launcher
                     },
-                    child: const Text("🔊 Play Recording"),
+                    child: Text("🔊 ${'play_recording'.tr}"),
                   ),
               ],
             ),
@@ -261,7 +261,7 @@ class _callDashboardState extends State<callDashboard> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
+              child: Text('close'.tr),
             ),
           ],
         );
@@ -287,22 +287,22 @@ class _callDashboardState extends State<callDashboard> {
     return _apiCallLogs.where((entry) {
       // Filter by callback status
       bool matchesCallbackStatus =
-          _selectedCallbackTab == 'All' ||
+          _selectedCallbackTab == 'all' ||
           entry.callbackStatus == _selectedCallbackTab;
 
       // Filter by call type
       bool matchesCallType = false;
       switch (_selectedCallType) {
-        case 'All Calls':
+        case 'all_calls':
           matchesCallType = true;
           break;
-        case 'Customer Services':
+        case 'customer_services':
           matchesCallType = entry.type.toLowerCase().contains('service');
           break;
-        case 'Reservation':
+        case 'reservation':
           matchesCallType = entry.type.toLowerCase().contains('reservation');
           break;
-        case 'Order':
+        case 'order':
           matchesCallType = entry.type.toLowerCase().contains('order');
           break;
         default:
@@ -487,13 +487,13 @@ class _callDashboardState extends State<callDashboard> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _buildCallTypeButton('All Calls', Icons.phone),
+                  _buildCallTypeButton('all_calls', Icons.phone),
                   _buildCallTypeButton(
-                    'Customer Services',
+                    'customer_services',
                     Icons.support_agent,
                   ),
-                  _buildCallTypeButton('Reservation', Icons.calendar_today),
-                  _buildCallTypeButton('Order', Icons.shopping_bag),
+                  _buildCallTypeButton('reservation', Icons.calendar_today),
+                  _buildCallTypeButton('order', Icons.shopping_bag),
                 ],
               ),
             ),
@@ -501,9 +501,9 @@ class _callDashboardState extends State<callDashboard> {
 
             Row(
               children: [
-                _buildCallbackTab('All'),
-                _buildCallbackTab('Done'),
-                _buildCallbackTab('Callback'),
+                _buildCallbackTab('all'),
+                _buildCallbackTab('done'),
+                _buildCallbackTab('callback'),
                 const Spacer(),
                 if (isTablet)
                   SizedBox(
@@ -624,13 +624,13 @@ class _callDashboardState extends State<callDashboard> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             // decoration: BoxDecoration(
-            //   color: entry.callbackStatus == 'Done'
+            //   color: entry.callbackStatus == 'done'
             //       ? AppColors.primaryColor
             //       : Colors.orange.shade100,
             //   borderRadius: BorderRadius.circular(20),
             // ),
             child: Text(
-              entry.callbackStatus,
+              entry.callbackStatus.tr,
               style: TextStyle(
                 color: entry.callbackStatus == 'Done'
                     ? Colors.green.shade800
@@ -690,15 +690,15 @@ class _callDashboardState extends State<callDashboard> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: entry.callbackStatus == 'Done'
+                color: entry.callbackStatus == 'done'
                     ? Colors.green.shade100
                     : Colors.orange.shade100,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                entry.callbackStatus,
+                entry.callbackStatus.tr,
                 style: TextStyle(
-                  color: entry.callbackStatus == 'Done'
+                  color: entry.callbackStatus == 'done'
                       ? Colors.green.shade800
                       : Colors.orange.shade800,
                   fontWeight: FontWeight.bold,
