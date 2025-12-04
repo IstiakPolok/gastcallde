@@ -531,13 +531,14 @@ class _ItemsScreenState extends State<ItemsScreen> {
           TextButton(
             child: const Text('Delete'),
             onPressed: () async {
-              // Close the dialog
+              Get.back(); // Close the dialog
               EasyLoading.show(status: 'Deleting...'); // Show loading indicator
 
               try {
                 await deleteItem(itemId); // Call the delete method
                 EasyLoading.dismiss();
                 Get.snackbar('Success', 'Item deleted successfully');
+                _loadItems(); // Refresh the list
               } catch (error) {
                 EasyLoading.dismiss();
                 Get.snackbar('Error', 'Failed to delete item: $error');

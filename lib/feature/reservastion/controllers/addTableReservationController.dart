@@ -131,12 +131,23 @@ class ReservationApiController {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return jsonDecode(response.body);
       } else {
-        throw Exception("Failed to create reservation: ${response.body}");
+        String errorMessage = response.body;
+        try {
+          final decoded = jsonDecode(response.body);
+          if (decoded is List && decoded.isNotEmpty) {
+            errorMessage = decoded.first.toString();
+          } else if (decoded is Map && decoded.containsKey('message')) {
+            errorMessage = decoded['message'];
+          }
+        } catch (_) {
+          // If parsing fails, use the raw body
+        }
+        throw Exception(errorMessage);
       }
     } catch (e) {
       // Handle any exceptions
       print("Error: $e");
-      throw Exception("Failed to create reservation: $e");
+      rethrow; // Rethrow the original exception instead of wrapping it
     }
   }
 }

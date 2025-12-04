@@ -183,7 +183,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                               "${'phone'.tr}: ${customerInfo?['phone'] ?? '-'}",
                             ),
                             Text(
-                              "${'address'.tr}: ${orderHistory?[0]?['address'] ?? '-'}",
+                              "${'address'.tr}: ${orderHistory[0]['address'] ?? '-'}",
                             ),
                             Text(
                               "${'joined'.tr}: ${customerInfo?['first_order_create_date'] ?? '-'}",

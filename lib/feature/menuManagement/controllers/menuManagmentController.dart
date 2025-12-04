@@ -80,7 +80,7 @@ Future<void> deleteItem(int itemId) async {
     final response = await http.delete(Uri.parse(url), headers: headers);
     if (response.statusCode == 200) {
       print('Item deleted successfully');
-      Get.to(menuManagement());
+      // Get.to(menuManagement()); // Removed to prevent unnecessary navigation
     } else {
       throw Exception('Failed to delete item');
     }
