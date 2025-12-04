@@ -67,6 +67,11 @@ class _UploadFilesPageState extends State<UploadFilesPage> {
 
   Future<void> uploadFiles() async {
     try {
+      if (selectedFiles.isEmpty) {
+        Get.snackbar('Error', 'Please select files to upload');
+        return;
+      }
+
       var uri = Uri.parse(apiUrl);
 
       // Debug: Print the API URL
@@ -92,8 +97,13 @@ class _UploadFilesPageState extends State<UploadFilesPage> {
         );
       }
 
-      // Send the request
-      var response = await request.send();
+      // Send the request with timeout
+      var response = await request.send().timeout(
+        const Duration(seconds: 120), // 2 minutes timeout
+        onTimeout: () {
+          throw Exception('Upload timed out. Please try with fewer or smaller files.');
+        },
+      );
 
       // Debug: Print response status and headers
       print('Response status code: ${response.statusCode}');
@@ -115,7 +125,25 @@ class _UploadFilesPageState extends State<UploadFilesPage> {
       }
     } catch (e) {
       print('Error: $e');
-      Get.snackbar('Error', 'An error occurred during the upload');
+      
+      String errorMessage = 'An error occurred during the upload';
+      
+      if (e.toString().contains('Connection reset')) {
+        errorMessage = 'Connection lost. Please check your internet and try again.';
+      } else if (e.toString().contains('timed out')) {
+        errorMessage = 'Upload timed out. Try uploading fewer files at once.';
+      } else if (e.toString().contains('SocketException')) {
+        errorMessage = 'Network error. Please check your connection.';
+      }
+      
+      Get.snackbar(
+        'Upload Failed',
+        errorMessage,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 5),
+      );
     }
   }
 

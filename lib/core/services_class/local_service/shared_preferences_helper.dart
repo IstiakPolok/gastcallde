@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:ui';
-import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPreferencesHelper {
@@ -10,6 +9,7 @@ class SharedPreferencesHelper {
   static const String _isWelcomeDialogShownKey =
       'isDriverVerificationDialogShown';
   static const String _restaurantIdKey = 'restaurant_id';
+  static const String _refreshTokenKey = 'refresh_token';
 
   static Future<void> saveLanguage(String code) async {
     final prefs = await SharedPreferences.getInstance();
@@ -17,17 +17,23 @@ class SharedPreferencesHelper {
     print('Saved language: $code'); // 🔹 Debug print
   }
 
+  // Get current language code
+  static Future<String> getLanguage() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('language_code') ?? 'EN';
+  }
+
   // Load language at app start
-  static Future<void> loadSavedLanguage() async {
+  static Future<Locale> loadSavedLanguage() async {
     final prefs = await SharedPreferences.getInstance();
     final code = prefs.getString('language_code') ?? 'EN';
     print('Loaded saved language: $code'); // 🔹 Debug print
-    if (code == 'de') {
-      Get.updateLocale(const Locale('de', 'DE'));
+    if (code.toLowerCase() == 'de') {
       print('Locale set to Deutsch'); // 🔹 Debug print
+      return const Locale('de', 'DE');
     } else {
-      Get.updateLocale(const Locale('en', 'US'));
       print('Locale set to English'); // 🔹 Debug print
+      return const Locale('en', 'US');
     }
   }
 
@@ -163,6 +169,29 @@ class SharedPreferencesHelper {
     await clearAllData();
     print('User logged out and data cleared');
     // Get.offAll(() => LoginView());
+  }
+
+  static Future<void> saveRefreshToken(String refreshToken) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      bool saved = await prefs.setString(_refreshTokenKey, refreshToken);
+      print('✅ Refresh token saved: $saved');
+    } catch (e) {
+      print('❌ Error saving refresh token: $e');
+    }
+  }
+
+  // 🔹 Retrieve refresh token
+  static Future<String?> getRefreshToken() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString(_refreshTokenKey);
+      print('📥 Retrieved refresh token: $token');
+      return token;
+    } catch (e) {
+      print('❌ Error retrieving refresh token: $e');
+      return null;
+    }
   }
 
   // Save the User ID

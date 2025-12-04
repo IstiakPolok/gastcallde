@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:gastcallde/feature/auth/login/screens/loginScreen.dart';
 import 'package:get/get.dart';
 
+import '../../core/const/app_colors.dart';
+import '../dashboard/screens/dashboard.dart';
+
 class paymentCompleteScreen extends StatelessWidget {
   const paymentCompleteScreen({super.key});
 
@@ -32,7 +35,7 @@ class paymentCompleteScreen extends StatelessWidget {
                 child: IconButton(
                   icon: const Icon(Icons.close, color: Colors.black),
                   onPressed: () {
-                    Get.offAll(LoginScreen());
+                    Get.offAll(Dashboard());
                     debugPrint('Close button pressed!');
                   },
                 ),
@@ -45,16 +48,16 @@ class paymentCompleteScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12.0),
                 decoration: const BoxDecoration(
-                  color: Color(0xFF4C8D9B),
+                  color: AppColors.primaryColor,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.check, color: Colors.white, size: 48),
               ),
               const SizedBox(height: 20.0),
               // Main text
-              const Text(
-                'Submission Complete!',
-                style: TextStyle(
+              Text(
+                'submission_complete'.tr,
+                style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF003D5C),
@@ -62,18 +65,14 @@ class paymentCompleteScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8.0),
+
               // Sub text 1
-              const Text(
-                'Your request has been successfully submitted',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 40.0),
+
               // "Wait for Admin Approval" button
               ElevatedButton(
                 onPressed: () {
                   Get.offAll(LoginScreen());
-                  debugPrint('Wait for Admin Approval button pressed!');
+                  debugPrint('Dashboard  button pressed!');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(
@@ -88,21 +87,17 @@ class paymentCompleteScreen extends StatelessWidget {
                   ),
                   elevation: 0,
                 ),
-                child: const Text(
-                  'Wait for Admin Approval',
-                  style: TextStyle(
+                child: Text(
+                  'back'.tr,
+                  style: const TextStyle(
                     fontSize: 16,
                     color: Color(0xFF4C8D9B), // Custom blue text color
                   ),
                 ),
               ),
               const SizedBox(height: 20.0),
+
               // Bottom text
-              const Text(
-                'Your submission is currently being reviewed by our team',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
             ],
           ),
         ),

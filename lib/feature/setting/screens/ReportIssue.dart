@@ -1,6 +1,14 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
+import 'package:http/http.dart' as http;
+
+import '../../../core/network_caller/endpoints.dart';
+import '../../../core/services_class/local_service/shared_preferences_helper.dart';
+import 'package:get/get.dart';
 
 class ReportIssue extends StatefulWidget {
   const ReportIssue({super.key});
@@ -12,6 +20,81 @@ class ReportIssue extends StatefulWidget {
 class _ReportIssueState extends State<ReportIssue> {
   final TextEditingController _issueSummaryController = TextEditingController();
   final TextEditingController _issueDetailsController = TextEditingController();
+  File? _selectedFile;
+
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'png', 'gif', 'svg'],
+    );
+
+    if (result != null && result.files.single.path != null) {
+      setState(() {
+        _selectedFile = File(result.files.single.path!);
+      });
+    }
+  }
+
+  Future<void> _submitIssue() async {
+    final token = await SharedPreferencesHelper.getAccessToken();
+    if (token == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("no_token_found".tr)));
+      return;
+    }
+
+    final url = Uri.parse("${Urls.baseUrl}/owner/create-support/");
+    final request = http.MultipartRequest('POST', url);
+
+    request.headers['Authorization'] = "Bearer $token";
+
+    request.fields['issue'] = _issueSummaryController.text.trim();
+    request.fields['issue_details'] = _issueDetailsController.text.trim();
+
+    if (_selectedFile != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath('uploaded_file', _selectedFile!.path),
+      );
+    }
+
+    try {
+      final response = await request.send();
+      final body = await response.stream.bytesToString();
+
+      if (response.statusCode == 201) {
+        print("✅ Issue reported successfully: $body");
+
+        if (!mounted) return;
+
+        // Show success message
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("issue_submitted_success".tr)));
+
+        // ⬅️ Clear the form
+        setState(() {
+          _issueSummaryController.clear();
+          _issueDetailsController.clear();
+          _selectedFile = null;
+        });
+      } else {
+        print("❌ Failed to submit issue: $body");
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("${'issue_submit_failed'.tr}: $body")),
+        );
+      }
+    } catch (e) {
+      print("🔥 Exception: $e");
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("${'error'.tr}: $e")));
+    }
+  }
 
   @override
   void dispose() {
@@ -24,34 +107,31 @@ class _ReportIssueState extends State<ReportIssue> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC), // Light background color
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Report an Issue',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-          ),
-        ),
-      ),
+
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Issue Summary Text Field
+              Text(
+                'report_issue'.tr,
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                ),
+              ),
+              const SizedBox(height: 24),
               _buildTextField(
                 controller: _issueSummaryController,
-                hintText: 'e.g., Issue with approval process',
+                hintText: 'issue_hint'.tr,
               ),
               const SizedBox(height: 24),
 
               // Issue Details Section
-              const Text(
-                'Issue details',
+              Text(
+                'issue_details'.tr,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -67,8 +147,8 @@ class _ReportIssueState extends State<ReportIssue> {
               const SizedBox(height: 24),
 
               // Upload File Section
-              const Text(
-                'Upload File',
+              Text(
+                'upload_file'.tr,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -77,35 +157,32 @@ class _ReportIssueState extends State<ReportIssue> {
               ),
               const SizedBox(height: 12),
               _buildFileUploadArea(),
+              const SizedBox(height: 24),
+
+              // Submit Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _submitIssue,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: Text(
+                    'submit'.tr,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
             ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: ElevatedButton(
-          onPressed: () {
-            // Handle submit action
-            print('Submit button pressed!');
-            print('Issue Summary: ${_issueSummaryController.text}');
-            print('Issue Details: ${_issueDetailsController.text}');
-            // Add file upload logic here
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor:
-                AppColors.primaryColor, // Blue color for submit button
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-          child: const Text(
-            'Submit',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
           ),
         ),
       ),
@@ -227,25 +304,29 @@ class _ReportIssueState extends State<ReportIssue> {
               text: TextSpan(
                 style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
                 children: [
-                  const TextSpan(text: 'Drop your files here or '),
+                  TextSpan(text: 'drop_files'.tr),
                   TextSpan(
-                    text: 'Click to upload',
+                    text: 'click_to_upload'.tr,
                     style: const TextStyle(
                       color: Color(0xFF007BFF), // Blue color for link
                       fontWeight: FontWeight.bold,
                     ),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () {
-                        // Handle click to upload
-                        print('Click to upload tapped!');
-                      },
+                    recognizer: TapGestureRecognizer()..onTap = _pickFile,
                   ),
                 ],
               ),
             ),
+            if (_selectedFile != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                "${'selected'.tr}: ${_selectedFile!.path.split('/').last}",
+                style: const TextStyle(fontSize: 12, color: Colors.green),
+              ),
+            ],
+
             const SizedBox(height: 5),
-            const Text(
-              'SVG, PNG, JPG or GIF (max. 800x400px)',
+            Text(
+              'file_format_hint'.tr,
               style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
             ),
           ],

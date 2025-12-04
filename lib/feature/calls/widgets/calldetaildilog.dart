@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
+import 'package:get/get.dart';
 import 'package:gastcallde/core/network_caller/endpoints.dart';
 import 'package:gastcallde/core/services_class/local_service/shared_preferences_helper.dart';
 import 'package:gastcallde/feature/calls/screens/callScreen.dart';
@@ -20,6 +21,12 @@ class CallDetailsDialog extends StatefulWidget {
 class _CallDetailsDialogState extends State<CallDetailsDialog> {
   late AudioPlayer audioPlayer;
   bool isPlaying = false;
+  String _formatTime(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return "$minutes:$seconds";
+  }
 
   @override
   void initState() {
@@ -100,9 +107,9 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Call Details',
-                        style: TextStyle(
+                      Text(
+                        'call_details'.tr,
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -136,7 +143,7 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
                           vertical: 8.0,
                         ),
                       ),
-                      child: const Text('Callback'),
+                      child: Text('callback'.tr),
                     )
                   else
                     Container(
@@ -148,9 +155,9 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
                         color: Colors.green.shade100,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text(
-                        "Done",
-                        style: TextStyle(color: Colors.green),
+                      child: Text(
+                        "done".tr,
+                        style: const TextStyle(color: Colors.green),
                       ),
                     ),
                 ],
@@ -199,21 +206,21 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
       children: [
         _buildCard(
           titleIcon: Icons.person,
-          title: 'Customer Information',
+          title: 'customer_information'.tr,
           info: [
-            ['Name', (widget.entry.customer)],
-            ['Phone', (widget.entry.phone)],
+            ['name'.tr, (widget.entry.customer)],
+            ['phone'.tr, (widget.entry.phone)],
           ],
         ),
         const SizedBox(height: 16),
         _buildCard(
           titleIcon: Icons.access_time,
-          title: 'Call Information',
+          title: 'call_information'.tr,
           info: [
-            ['Date', (widget.entry.date)],
-            ['Time', (widget.entry.time)],
-            ['Duration', (widget.entry.duration)],
-            ['Type', (widget.entry.type)],
+            ['date'.tr, (widget.entry.date)],
+            ['time'.tr, (widget.entry.time)],
+            ['duration'.tr, (widget.entry.duration)],
+            ['type'.tr, (widget.entry.type)],
           ],
         ),
       ],
@@ -234,9 +241,9 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Call Summary',
-              style: TextStyle(
+            Text(
+              'call_summary'.tr,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF1F2937),
@@ -252,7 +259,7 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
               child: Text(
                 widget.entry.summary.isNotEmpty
                     ? widget.entry.summary
-                    : 'No summary available',
+                    : 'no_summary_available'.tr,
                 style: const TextStyle(
                   fontSize: 14,
                   height: 1.5,
@@ -261,7 +268,60 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
               ),
             ),
             const SizedBox(height: 16),
-            if (widget.entry.recording.isNotEmpty)
+            // Inside your _buildRightColumn() before return
+
+            // --- Audio Player UI ---
+            StreamBuilder<Duration>(
+              stream: audioPlayer.onPositionChanged,
+              builder: (context, snapshot) {
+                final position = snapshot.data ?? Duration.zero;
+                return StreamBuilder<Duration>(
+                  stream: audioPlayer.onDurationChanged,
+                  builder: (context, snapshot) {
+                    final total = snapshot.data ?? Duration.zero;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Slider(
+                          min: 0,
+                          max: total.inSeconds.toDouble(),
+                          value: position.inSeconds
+                              .clamp(0, total.inSeconds)
+                              .toDouble(),
+                          activeColor: AppColors.primaryColor,
+                          onChanged: (value) async {
+                            await audioPlayer.seek(
+                              Duration(seconds: value.toInt()),
+                            );
+                          },
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _formatTime(position),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            Text(
+                              _formatTime(total),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            if (widget.entry.recording.isNotEmpty) ...[
               ElevatedButton.icon(
                 onPressed: _togglePlay,
                 style: ElevatedButton.styleFrom(
@@ -271,9 +331,24 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                icon: Icon(isPlaying ? Icons.stop : Icons.play_arrow),
-                label: Text(isPlaying ? "Stop Recording" : "Play Recording"),
+                icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
+                label: Text(isPlaying ? "Pause" : "Play"),
               ),
+            ],
+
+            // if (widget.entry.recording.isNotEmpty)
+            //   ElevatedButton.icon(
+            //     onPressed: _togglePlay,
+            //     style: ElevatedButton.styleFrom(
+            //       backgroundColor: AppColors.primaryColor,
+            //       foregroundColor: Colors.white,
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(8),
+            //       ),
+            //     ),
+            //     icon: Icon(isPlaying ? Icons.stop : Icons.play_arrow),
+            //     label: Text(isPlaying ? "Stop Recording" : "Play Recording"),
+            //   ),
             const SizedBox(height: 16),
             const Divider(height: 1, color: Color(0xFFE5E7EB)),
             const SizedBox(height: 16),

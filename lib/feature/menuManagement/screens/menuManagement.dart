@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
@@ -103,36 +104,70 @@ class Item {
 
 class ItemsScreen extends StatefulWidget {
   // Changed from StatelessWidget to StatefulWidget
-  ItemsScreen({super.key});
+  const ItemsScreen({super.key});
 
   @override
   State<ItemsScreen> createState() => _ItemsScreenState();
 }
 
 class _ItemsScreenState extends State<ItemsScreen> {
-  final ValueNotifier<int> _selectedIndexNotifier = ValueNotifier<int>(0);
-
   List<Item> _allItems = []; // Store all items
   List<Item> _filteredItems = []; // Filtered items for search
   final TextEditingController _searchController = TextEditingController();
+  bool _isLoading = true;
+  String? _errorMessage;
+  Timer? _debounce; // Timer for debounce
 
   @override
   void initState() {
     super.initState();
-    fetchItems().then((items) {
-      setState(() {
-        _allItems = items;
-        _filteredItems = items;
-      });
-    });
+    _loadItems();
 
     // Listen to search input changes
     _searchController.addListener(() {
-      _filterItems();
+      if (_debounce?.isActive ?? false) _debounce!.cancel();
+      _debounce = Timer(const Duration(milliseconds: 500), () {
+        _filterItems();
+      });
     });
   }
 
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadItems() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final items = await fetchItems();
+      if (!mounted) return;
+      setState(() {
+        _allItems = items;
+        _filteredItems = items;
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = error.toString();
+        _isLoading = false;
+        _allItems = [];
+        _filteredItems = [];
+      });
+      print('Error loading menu items: $error');
+    }
+  }
+
   void _filterItems() {
+    if (!mounted) return;
     final query = _searchController.text.toLowerCase();
 
     setState(() {
@@ -151,9 +186,12 @@ class _ItemsScreenState extends State<ItemsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Items',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        title: Text(
+          'items'.tr,
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -174,10 +212,13 @@ class _ItemsScreenState extends State<ItemsScreen> {
                     ),
                     child: TextField(
                       controller: _searchController, // <-- Added controller
-                      decoration: const InputDecoration(
-                        hintText: 'Search by name or category', // Updated hint
+                      decoration: InputDecoration(
+                        hintText: 'search_hint'.tr, // Updated hint
                         border: InputBorder.none,
-                        prefixIcon: Icon(Icons.search, color: Colors.grey),
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Colors.grey,
+                        ),
                       ),
                     ),
                   ),
@@ -189,7 +230,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
                   },
                   icon: const Icon(Icons.add, color: Colors.white),
                   label: Text(
-                    'Add Item',
+                    'add_item'.tr,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: isTablet ? 16 : 12,
@@ -210,37 +251,14 @@ class _ItemsScreenState extends State<ItemsScreen> {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: FutureBuilder<List<Item>>(
-                future: fetchItems(), // API call
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  }
-                  if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  }
-
-                  final allItems = snapshot.data ?? [];
-
-                  // Filter items based on search text
-                  final query = _searchController.text
-                      .toLowerCase(); // <-- search controller
-                  final filteredItems = allItems.where((item) {
-                    final nameMatch = item.name.toLowerCase().contains(query);
-                    final categoryMatch = item.category.toLowerCase().contains(
-                      query,
-                    );
-                    return nameMatch ||
-                        categoryMatch; // search in name OR category
-                  }).toList();
-
-                  if (filteredItems.isEmpty) {
-                    return const Center(child: Text('No items found'));
-                  }
-
-                  // Tablet layout
-                  if (isTablet) {
-                    return Column(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _errorMessage != null
+                  ? Center(child: Text('Error: $_errorMessage'))
+                  : _filteredItems.isEmpty
+                  ? Center(child: Text('no_items_found'.tr))
+                  : isTablet
+                  ? Column(
                       children: [
                         Container(
                           decoration: BoxDecoration(
@@ -253,15 +271,15 @@ class _ItemsScreenState extends State<ItemsScreen> {
                             ),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12.0),
-                          child: const Row(
+                          child: Row(
                             children: [
                               Expanded(
                                 flex: 3,
                                 child: Padding(
                                   padding: EdgeInsets.only(left: 8.0),
                                   child: Text(
-                                    'Item',
-                                    style: TextStyle(
+                                    'item'.tr,
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -270,29 +288,37 @@ class _ItemsScreenState extends State<ItemsScreen> {
                               Expanded(
                                 flex: 2,
                                 child: Text(
-                                  'Status',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  'status'.tr,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                               Expanded(
                                 flex: 2,
                                 child: Text(
-                                  'Category',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  'category'.tr,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                               Expanded(
                                 flex: 1,
                                 child: Text(
-                                  'Price',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  'price'.tr,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                               Expanded(
                                 flex: 2,
                                 child: Text(
-                                  'Action',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  'action'.tr,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                   textAlign: TextAlign.center,
                                 ),
                               ),
@@ -301,9 +327,9 @@ class _ItemsScreenState extends State<ItemsScreen> {
                         ),
                         Expanded(
                           child: ListView.builder(
-                            itemCount: filteredItems.length,
+                            itemCount: _filteredItems.length,
                             itemBuilder: (context, index) {
-                              final item = filteredItems[index];
+                              final item = _filteredItems[index];
                               return Padding(
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 8.0,
@@ -314,19 +340,14 @@ class _ItemsScreenState extends State<ItemsScreen> {
                           ),
                         ),
                       ],
-                    );
-                  }
-
-                  // Mobile layout
-                  return ListView.builder(
-                    itemCount: filteredItems.length,
-                    itemBuilder: (context, index) {
-                      final item = filteredItems[index];
-                      return _buildMobileItemCard(item, context);
-                    },
-                  );
-                },
-              ),
+                    )
+                  : ListView.builder(
+                      itemCount: _filteredItems.length,
+                      itemBuilder: (context, index) {
+                        final item = _filteredItems[index];
+                        return _buildMobileItemCard(item, context);
+                      },
+                    ),
             ),
           ],
         ),
@@ -510,13 +531,14 @@ class _ItemsScreenState extends State<ItemsScreen> {
           TextButton(
             child: const Text('Delete'),
             onPressed: () async {
-              // Close the dialog
+              Get.back(); // Close the dialog
               EasyLoading.show(status: 'Deleting...'); // Show loading indicator
 
               try {
                 await deleteItem(itemId); // Call the delete method
                 EasyLoading.dismiss();
                 Get.snackbar('Success', 'Item deleted successfully');
+                _loadItems(); // Refresh the list
               } catch (error) {
                 EasyLoading.dismiss();
                 Get.snackbar('Error', 'Failed to delete item: $error');

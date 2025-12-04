@@ -3,39 +3,19 @@ class FoodItem {
   final String name;
   final double price;
   int quantity;
-  final List<String> extras;
-  final String specialInstructions; // new field
+  final String extras; // Changed from List<String> to String
+  final double extrasPrice; // Now stored as field
+  final String specialInstructions;
 
   FoodItem({
     required this.id,
     required this.name,
     required this.price,
     this.quantity = 1,
-    this.extras = const [],
+    this.extras = "",
+    this.extrasPrice = 0.0,
     this.specialInstructions = "",
   });
-
-  // Calculate extra prices
-  double get extrasPrice {
-    double total = 0;
-    for (var extra in extras) {
-      switch (extra) {
-        case 'Bacon':
-          total += 2.5;
-          break;
-        case 'Cheese':
-          total += 1.5;
-          break;
-        case 'Avocado':
-          total += 2.0;
-          break;
-        case 'Extra Patty':
-          total += 4.0;
-          break;
-      }
-    }
-    return total;
-  }
 
   double get totalPrice => price + extrasPrice;
 
@@ -44,26 +24,27 @@ class FoodItem {
     return {
       "item": id,
       "quantity": quantity,
-      "extras": extras.join(", "),
-      "extras_price": extrasPrice,
+      "extras": extras,
+      "extras_price": extrasPrice.toString(),
       "special_instructions": specialInstructions,
     };
   }
 
   // ✅ Factory method to create FoodItem from API JSON
-  factory FoodItem.fromJson(Map<String, dynamic> json) {
+  factory FoodItem.fromJson(Map<String, dynamic>? json) {
+    if (json == null) {
+      throw ArgumentError('FoodItem.fromJson received null');
+    }
+
     return FoodItem(
-      id: json['item']['id'],
-      name: json['item']['item_name'],
-      price: double.tryParse(json['price'].toString()) ?? 0.0,
-      quantity: json['quantity'],
-      extras:
-          (json['extras'] as String?)
-              ?.split(',')
-              .map((e) => e.trim())
-              .toList() ??
-          [],
-      specialInstructions: json['special_instructions'] ?? "",
+      id: json['item_json']?['id'] ?? 0,
+      name: json['item_json']?['name'] ?? 'Unknown Item',
+      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
+      quantity: json['quantity'] ?? 1,
+      extras: json['extras']?.toString() ?? "",
+      extrasPrice:
+          double.tryParse(json['extras_price']?.toString() ?? '0') ?? 0.0,
+      specialInstructions: json['special_instructions']?.toString() ?? "",
     );
   }
 }

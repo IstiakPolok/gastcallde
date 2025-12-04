@@ -1,5 +1,7 @@
 class Urls {
-  static const String baseUrl = 'http://10.10.13.26:8000';
+  // static const String baseUrl = 'https://sacred-renewing-dove.ngrok-free.app';
+  // static const String baseUrl = 'http://10.10.13.26:9002';
+  static const String baseUrl = 'https://api.trusttaste.ai';
 
   static const String login = '$baseUrl/login/?lean=';
   static const String register = '$baseUrl/register/?lean=';
@@ -28,4 +30,8 @@ class Urls {
   static const String createGroup = '$baseUrl/group/create';
   static const String myGrouplist = '$baseUrl/group/my-groups';
   static const String groupAddMember = '$baseUrl/group/add';
+  static const String refreshToken = '$baseUrl/token/refresh/';
+  static const String getDeliveryAreas = '$baseUrl/owner/areas/';
+  static const String addDeliveryArea = '$baseUrl/owner/areas/';
+  static const String weeklySchedule = '$baseUrl/owner/open-close-times/';
 }

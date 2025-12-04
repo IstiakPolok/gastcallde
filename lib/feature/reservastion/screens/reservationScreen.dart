@@ -20,9 +20,7 @@ class ReservationScreen extends StatelessWidget {
     final isMobile = screenWidth < breakpoint;
 
     return Scaffold(
-      appBar: isMobile
-          ? AppBar(title: const Text('Reservations Overview'))
-          : null,
+      appBar: isMobile ? AppBar(title: Text('reservations_overview'.tr)) : null,
       drawer: isMobile
           ? ValueListenableBuilder<int>(
               valueListenable: _selectedIndexNotifier,
@@ -249,9 +247,9 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
               const SizedBox(height: 30),
               Column(
                 children: [
-                  const Text(
-                    'Table Reservation',
-                    style: TextStyle(
+                  Text(
+                    'table_reservation'.tr,
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF333333),
@@ -283,7 +281,7 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
                                   horizontal: 30.0,
                                 ),
                                 child: Text(
-                                  'List View',
+                                  'list_view'.tr,
                                   style: TextStyle(
                                     color: isListViewActive
                                         ? Colors.white
@@ -316,7 +314,7 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
                                   horizontal: 30.0,
                                 ),
                                 child: Text(
-                                  'Grid View',
+                                  'grid_view'.tr,
                                   style: TextStyle(
                                     color: !isListViewActive
                                         ? Colors.white
@@ -353,7 +351,7 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
                                             return const CircularProgressIndicator();
                                           } else if (snapshot.hasError) {
                                             return Text(
-                                              'Error: ${snapshot.error}',
+                                              '${'error'.tr}: ${snapshot.error}',
                                             );
                                           } else if (snapshot.hasData) {
                                             final tableStatuses =
@@ -362,9 +360,7 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
                                               tableStatuses,
                                             ); // Display the table status
                                           } else {
-                                            return const Text(
-                                              'No table status data found',
-                                            );
+                                            return Text('no_data_found'.tr);
                                           }
                                         },
                                       ),
@@ -378,15 +374,15 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
                                             return const CircularProgressIndicator();
                                           } else if (snapshot.hasError) {
                                             return Text(
-                                              'Error: ${snapshot.error}',
+                                              '${'error'.tr}: ${snapshot.error}',
                                             );
                                           } else if (snapshot.hasData) {
                                             List<Reservation> data =
                                                 snapshot.data!;
                                             return _buildDataTable(data);
                                           } else {
-                                            return const Text(
-                                              'No reservations found',
+                                            return Text(
+                                              'no_reservations_found'.tr,
                                             );
                                           }
                                         },
@@ -467,8 +463,8 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Table Status',
+        Text(
+          'table_status'.tr,
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: Color(0xFF333333),
@@ -512,9 +508,9 @@ Widget _buildSearchBar(BuildContext context) {
               ),
             ],
           ),
-          child: const TextField(
+          child: TextField(
             decoration: InputDecoration(
-              hintText: 'Search',
+              hintText: 'search'.tr,
               border: InputBorder.none,
               prefixIcon: Icon(Icons.search, color: Colors.grey),
             ),
@@ -525,7 +521,7 @@ Widget _buildSearchBar(BuildContext context) {
       ElevatedButton.icon(
         onPressed: () {},
         icon: const Icon(Icons.sort_by_alpha, size: 20),
-        label: const Text('All Status'),
+        label: Text('all_status'.tr),
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.white,
           backgroundColor: AppColors.primaryColor,
@@ -553,13 +549,13 @@ Widget _buildDataTable(List<Reservation> data) {
           return SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
-              columns: const [
-                DataColumn(label: Text('Table')),
-                DataColumn(label: Text('Time')),
-                DataColumn(label: Text('Person')),
-                DataColumn(label: Text('Name')),
-                DataColumn(label: Text('Phone')),
-                DataColumn(label: Text('Status')),
+              columns: [
+                DataColumn(label: Text('table'.tr)),
+                DataColumn(label: Text('time'.tr)),
+                DataColumn(label: Text('person'.tr)),
+                DataColumn(label: Text('name'.tr)),
+                DataColumn(label: Text('phone'.tr)),
+                DataColumn(label: Text('status'.tr)),
               ],
               rows: data.map((reservation) {
                 return DataRow(
@@ -623,7 +619,7 @@ class _SummaryCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                title,
+                title.tr,
                 style: const TextStyle(
                   fontSize: 16,
                   color: Colors.grey,
@@ -831,14 +827,17 @@ class _HeaderSection extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Reservations & Walk-Ins',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  Text(
+                    'reservations_walk_ins'.tr,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    "Live Overview of your restaurant's",
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                  Text(
+                    'live_overview'.tr,
+                    style: const TextStyle(color: Colors.grey, fontSize: 14),
                   ),
                   const SizedBox(height: 10),
                   Container(
@@ -888,17 +887,20 @@ class _HeaderSection extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Reservations & Walk-Ins',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    'reservations_walk_ins'.tr,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    "Live Overview of your restaurant's",
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                    'live_overview'.tr,
+                    style: const TextStyle(color: Colors.grey, fontSize: 14),
                   ),
                 ],
               ),

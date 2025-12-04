@@ -2,211 +2,539 @@
 
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
+import 'package:gastcallde/feature/delivery/controllers/delivery_info_controller.dart';
 import 'package:gastcallde/feature/orderManagment/models/food_item_model.dart';
 import 'package:get/get.dart';
 import 'controllers/OrderEntryController.dart';
 import 'controllers/MenuController.dart';
 
-class OrderEntryScreen extends StatelessWidget {
-  OrderEntryScreen({super.key});
+class OrderEntryScreen extends StatefulWidget {
+  const OrderEntryScreen({super.key});
 
+  @override
+  State<OrderEntryScreen> createState() => _OrderEntryScreenState();
+}
+
+class _OrderEntryScreenState extends State<OrderEntryScreen> {
   final menuController = Get.put(Menu_Controller());
   final orderEntryController = Get.put(OrderEntryController());
+  final deliveryController = Get.put(DeliveryInfoController());
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch delivery areas once when screen initializes
+    deliveryController.fetchDeliveryAreas();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text('Order Entry'),
+        title: Text('order_entry'.tr),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Get.back(),
         ),
       ),
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Left side: Customer details and menu
-          Expanded(
-            flex: 2,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Customer Info',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: orderEntryController.customerNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Customer Name',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: orderEntryController.addressController,
-                    decoration: const InputDecoration(
-                      labelText: 'Address',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: orderEntryController.phoneController,
-                    decoration: const InputDecoration(
-                      labelText: 'Phone Number',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: orderEntryController.orderNotesController,
-                    decoration: const InputDecoration(
-                      labelText: 'Order Notes',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Menu',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          // Adjust flex based on screen width for better mobile experience
+          int leftFlex = constraints.maxWidth < 600 ? 1 : 2;
 
-                  // Category Filter
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Obx(() {
-                      return SingleChildScrollView(
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left side: Customer details and menu
+              Expanded(
+                flex: leftFlex,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'customer_info'.tr,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: orderEntryController.customerNameController,
+                        decoration: InputDecoration(
+                          labelText: 'customer_name'.tr,
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: orderEntryController.addressController,
+                        decoration: InputDecoration(
+                          labelText: 'address'.tr,
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: orderEntryController.phoneController,
+                        decoration: InputDecoration(
+                          labelText: 'phone_number'.tr,
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: orderEntryController.emailController,
+                        decoration: InputDecoration(
+                          labelText: 'email_optional'.tr,
+                          border: const OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Order Type Selection
+                      Obx(() {
+                        // Check if mobile view
+                        bool isMobile = MediaQuery.of(context).size.width < 600;
+
+                        return Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'order_type'.tr,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              // Use Column for mobile, Row for desktop
+                              isMobile
+                                  ? Column(
+                                      children: [
+                                        RadioListTile<String>(
+                                          title: Text('delivery'.tr),
+                                          value: 'delivery',
+                                          groupValue: orderEntryController
+                                              .orderType
+                                              .value,
+                                          onChanged: (value) {
+                                            orderEntryController
+                                                    .orderType
+                                                    .value =
+                                                value!;
+                                          },
+                                          contentPadding: EdgeInsets.zero,
+                                          dense: true,
+                                        ),
+                                        RadioListTile<String>(
+                                          title: Text('pickup'.tr),
+                                          value: 'pickup',
+                                          groupValue: orderEntryController
+                                              .orderType
+                                              .value,
+                                          onChanged: (value) {
+                                            orderEntryController
+                                                    .orderType
+                                                    .value =
+                                                value!;
+                                          },
+                                          contentPadding: EdgeInsets.zero,
+                                          dense: true,
+                                        ),
+                                      ],
+                                    )
+                                  : Row(
+                                      children: [
+                                        Expanded(
+                                          child: RadioListTile<String>(
+                                            title: Text('delivery'.tr),
+                                            value: 'delivery',
+                                            groupValue: orderEntryController
+                                                .orderType
+                                                .value,
+                                            onChanged: (value) {
+                                              orderEntryController
+                                                      .orderType
+                                                      .value =
+                                                  value!;
+                                            },
+                                            contentPadding: EdgeInsets.zero,
+                                            dense: true,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: RadioListTile<String>(
+                                            title: Text('pickup'.tr),
+                                            value: 'pickup',
+                                            groupValue: orderEntryController
+                                                .orderType
+                                                .value,
+                                            onChanged: (value) {
+                                              orderEntryController
+                                                      .orderType
+                                                      .value =
+                                                  value!;
+                                            },
+                                            contentPadding: EdgeInsets.zero,
+                                            dense: true,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ],
+                          ),
+                        );
+                      }),
+                      const SizedBox(height: 10),
+
+                      // Delivery Area Dropdown (only for delivery orders)
+                      Obx(() {
+                        if (orderEntryController.orderType.value ==
+                            'delivery') {
+                          return Obx(() {
+                            if (deliveryController.isLoading.value) {
+                              return const LinearProgressIndicator();
+                            }
+
+                            if (deliveryController.deliveryAreas.isEmpty) {
+                              return Text(
+                                'no_delivery_areas_available'.tr,
+                                style: const TextStyle(color: Colors.grey),
+                              );
+                            }
+
+                            return DropdownButtonFormField<int>(
+                              decoration: InputDecoration(
+                                labelText: 'delivery_area_optional'.tr,
+                                border: const OutlineInputBorder(),
+                              ),
+                              isExpanded: true,
+                              value: orderEntryController
+                                  .selectedDeliveryArea
+                                  .value,
+                              items: deliveryController.deliveryAreas.map((
+                                area,
+                              ) {
+                                return DropdownMenuItem<int>(
+                                  value: area['id'],
+                                  child: Text(
+                                    'PLZ ${area['postalcode']} - €${area['delivery_fee']} (${area['estimated_delivery_time']}m)',
+                                    style: const TextStyle(fontSize: 13),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                orderEntryController
+                                        .selectedDeliveryArea
+                                        .value =
+                                    value;
+                              },
+                            );
+                          });
+                        }
+                        return const SizedBox.shrink();
+                      }),
+                      const SizedBox(height: 10),
+
+                      TextField(
+                        controller: orderEntryController.allergyController,
+                        decoration: InputDecoration(
+                          labelText: 'allergies_optional'.tr,
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: orderEntryController.discountTextController,
+                        decoration: InputDecoration(
+                          labelText: 'discount_code_optional'.tr,
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: orderEntryController.orderNotesController,
+                        decoration: InputDecoration(
+                          labelText: 'order_notes_optional'.tr,
+                          border: const OutlineInputBorder(),
+                        ),
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'menu'.tr,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Category Filter
+                      SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: menuController.categories.map((cat) {
-                            return FilterButton(
-                              text: cat,
-                              onPressed: () {
-                                orderEntryController.selectedCategory.value =
-                                    cat;
+                        child: Obx(() {
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: menuController.categories.map((cat) {
+                                return FilterButton(
+                                  text: cat,
+                                  onPressed: () {
+                                    orderEntryController
+                                            .selectedCategory
+                                            .value =
+                                        cat;
+                                  },
+                                );
+                              }).toList(),
+                            ),
+                          );
+                        }),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // Menu items
+                      Obx(() {
+                        if (menuController.isLoading.value) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+
+                        final items = menuController.filteredItems(
+                          orderEntryController.selectedCategory.value,
+                        );
+
+                        return Column(
+                          children: items.map((foodItem) {
+                            return FoodMenuItem(
+                              id: foodItem.id,
+                              name: foodItem.name,
+                              price: foodItem.price,
+                              onAdd: (FoodItem item) {
+                                orderEntryController.addFoodItem(item);
                               },
                             );
                           }).toList(),
-                        ),
-                      );
-                    }),
+                        );
+                      }),
+                    ],
                   ),
+                ),
+              ),
+              // Right side: Current order summary
+              Expanded(
+                flex: 1,
+                child: Container(
+                  color: Colors.grey[100],
+                  child: Obx(() {
+                    double subtotal = orderEntryController.orderItems.fold(
+                      0.0,
+                      (sum, item) => sum + (item.totalPrice * item.quantity),
+                    );
 
-                  const SizedBox(height: 10),
-
-                  // Menu items
-                  Obx(() {
-                    if (menuController.isLoading.value) {
-                      return const Center(child: CircularProgressIndicator());
+                    // Get delivery fee if delivery type is selected and area is chosen
+                    double deliveryFee = 0.0;
+                    if (orderEntryController.orderType.value == 'delivery' &&
+                        orderEntryController.selectedDeliveryArea.value !=
+                            null) {
+                      final selectedArea = deliveryController.deliveryAreas
+                          .firstWhereOrNull(
+                            (area) =>
+                                area['id'] ==
+                                orderEntryController.selectedDeliveryArea.value,
+                          );
+                      if (selectedArea != null) {
+                        deliveryFee =
+                            double.tryParse(
+                              selectedArea['delivery_fee'].toString(),
+                            ) ??
+                            0.0;
+                      }
                     }
 
-                    final items = menuController.filteredItems(
-                      orderEntryController.selectedCategory.value,
-                    );
+                    double total = subtotal + deliveryFee;
 
                     return Column(
-                      children: items.map((foodItem) {
-                        return FoodMenuItem(
-                          id: foodItem.id,
-                          name: foodItem.name,
-                          price: foodItem.price,
-                          onAdd: (FoodItem item) {
-                            orderEntryController.addFoodItem(item);
-                          },
-                        );
-                      }).toList(),
-                    );
-                  }),
-                ],
-              ),
-            ),
-          ),
-          // Right side: Current order summary
-          // Right side: Current order summary
-          Expanded(
-            flex: 1,
-            child: Container(
-              color: Colors.grey[100],
-              padding: const EdgeInsets.all(16.0),
-              child: Obx(() {
-                double total = orderEntryController.orderItems.fold(
-                  0.0,
-                  (sum, item) => sum + (item.totalPrice * item.quantity),
-                );
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Current Order',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: orderEntryController.orderItems.length,
-                        itemBuilder: (context, index) {
-                          final item = orderEntryController.orderItems[index];
-                          return OrderItemSummary(
-                            item: item,
-                            onIncrement: () =>
-                                orderEntryController.incrementQuantity(item),
-                            onDecrement: () =>
-                                orderEntryController.decrementQuantity(item),
-                            onRemove: () =>
-                                orderEntryController.removeItem(item),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Total amount display
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "Total:",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                        // Fixed header
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            'current_order'.tr,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                        Text(
-                          "\$${total.toStringAsFixed(2)}",
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+
+                        // Scrollable order items
+                        Expanded(
+                          child: orderEntryController.orderItems.isEmpty
+                              ? Center(
+                                  child: Text(
+                                    'no_items_added'.tr,
+                                    style: const TextStyle(color: Colors.grey),
+                                  ),
+                                )
+                              : ListView.builder(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0,
+                                  ),
+                                  itemCount:
+                                      orderEntryController.orderItems.length,
+                                  itemBuilder: (context, index) {
+                                    final item =
+                                        orderEntryController.orderItems[index];
+                                    return OrderItemSummary(
+                                      item: item,
+                                      onIncrement: () => orderEntryController
+                                          .incrementQuantity(item),
+                                      onDecrement: () => orderEntryController
+                                          .decrementQuantity(item),
+                                      onRemove: () =>
+                                          orderEntryController.removeItem(item),
+                                    );
+                                  },
+                                ),
+                        ),
+
+                        // Fixed footer with totals and button
+                        Container(
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            border: Border(
+                              top: BorderSide(
+                                color: Colors.grey.shade300,
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Subtotal
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      "${'subtotal'.tr}:",
+                                      style: const TextStyle(fontSize: 14),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Flexible(
+                                    child: Text(
+                                      "\$${subtotal.toStringAsFixed(2)}",
+                                      style: const TextStyle(fontSize: 14),
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.right,
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              // Delivery Fee (only show if delivery is selected)
+                              if (orderEntryController.orderType.value ==
+                                  'delivery') ...[
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        "${'delivery_fee'.tr}:",
+                                        style: const TextStyle(fontSize: 14),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Flexible(
+                                      child: Text(
+                                        "€${deliveryFee.toStringAsFixed(2)}",
+                                        style: const TextStyle(fontSize: 14),
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.right,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+
+                              const SizedBox(height: 8),
+                              const Divider(thickness: 1),
+                              const SizedBox(height: 8),
+
+                              // Total amount display
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      "${'total'.tr}:",
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Flexible(
+                                    child: Text(
+                                      "\$${total.toStringAsFixed(2)}",
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.right,
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: orderEntryController.createOrder,
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: const Size.fromHeight(50),
+                                  backgroundColor: AppColors.primaryColor,
+                                  foregroundColor: Colors.white,
+                                ),
+                                child: Text('create_order'.tr),
+                              ),
+                            ],
                           ),
                         ),
                       ],
-                    ),
-
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: orderEntryController.createOrder,
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(50),
-                        backgroundColor: AppColors.primaryColor,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: const Text('Create Order'),
-                    ),
-                  ],
-                );
-              }),
-            ),
-          ),
-        ],
+                    );
+                  }),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -312,55 +640,67 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: 16.0,
                     vertical: 8.0,
                   ),
                   child: Text(
-                    'Extras',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    'extras'.tr,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                _buildText('Bacon (+\$2.50)', _baconSelected, (value) {
+                _buildText('${'bacon'.tr} (+\$2.50)', _baconSelected, (value) {
                   setState(() {
                     _baconSelected = value!;
                   });
                 }),
-                _buildText('Cheese (+\$1.50)', _cheeseSelected, (value) {
+                _buildText('${'cheese'.tr} (+\$1.50)', _cheeseSelected, (
+                  value,
+                ) {
                   setState(() {
                     _cheeseSelected = value!;
                   });
                 }),
-                _buildText('Avocado (+\$2.00)', _avocadoSelected, (value) {
+                _buildText('${'avocado'.tr} (+\$2.00)', _avocadoSelected, (
+                  value,
+                ) {
                   setState(() {
                     _avocadoSelected = value!;
                   });
                 }),
                 const Divider(height: 1, thickness: 1),
-                _buildText('Extra Patty (+\$4.00)', _extraPattySelected, (
-                  value,
-                ) {
-                  setState(() {
-                    _extraPattySelected = value!;
-                  });
-                }),
+                _buildText(
+                  '${'extra_patty'.tr} (+\$4.00)',
+                  _extraPattySelected,
+                  (value) {
+                    setState(() {
+                      _extraPattySelected = value!;
+                    });
+                  },
+                ),
                 const Divider(height: 1, thickness: 1),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: 16.0,
                     vertical: 8.0,
                   ),
                   child: Text(
-                    'Special Instructions',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    'special_instructions'.tr,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: TextField(
                     decoration: InputDecoration(
-                      hintText: 'Add special instructions',
+                      hintText: 'add_special_instructions'.tr,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
                       ),
@@ -389,18 +729,15 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
         //   alignment: Alignment.centerLeft,
         //   child: Image.asset(widget.imagePath, width: 60, height: 60),
         // ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Text(
-            widget.name,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+        Text(
+          widget.name,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: Text(
             '\$${widget.price.toStringAsFixed(2)}',
-            style: const TextStyle(fontSize: 16, color: Colors.grey),
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
           ),
         ),
         ElevatedButton(
@@ -416,18 +753,38 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
             if (_avocadoSelected) extras.add('Avocado');
             if (_extraPattySelected) extras.add('Extra Patty');
 
+            // Calculate extras price
+            double extrasPrice = 0.0;
+            for (var extra in extras) {
+              switch (extra) {
+                case 'Bacon':
+                  extrasPrice += 2.5;
+                  break;
+                case 'Cheese':
+                  extrasPrice += 1.5;
+                  break;
+                case 'Avocado':
+                  extrasPrice += 2.0;
+                  break;
+                case 'Extra Patty':
+                  extrasPrice += 4.0;
+                  break;
+              }
+            }
+
             widget.onAdd(
               FoodItem(
                 id: widget.id,
                 name: widget.name,
                 price: widget.price,
-                extras: extras,
+                extras: extras.join(", "),
+                extrasPrice: extrasPrice,
                 specialInstructions: _specialInstructionsController.text,
               ),
             );
           },
 
-          child: const Text('Add to Order'),
+          child: Text('add'.tr),
         ),
       ],
     );
@@ -465,23 +822,37 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
           ),
           onPressed: () {
             List<String> extras = [];
-            double extrasPrice = 0;
 
             if (_baconSelected) {
               extras.add('Bacon');
-              extrasPrice += 2.5;
             }
             if (_cheeseSelected) {
               extras.add('Cheese');
-              extrasPrice += 1.5;
             }
             if (_avocadoSelected) {
               extras.add('Avocado');
-              extrasPrice += 2.0;
             }
             if (_extraPattySelected) {
               extras.add('Extra Patty');
-              extrasPrice += 4.0;
+            }
+
+            // Calculate extras price
+            double extrasPrice = 0.0;
+            for (var extra in extras) {
+              switch (extra) {
+                case 'Bacon':
+                  extrasPrice += 2.5;
+                  break;
+                case 'Cheese':
+                  extrasPrice += 1.5;
+                  break;
+                case 'Avocado':
+                  extrasPrice += 2.0;
+                  break;
+                case 'Extra Patty':
+                  extrasPrice += 4.0;
+                  break;
+              }
             }
 
             widget.onAdd(
@@ -489,8 +860,8 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
                 id: widget.id, // pass id
                 name: widget.name,
                 price: widget.price,
-                extras: extras,
-
+                extras: extras.join(", "),
+                extrasPrice: extrasPrice,
                 specialInstructions: _specialInstructionsController.text,
               ),
             );
@@ -553,6 +924,31 @@ class OrderItemSummary extends StatelessWidget {
                     item.name,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
+                  // Show extras if any
+                  if (item.extras.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Extras: ${item.extras}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                  // Show special instructions if any
+                  if (item.specialInstructions.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Note: ${item.specialInstructions}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 4),
                   Text(
                     '\$${(item.totalPrice * item.quantity).toStringAsFixed(2)}',
                   ),
@@ -593,6 +989,33 @@ class OrderItemSummary extends StatelessWidget {
                           item.name,
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
+                        // Show extras if any
+                        if (item.extras.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Extras: ${item.extras}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ],
+                        // Show special instructions if any
+                        if (item.specialInstructions.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            'Note: ${item.specialInstructions}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                              fontStyle: FontStyle.italic,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                        const SizedBox(height: 4),
                         Text(
                           '\$${(item.totalPrice * item.quantity).toStringAsFixed(2)}',
                         ),

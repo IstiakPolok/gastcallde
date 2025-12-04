@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gastcallde/feature/reservastion/controllers/TableReservationGridcontroller.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 // ...existing imports...
@@ -129,9 +130,9 @@ class TableReservationGrid extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return Center(child: Text('${'error'.tr}: ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No data found'));
+          return Center(child: Text('no_data_found'.tr));
         }
 
         final tableReservations = snapshot.data!;

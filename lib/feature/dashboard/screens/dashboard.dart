@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:gastcallde/core/global_widegts/CustomDrawer.dart';
 import 'package:gastcallde/core/global_widegts/CustomNavigationRail.dart';
 import 'package:gastcallde/feature/dashboard/widgets/RestaurantOverview.dart';
+import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../../../core/global_widegts/LanguageToggleWidget.dart';
 
 class Dashboard extends StatelessWidget {
   Dashboard({super.key});
@@ -11,11 +15,44 @@ class Dashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    const double breakpoint = 600;
-    final isMobile = screenWidth < breakpoint;
+    const double mobileBreakpoint = 600;
+    const double tabletBreakpoint = 1024;
+
+    final isMobile = screenWidth < mobileBreakpoint;
+    final isTablet =
+        screenWidth >= mobileBreakpoint && screenWidth < tabletBreakpoint;
 
     return Scaffold(
-      appBar: isMobile ? AppBar(title: const Text(' ')) : null,
+      appBar: isMobile
+          ? AppBar(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'restaurant_overview'.tr,
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      Text(
+                        'live_overview'.tr,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  LanguageToggleButton(),
+                ],
+              ),
+            )
+          : null,
       drawer: isMobile
           ? ValueListenableBuilder<int>(
               valueListenable: _selectedIndexNotifier,
@@ -48,7 +85,6 @@ class Dashboard extends StatelessWidget {
               child: ValueListenableBuilder<int>(
                 valueListenable: _selectedIndexNotifier,
                 builder: (context, selectedIndex, _) {
-                  // You can switch views here based on selectedIndex
                   return RestaurantOverviewPage();
                 },
               ),

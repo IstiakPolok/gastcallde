@@ -18,6 +18,7 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _peopleController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   final List<bool> _selectedFromTime = List.generate(10, (_) => false);
   final List<bool> _selectedToTime = List.generate(10, (_) => false);
@@ -132,8 +133,8 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
           else
             Column(
               children: [
-                const Text(
-                  'Available Tables:',
+                Text(
+                  'available_tables'.tr,
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 ListView.builder(
@@ -161,8 +162,8 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
-              child: const Text('Confirm now'),
+              onPressed: _submitReservation,
+              child: Text('confirm_now'.tr),
             ),
           ),
         ],
@@ -193,8 +194,8 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
                       Column(
                         children: [
                           SizedBox(height: 30),
-                          const Text(
-                            'Available Tables:',
+                          Text(
+                            'available_tables'.tr,
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           SizedBox(height: 15),
@@ -260,68 +261,8 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
                               backgroundColor: AppColors.primaryColor,
                               foregroundColor: Colors.white,
                             ),
-                            onPressed: () async {
-                              EasyLoading.show();
-                              try {
-                                final api = ReservationApiController();
-
-                                // extract selected "from" & "to" time
-                                String fromTime = "";
-                                String toTime = "";
-                                final times = [
-                                  '06:00:00',
-                                  '07:00:00',
-                                  '08:00:00',
-                                  '09:00:00',
-                                  '10:00:00',
-                                  '11:00:00',
-                                  '12:00:00',
-                                  '13:00:00',
-                                  '14:00:00',
-                                  '15:00:00',
-                                ];
-                                int fromIndex = _selectedFromTime.indexWhere(
-                                  (e) => e,
-                                );
-                                int toIndex = _selectedToTime.indexWhere(
-                                  (e) => e,
-                                );
-                                if (fromIndex != -1) {
-                                  fromTime = times[fromIndex];
-                                }
-                                if (toIndex != -1) toTime = times[toIndex];
-
-                                // dummy pick first table (or let user choose later)
-                                final int selectedTable = tableList.isNotEmpty
-                                    ? tableList[0]['id']
-                                    : 0;
-
-                                final result = await api.createReservation(
-                                  customerName: _nameController.text,
-                                  phoneNumber: _phoneController.text,
-                                  guestNo:
-                                      int.tryParse(_peopleController.text) ?? 1,
-                                  date: _dateController
-                                      .text, // ensure yyyy-MM-dd when sending to API
-                                  fromTime: fromTime,
-                                  toTime: toTime,
-                                  tableId:
-                                      _selectedTableId ??
-                                      0, // use selected table
-                                  email: _emailController.text,
-                                );
-
-                                Get.snackbar(
-                                  "Success",
-                                  "Reservation Created: ID ${result['id']}",
-                                );
-                              } catch (e) {
-                                Get.snackbar("Error", e.toString());
-                              }
-                              EasyLoading.dismiss();
-                              Get.to(ReservationScreen());
-                            },
-                            child: const Text('Confirm now'),
+                            onPressed: _submitReservation,
+                            child: Text('confirm_now'.tr),
                           ),
                         ],
                       ),
@@ -339,52 +280,94 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
 
   Widget _buildInformationSection() {
     return _SectionCard(
-      title: 'Information',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildTextField(
-            label: 'Customer name',
-            hint: 'Type here',
-            icon: Icons.person_outline,
-            controller: _nameController,
-          ),
-          const SizedBox(height: 16),
-          _buildTextField(
-            label: 'Phone num',
-            hint: '+895 3467 458',
-            icon: Icons.phone_android,
-            controller: _phoneController,
-          ),
-          const SizedBox(height: 16),
-          _buildTextField(
-            label: 'Email',
-            hint: 'User2025@gmail.com',
-            icon: Icons.email_outlined,
-            controller: _emailController,
-          ),
-          const SizedBox(height: 16),
-          _buildTextField(
-            label: 'Number of people',
-            hint: 'Type here',
-            icon: Icons.group_outlined,
-            controller: _peopleController,
-          ),
-          const SizedBox(height: 16),
-          _buildDateField(label: 'Date', controller: _dateController),
-        ],
+      title: 'information'.tr,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildTextField(
+              label: 'customer_name'.tr,
+              hint: 'type_here'.tr,
+              icon: Icons.person_outline,
+              controller: _nameController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter customer name';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              label: 'phone_num'.tr,
+              hint: '+895 3467 458',
+              icon: Icons.phone_android,
+              controller: _phoneController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter phone number';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              label: 'email'.tr,
+              hint: 'User2025@gmail.com',
+              icon: Icons.email_outlined,
+              controller: _emailController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter email';
+                }
+                if (!GetUtils.isEmail(value)) {
+                  return 'Please enter a valid email';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              label: 'number_of_people'.tr,
+              hint: 'type_here'.tr,
+              icon: Icons.group_outlined,
+              controller: _peopleController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter number of people';
+                }
+                if (int.tryParse(value) == null) {
+                  return 'Please enter a valid number';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            _buildDateField(
+              label: 'date'.tr,
+              controller: _dateController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select a date';
+                }
+                return null;
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildTimeSelectionSection() {
     return _SectionCard(
-      title: 'Choose Time',
+      title: 'choose_time'.tr,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'From',
+          Text(
+            'from'.tr,
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 8),
@@ -399,8 +382,8 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
             },
           ),
           const SizedBox(height: 16),
-          const Text(
-            'To',
+          Text(
+            'to_time'.tr,
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 8),
@@ -421,7 +404,7 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
 
   Widget _buildSummarySection() {
     return _SectionCard(
-      title: 'Reserve a table',
+      title: 'reserve_a_table'.tr,
       child: Column(
         children: const [
           _SummaryRow(icon: Icons.person_outline, text: 'Jorge Doe'),
@@ -441,6 +424,7 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
     required String hint,
     required IconData icon,
     required TextEditingController controller,
+    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -455,6 +439,7 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
+          validator: validator,
           decoration: InputDecoration(
             hintText: hint,
             border: OutlineInputBorder(
@@ -475,6 +460,7 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
   Widget _buildDateField({
     required String label,
     required TextEditingController controller,
+    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -489,10 +475,11 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
+          validator: validator,
           readOnly: true,
           decoration: InputDecoration(
             suffixIcon: const Icon(Icons.arrow_drop_down),
-            hintText: 'Select a date',
+            hintText: 'select_a_date'.tr,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(
                 12,
@@ -516,8 +503,8 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
-          'Reservation Form',
+        title: Text(
+          'reservation_form'.tr,
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -532,6 +519,68 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
         },
       ),
     );
+  }
+
+  Future<void> _submitReservation() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (_selectedTableId == null) {
+      Get.snackbar('Error', 'Please select a table');
+      return;
+    }
+
+    int fromIndex = _selectedFromTime.indexWhere((e) => e);
+    int toIndex = _selectedToTime.indexWhere((e) => e);
+
+    if (fromIndex == -1 || toIndex == -1) {
+      Get.snackbar('Error', 'Please select both from and to time');
+      return;
+    }
+
+    EasyLoading.show();
+    try {
+      final api = ReservationApiController();
+
+      final times = [
+        '06:00:00',
+        '07:00:00',
+        '08:00:00',
+        '09:00:00',
+        '10:00:00',
+        '11:00:00',
+        '12:00:00',
+        '13:00:00',
+        '14:00:00',
+        '15:00:00',
+      ];
+
+      String fromTime = times[fromIndex];
+      String toTime = times[toIndex];
+
+      final result = await api.createReservation(
+        customerName: _nameController.text,
+        phoneNumber: _phoneController.text,
+        guestNo: int.tryParse(_peopleController.text) ?? 1,
+        date: _dateController.text,
+        fromTime: fromTime,
+        toTime: toTime,
+        tableId: _selectedTableId!,
+        email: _emailController.text,
+      );
+
+      Get.snackbar("Success", "Reservation Created: ID ${result['id']}");
+      Get.to(() => ReservationScreen());
+    } catch (e) {
+      String errorMessage = e.toString();
+      if (errorMessage.startsWith("Exception: ")) {
+        errorMessage = errorMessage.replaceFirst("Exception: ", "");
+      }
+      Get.snackbar("Error", errorMessage);
+    } finally {
+      EasyLoading.dismiss();
+    }
   }
 }
 

@@ -8,13 +8,28 @@ import '../../../../core/const/app_colors.dart';
 import '../../forgetPass/screens/forgetpassScreen.dart';
 import '../../signUp/screens/signScreen.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final LoginController loginController = Get.put(LoginController());
+  State<LoginScreen> createState() => _LoginScreenState();
+}
 
+class _LoginScreenState extends State<LoginScreen> {
+  late LoginController loginController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Ensure we have a fresh controller instance
+    if (Get.isRegistered<LoginController>()) {
+      Get.delete<LoginController>();
+    }
+    loginController = Get.put(LoginController());
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
         child: Center(
@@ -35,6 +50,7 @@ class LoginScreen extends StatelessWidget {
                     child: LanguageToggleButton(),
                   ),
                   Image.asset('assets/icons/logo.png', width: 200, height: 200),
+                  const SizedBox(height: 16),
                   Text(
                     'welcome'.tr,
                     style: GoogleFonts.inter(

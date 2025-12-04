@@ -13,7 +13,7 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     //var screenWidth = MediaQuery.of(context).size.width;
     return CupertinoPageScaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.primaryColor,
       child: Stack(
         children: [
           // Background image (fills the whole screen)
@@ -35,7 +35,7 @@ class SplashScreen extends StatelessWidget {
                 width: 40,
                 height: 40,
                 child: CircularProgressIndicator(
-                  color: AppColors.primaryColor, // 50% opacity
+                  color: AppColors.accentColor, // 50% opacity
                   strokeWidth: 4,
                 ),
               ),

@@ -7,12 +7,14 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TableModel {
+  final int? id;
   final String name;
   final String capacity;
   final String status;
   final String reservationStatus;
 
   TableModel({
+    this.id,
     required this.name,
     required this.capacity,
     required this.status,
@@ -31,6 +33,7 @@ class TableModel {
   // Factory method to convert JSON to TableModel
   factory TableModel.fromJson(Map<String, dynamic> json) {
     return TableModel(
+      id: json['id'],
       name: json['table_name'],
       capacity: json['total_set'].toString(),
       status: json['status'],
@@ -41,11 +44,10 @@ class TableModel {
 
 class TableController extends GetxController {
   var tables = <TableModel>[].obs; // Observable list of TableModel
-
-  final String baseUrl = "http://10.10.13.26:9001";
-  final String endpoint = "/owner/table/create/?lean=EN";
+  var isLoading = false.obs;
 
   Future<void> fetchTables() async {
+    isLoading.value = true;
     final prefs = await SharedPreferences.getInstance();
     final code = prefs.getString('language_code') ?? 'EN';
     final String? token = await SharedPreferencesHelper.getAccessToken();
@@ -53,7 +55,7 @@ class TableController extends GetxController {
       print("Fetching tables from API...");
 
       final response = await http.get(
-        Uri.parse('http://10.10.13.26:9001/owner/table/?lean=$code'),
+        Uri.parse('${Urls.baseUrl}/owner/table/?lean=$code'),
         headers: {
           'Accept': 'application/json',
           'Authorization': 'Bearer $token',
@@ -79,6 +81,8 @@ class TableController extends GetxController {
       }
     } catch (e) {
       print("Error fetching tables: $e");
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -124,6 +128,7 @@ class TableController extends GetxController {
     }
 
     print("Finished saving tables.");
+    await fetchTables();
   }
 
   // Add tables locally to the observable list
@@ -131,6 +136,94 @@ class TableController extends GetxController {
     print("Adding ${newTables.length} new tables locally...");
     tables.assignAll(newTables);
     print("Tables saved locally: ${newTables.map((t) => t.name).toList()}");
+  }
+
+  // Delete a table by ID
+  Future<bool> deleteTable(int tableId) async {
+    print("Starting to delete table with ID: $tableId");
+    final String? token = await SharedPreferencesHelper.getAccessToken();
+
+    try {
+      final response = await http.delete(
+        Uri.parse('${Urls.baseUrl}/owner/table/delete/$tableId/'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      print("Delete response status code: ${response.statusCode}");
+      print("Delete response body: ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        print("✅ Table $tableId deleted successfully");
+        // Remove the table from the local list
+        tables.removeWhere((table) => table.id == tableId);
+        return true;
+      } else {
+        print(
+          "❌ Failed to delete table $tableId. Status Code: ${response.statusCode}",
+        );
+        return false;
+      }
+    } catch (e) {
+      print("❌ Error while deleting table $tableId: $e");
+      return false;
+    }
+  }
+
+  // Update a table by ID
+  Future<bool> updateTable(
+    int tableId,
+    String name,
+    String capacity,
+    String status,
+    String reservationStatus,
+  ) async {
+    print("Starting to update table with ID: $tableId");
+    final String? token = await SharedPreferencesHelper.getAccessToken();
+
+    try {
+      final request = http.MultipartRequest(
+        'PUT',
+        Uri.parse('${Urls.baseUrl}/owner/table/update/$tableId/'),
+      );
+
+      request.headers.addAll({
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      });
+
+      request.fields.addAll({
+        'table_name': name,
+        'total_set': capacity,
+        'status': status,
+        'reservation_status': reservationStatus,
+      });
+
+      print("Updating table with fields: ${request.fields}");
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      print("Update response status code: ${response.statusCode}");
+      print("Update response body: $responseBody");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print("✅ Table $tableId updated successfully");
+        // Refresh the table list to get the updated data
+        await fetchTables();
+        return true;
+      } else {
+        print(
+          "❌ Failed to update table $tableId. Status Code: ${response.statusCode}",
+        );
+        return false;
+      }
+    } catch (e) {
+      print("❌ Error while updating table $tableId: $e");
+      return false;
+    }
   }
 
   @override

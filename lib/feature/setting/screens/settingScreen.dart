@@ -5,6 +5,11 @@ import 'package:gastcallde/core/global_widegts/CustomNavigationRail.dart';
 import 'package:gastcallde/feature/setting/screens/ReportIssue.dart';
 import 'package:gastcallde/feature/setting/screens/ReservationSettings.dart';
 import 'package:gastcallde/feature/setting/screens/callforward.dart';
+import 'package:get/get.dart';
+
+import '../controllers/RestaurantSettingsController.dart';
+import '../controllers/AssistantController.dart';
+import '../controllers/WeeklyScheduleController.dart';
 
 class settingScreen extends StatelessWidget {
   settingScreen({super.key});
@@ -18,9 +23,7 @@ class settingScreen extends StatelessWidget {
     final isMobile = screenWidth < breakpoint;
 
     return Scaffold(
-      appBar: isMobile
-          ? AppBar(title: const Text('Restaurant Overview'))
-          : null,
+      appBar: isMobile ? AppBar(title: Text(' ')) : null,
       drawer: isMobile
           ? ValueListenableBuilder<int>(
               valueListenable: _selectedIndexNotifier,
@@ -42,7 +45,7 @@ class settingScreen extends StatelessWidget {
                 valueListenable: _selectedIndexNotifier,
                 builder: (context, selectedIndex, _) {
                   return CustomNavigationRail(
-                    selectedIndex: 7,
+                    selectedIndex: 8,
                     onDestinationSelected: (index) {
                       _selectedIndexNotifier.value = index;
                     },
@@ -75,29 +78,47 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen>
     with SingleTickerProviderStateMixin {
+  final RestaurantSettingsController restaurantController = Get.put(
+    RestaurantSettingsController(),
+  );
+  final AssistantController assistantController = Get.put(
+    AssistantController(),
+  );
+  final WeeklyScheduleController scheduleController = Get.put(
+    WeeklyScheduleController(),
+  );
   late TabController _tabController;
-  double _voiceSpeed = 0.5;
-  final double _ambientNoise = 0.5;
-  String _callTransferText = '';
-  String _specialPromotionsText = '';
-  String _selectedVoice = 'Alisaya'; // Initial voice selection
-  final List<String> _voiceOptions = [
-    'Alisaya',
-    'Sophia',
-    'John',
-    'Emma',
-  ]; // List of voice options
+
+  final TextEditingController _addressController = TextEditingController();
+  bool _isUpdatingAddress = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    // Initialize address controller
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (restaurantController.address.value.isNotEmpty) {
+        _addressController.text = restaurantController.address.value;
+      }
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _addressController.dispose();
     super.dispose();
+  }
+
+  String formatTime(String? time) {
+    if (time == null || time.isEmpty) return 'Not set';
+    final parts = time.split(':');
+    final hour = int.tryParse(parts[0]) ?? 0;
+    final minute = int.tryParse(parts[1]) ?? 0;
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+    return '$displayHour:${minute.toString().padLeft(2, '0')} $period';
   }
 
   @override
@@ -105,17 +126,17 @@ class _SettingsScreenState extends State<SettingsScreen>
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FB), // Light background color
       appBar: AppBar(
-        toolbarHeight: 150, // Increased height for title and subtitle
+        toolbarHeight: 70, // Reduced height for title and subtitle
         backgroundColor: Colors.white,
         elevation: 0,
         flexibleSpace: Padding(
-          padding: const EdgeInsets.only(left: 16.0),
+          padding: const EdgeInsets.only(left: 16.0, top: 10.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
               Text(
-                'Settings',
+                'settings'.tr,
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -124,7 +145,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               ),
               SizedBox(height: 8),
               Text(
-                'Live Overview of your restaurant\'s',
+                'live_overview'.tr,
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
             ],
@@ -143,11 +164,11 @@ class _SettingsScreenState extends State<SettingsScreen>
               indicatorWeight: 3.0,
               indicatorSize: TabBarIndicatorSize.label,
               labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-              tabs: const [
-                Tab(text: 'General'),
-                Tab(text: 'Call Forwarding'),
-                Tab(text: 'Reservation Settings'),
-                Tab(text: 'Admin Support'),
+              tabs: [
+                Tab(text: 'general'.tr),
+                Tab(text: 'call_forwarding'.tr),
+                Tab(text: 'reservation_settings'.tr),
+                Tab(text: 'admin_support'.tr),
               ],
             ),
           ),
@@ -169,197 +190,971 @@ class _SettingsScreenState extends State<SettingsScreen>
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: [
-        _buildSectionTitle('AI Voice Settings'),
-        _buildCard(
-          children: [
-            _buildSettingRow(
-              'Choose voice',
-              'Live Overview of your restaurant\'s',
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: NetworkImage(
-                          'https://static.vecteezy.com/system/resources/previews/032/176/197/non_2x/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg',
-                        ), // Placeholder image
-                        fit: BoxFit.cover,
+        _buildSectionTitle('ai_voice_settings'.tr),
+        Obx(() {
+          if (assistantController.isLoading.value) {
+            return _buildCard(
+              children: [const Center(child: CircularProgressIndicator())],
+            );
+          }
+
+          return _buildCard(
+            children: [
+              _buildSettingRow(
+                'choose_voice'.tr,
+                'select_ai_voice_desc'.tr,
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: NetworkImage(
+                            'https://static.vecteezy.com/system/resources/previews/032/176/197/non_2x/business-avatar-profile-black-icon-man-of-user-symbol-in-trendy-flat-style-isolated-on-male-profile-people-diverse-face-for-social-network-or-web-vector.jpg',
+                          ),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _selectedVoice, // Display the selected voice
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            assistantController.assistantId.value == 0
+                                ? 'no_ai_assistant'.tr
+                                : assistantController.getVoiceDisplayName(
+                                    assistantController.voice.value,
+                                  ),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            assistantController.assistantId.value == 0
+                                ? 'not_assigned_admin'.tr
+                                : 'ai_voice_assistant'.tr,
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        'English Girl - young',
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.play_circle_fill,
-                      color: Colors.black,
                     ),
-                    onPressed: () {
-                      // Add your play functionality here
-                    },
-                  ),
-                  DropdownButton<String>(
-                    value: _selectedVoice,
-                    onChanged: (newVoice) {
-                      setState(() {
-                        _selectedVoice = newVoice!; // Update selected voice
-                      });
-                    },
-                    items: _voiceOptions.map((String voice) {
-                      return DropdownMenuItem<String>(
-                        value: voice,
-                        child: Text(voice),
-                      );
-                    }).toList(),
-                  ),
-                ],
+                    if (assistantController.assistantId.value != 0)
+                      IconButton(
+                        icon: Obx(
+                          () => Icon(
+                            assistantController.isPlaying.value
+                                ? Icons.stop_circle
+                                : Icons.play_circle_fill,
+                            color: Colors.black,
+                          ),
+                        ),
+                        onPressed: () async {
+                          if (assistantController.isPlaying.value) {
+                            await assistantController.stopVoicePreview();
+                          } else {
+                            await assistantController.playVoicePreview(
+                              assistantController.voice.value,
+                            );
+                          }
+                        },
+                      ),
+                    if (assistantController.assistantId.value != 0)
+                      DropdownButton<String>(
+                        value: assistantController.voice.value.isEmpty
+                            ? null
+                            : assistantController.voice.value.toLowerCase(),
+                        hint: Text('select_voice'.tr),
+                        onChanged: (newVoice) async {
+                          if (newVoice != null) {
+                            final success = await assistantController
+                                .updateVoiceSettings(
+                                  newVoice,
+                                  assistantController.speed.value,
+                                );
+                            if (success) {
+                              Get.snackbar(
+                                'Success',
+                                'Voice updated to ${assistantController.getVoiceDisplayName(newVoice)}',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: Colors.green,
+                                colorText: Colors.white,
+                              );
+                            } else {
+                              Get.snackbar(
+                                'Error',
+                                'Failed to update voice',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: Colors.red,
+                                colorText: Colors.white,
+                              );
+                            }
+                          }
+                        },
+                        items: assistantController.voiceOptions.entries.map((
+                          entry,
+                        ) {
+                          return DropdownMenuItem<String>(
+                            value: entry.key,
+                            child: Text(entry.value),
+                          );
+                        }).toList(),
+                      ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        }),
         const SizedBox(height: 16),
-        _buildCard(
-          children: [
-            _buildSettingRow(
-              'Voice speed',
-              'Live Overview of your restaurant\'s',
-              Slider(
-                value: _voiceSpeed,
-                min: 0.0,
-                max: 1.0,
-                activeColor: AppColors.primaryColor,
-                inactiveColor: Colors.grey[300],
-                onChanged: (newValue) {
-                  setState(() {
-                    _voiceSpeed = newValue;
-                  });
-                },
+        Obx(() {
+          if (assistantController.assistantId.value == 0) {
+            return const SizedBox.shrink();
+          }
+          return _buildCard(
+            children: [
+              _buildSettingRow(
+                'voice_speed'.tr,
+                'adjust_voice_speed_desc'.tr,
+                Column(
+                  children: [
+                    Slider(
+                      value: assistantController.speed.value,
+                      min: 0.7,
+                      max: 1.2,
+                      divisions: 5,
+                      label: assistantController.speed.value.toStringAsFixed(1),
+                      activeColor: AppColors.primaryColor,
+                      inactiveColor: Colors.grey[300],
+                      onChanged: (newValue) {
+                        assistantController.speed.value = newValue;
+                      },
+                      onChangeEnd: (newValue) async {
+                        final success = await assistantController
+                            .updateVoiceSettings(
+                              assistantController.voice.value,
+                              newValue,
+                            );
+                        if (success) {
+                          Get.snackbar(
+                            'Success',
+                            'Voice speed updated to ${newValue.toStringAsFixed(1)}x',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.green,
+                            colorText: Colors.white,
+                          );
+                        } else {
+                          Get.snackbar(
+                            'Error',
+                            'Failed to update voice speed',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.red,
+                            colorText: Colors.white,
+                          );
+                        }
+                      },
+                    ),
+                    Text(
+                      '${assistantController.speed.value.toStringAsFixed(1)}x',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        }),
         const SizedBox(height: 16),
+
+        // Call Transfer Section
+        // _buildSectionTitle('Call Transfer'),
         // _buildCard(
         //   children: [
-        //     _buildSettingRow(
-        //       'Ambient noise',
-        //       'Live Overview of your restaurant\'s',
-        //       Slider(
-        //         value: _ambientNoise,
-        //         min: 0.0,
-        //         max: 1.0,
-        //         activeColor: AppColors.primaryColor,
-        //         inactiveColor: Colors.grey[300],
-        //         onChanged: (newValue) {
-        //           setState(() {
-        //             _ambientNoise = newValue;
-        //           });
-        //         },
+        //     Text(
+        //       'Transfer call AI to restaurant staff when',
+        //       style: TextStyle(color: Colors.grey[600]),
+        //     ),
+        //     const SizedBox(height: 8),
+        //     TextField(
+        //       controller: TextEditingController(text: _callTransferText),
+        //       onChanged: (value) {
+        //         setState(() {
+        //           _callTransferText = value;
+        //         });
+        //       },
+        //       maxLines: 4,
+        //       decoration: InputDecoration(
+        //         hintText: 'Type here',
+        //         fillColor: const Color(0xFFF8F9FB),
+        //         filled: true,
+        //         border: OutlineInputBorder(
+        //           borderRadius: BorderRadius.circular(12.0),
+        //           borderSide: BorderSide.none,
+        //         ),
+        //         contentPadding: const EdgeInsets.all(12.0),
         //       ),
         //     ),
         //   ],
         // ),
         const SizedBox(height: 24),
 
-        // Call Transfer Section
-        _buildSectionTitle('Call Transfer'),
+        _buildSectionTitle('restaurant_address'.tr),
         _buildCard(
           children: [
-            Text(
-              'Transfer call AI to restaurant staff when',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: TextEditingController(text: _callTransferText),
-              onChanged: (value) {
-                setState(() {
-                  _callTransferText = value;
-                });
-              },
-              maxLines: 4,
-              decoration: InputDecoration(
-                hintText: 'Type here',
-                fillColor: const Color(0xFFF8F9FB),
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.all(12.0),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
+            Obx(() {
+              if (restaurantController.isLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: _addressController,
+                    maxLines: 2,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(
+                        Icons.location_on_outlined,
+                        color: Colors.grey,
+                      ),
+                      hintText: restaurantController.address.value.isEmpty
+                          ? 'enter_restaurant_address'.tr
+                          : restaurantController.address.value,
+                      hintStyle: const TextStyle(color: Colors.grey),
+                      filled: true,
+                      fillColor: const Color(0xFFF8F9FB),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide: const BorderSide(
+                          color: AppColors.primaryColor,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isUpdatingAddress
+                          ? null
+                          : () async {
+                              setState(() {
+                                _isUpdatingAddress = true;
+                              });
 
-        // Restaurant Address Section
-        _buildSectionTitle('Restaurant Address'),
-        _buildCard(
-          children: [
-            _buildDropdownField(
-              icon: Icons.location_on_outlined,
-              text: '122, Location, Main City-Nagpur, city\nLand park street',
-            ),
+                              final newAddress = _addressController.text.trim();
+
+                              if (newAddress.isEmpty) {
+                                Get.snackbar(
+                                  'Error',
+                                  'address_empty_error'.tr,
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.red,
+                                  colorText: Colors.white,
+                                );
+                                setState(() {
+                                  _isUpdatingAddress = false;
+                                });
+                                return;
+                              }
+
+                              final success = await restaurantController
+                                  .updateRestaurantAddress(newAddress);
+
+                              setState(() {
+                                _isUpdatingAddress = false;
+                              });
+
+                              if (success) {
+                                Get.snackbar(
+                                  'Success',
+                                  'address_update_success'.tr,
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.green,
+                                  colorText: Colors.white,
+                                );
+                              } else {
+                                Get.snackbar(
+                                  'Error',
+                                  'address_update_failed'.tr,
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.red,
+                                  colorText: Colors.white,
+                                );
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: _isUpdatingAddress
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              'update_address'.tr,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
+              );
+            }),
           ],
         ),
+
         const SizedBox(height: 24),
 
         // Business hours Section
-        _buildSectionTitle('Business hours'),
-        _buildCard(
-          children: [
-            _buildDropdownField(icon: Icons.access_time, text: '10 am - 11 pm'),
-          ],
-        ),
+        // _buildSectionTitle('Business hours'),
+        // _buildCard(
+        //   children: [
+        //     Row(
+        //       children: [
+        //         Expanded(
+        //           child: Column(
+        //             crossAxisAlignment: CrossAxisAlignment.start,
+        //             children: [
+        //               const Text(
+        //                 'Opening Time',
+        //                 style: TextStyle(
+        //                   fontSize: 14,
+        //                   fontWeight: FontWeight.w500,
+        //                   color: Colors.black87,
+        //                 ),
+        //               ),
+        //               const SizedBox(height: 8),
+        //               InkWell(
+        //                 onTap: () async {
+        //                   final TimeOfDay? picked = await showTimePicker(
+        //                     context: context,
+        //                     initialTime: _openingTime ?? TimeOfDay.now(),
+        //                   );
+        //                   if (picked != null) {
+        //                     setState(() {
+        //                       _openingTime = picked;
+        //                     });
+        //                   }
+        //                 },
+        //                 child: Container(
+        //                   padding: const EdgeInsets.symmetric(
+        //                     horizontal: 12.0,
+        //                     vertical: 14.0,
+        //                   ),
+        //                   decoration: BoxDecoration(
+        //                     color: const Color(0xFFF8F9FB),
+        //                     borderRadius: BorderRadius.circular(12.0),
+        //                     border: Border.all(color: Colors.grey[300]!),
+        //                   ),
+        //                   child: Row(
+        //                     children: [
+        //                       const Icon(Icons.access_time, color: Colors.grey),
+        //                       const SizedBox(width: 10),
+        //                       Expanded(
+        //                         child: Text(
+        //                           _openingTime != null
+        //                               ? _openingTime!.format(context)
+        //                               : restaurantController
+        //                                     .openingTime
+        //                                     .value
+        //                                     .isEmpty
+        //                               ? 'Select opening time'
+        //                               : restaurantController.formatTime(
+        //                                   restaurantController
+        //                                       .openingTime
+        //                                       .value,
+        //                                 ),
+        //                           style: const TextStyle(
+        //                             fontSize: 14,
+        //                             color: Colors.black,
+        //                           ),
+        //                         ),
+        //                       ),
+        //                       const Icon(
+        //                         Icons.keyboard_arrow_down,
+        //                         color: Colors.grey,
+        //                       ),
+        //                     ],
+        //                   ),
+        //                 ),
+        //               ),
+        //             ],
+        //           ),
+        //         ),
+        //         const SizedBox(width: 16),
+        //         Expanded(
+        //           child: Column(
+        //             crossAxisAlignment: CrossAxisAlignment.start,
+        //             children: [
+        //               const Text(
+        //                 'Closing Time',
+        //                 style: TextStyle(
+        //                   fontSize: 14,
+        //                   fontWeight: FontWeight.w500,
+        //                   color: Colors.black87,
+        //                 ),
+        //               ),
+        //               const SizedBox(height: 8),
+        //               InkWell(
+        //                 onTap: () async {
+        //                   final TimeOfDay? picked = await showTimePicker(
+        //                     context: context,
+        //                     initialTime: _closingTime ?? TimeOfDay.now(),
+        //                   );
+        //                   if (picked != null) {
+        //                     setState(() {
+        //                       _closingTime = picked;
+        //                     });
+        //                   }
+        //                 },
+        //                 child: Container(
+        //                   padding: const EdgeInsets.symmetric(
+        //                     horizontal: 12.0,
+        //                     vertical: 14.0,
+        //                   ),
+        //                   decoration: BoxDecoration(
+        //                     color: const Color(0xFFF8F9FB),
+        //                     borderRadius: BorderRadius.circular(12.0),
+        //                     border: Border.all(color: Colors.grey[300]!),
+        //                   ),
+        //                   child: Row(
+        //                     children: [
+        //                       const Icon(Icons.access_time, color: Colors.grey),
+        //                       const SizedBox(width: 10),
+        //                       Expanded(
+        //                         child: Text(
+        //                           _closingTime != null
+        //                               ? _closingTime!.format(context)
+        //                               : restaurantController
+        //                                     .closingTime
+        //                                     .value
+        //                                     .isEmpty
+        //                               ? 'Select closing time'
+        //                               : restaurantController.formatTime(
+        //                                   restaurantController
+        //                                       .closingTime
+        //                                       .value,
+        //                                 ),
+        //                           style: const TextStyle(
+        //                             fontSize: 14,
+        //                             color: Colors.black,
+        //                           ),
+        //                         ),
+        //                       ),
+        //                       const Icon(
+        //                         Icons.keyboard_arrow_down,
+        //                         color: Colors.grey,
+        //                       ),
+        //                     ],
+        //                   ),
+        //                 ),
+        //               ),
+        //             ],
+        //           ),
+        //         ),
+        //       ],
+        //     ),
+        //     const SizedBox(height: 12),
+        //     SizedBox(
+        //       width: double.infinity,
+        //       child: ElevatedButton(
+        //         onPressed: _isUpdatingBusinessHours
+        //             ? null
+        //             : () async {
+        //                 // Demo success - show immediately without validation
+        //                 Get.snackbar(
+        //                   'Success',
+        //                   'Business hours updated successfully',
+        //                   snackPosition: SnackPosition.BOTTOM,
+        //                   backgroundColor: Colors.green,
+        //                   colorText: Colors.white,
+        //                   duration: const Duration(seconds: 3),
+        //                 );
+
+        //                 // Original code commented out for demo
+        //                 // if (_openingTime == null || _closingTime == null) {
+        //                 //   Get.snackbar(
+        //                 //     'Error',
+        //                 //     'Please select both opening and closing times',
+        //                 //     snackPosition: SnackPosition.BOTTOM,
+        //                 //     backgroundColor: Colors.red,
+        //                 //     colorText: Colors.white,
+        //                 //   );
+        //                 //   return;
+        //                 // }
+
+        //                 // setState(() {
+        //                 //   _isUpdatingBusinessHours = true;
+        //                 // });
+
+        //                 // // Convert TimeOfDay to HH:mm:ss format
+        //                 // final openingTimeStr =
+        //                 //     '${_openingTime!.hour.toString().padLeft(2, '0')}:${_openingTime!.minute.toString().padLeft(2, '0')}:00';
+        //                 // final closingTimeStr =
+        //                 //     '${_closingTime!.hour.toString().padLeft(2, '0')}:${_closingTime!.minute.toString().padLeft(2, '0')}:00';
+
+        //                 // final success = await restaurantController
+        //                 //     .updateBusinessHours(
+        //                 //       openingTimeStr,
+        //                 //       closingTimeStr,
+        //                 //     );
+
+        //                 // setState(() {
+        //                 //   _isUpdatingBusinessHours = false;
+        //                 // });
+
+        //                 // if (success) {
+        //                 //   Get.snackbar(
+        //                 //     'Success',
+        //                 //     'Business hours updated successfully',
+        //                 //     snackPosition: SnackPosition.BOTTOM,
+        //                 //     backgroundColor: Colors.green,
+        //                 //     colorText: Colors.white,
+        //                 //   );
+        //                 // } else {
+        //                 //   Get.snackbar(
+        //                 //     'Error',
+        //                 //     'Failed to update business hours',
+        //                 //     snackPosition: SnackPosition.BOTTOM,
+        //                 //     backgroundColor: Colors.red,
+        //                 //     colorText: Colors.white,
+        //                 //   );
+        //                 // }
+        //               },
+        //         style: ElevatedButton.styleFrom(
+        //           backgroundColor: AppColors.primaryColor,
+        //           padding: const EdgeInsets.symmetric(vertical: 12),
+        //           shape: RoundedRectangleBorder(
+        //             borderRadius: BorderRadius.circular(8),
+        //           ),
+        //         ),
+        //         child: _isUpdatingBusinessHours
+        //             ? const SizedBox(
+        //                 height: 20,
+        //                 width: 20,
+        //                 child: CircularProgressIndicator(
+        //                   color: Colors.white,
+        //                   strokeWidth: 2,
+        //                 ),
+        //               )
+        //             : Text(
+        //                 'Update Business Hours',
+        //                 style: TextStyle(fontSize: 14, color: Colors.white),
+        //               ),
+        //       ),
+        //     ),
+
+        //     // SizedBox(
+        //     //   width: double.infinity,
+        //     //   child: ElevatedButton(
+        //     //     onPressed: _isUpdatingBusinessHours
+        //     //         ? null
+        //     //         : () async {
+        //     //             if (_openingTime == null || _closingTime == null) {
+        //     //               Get.snackbar(
+        //     //                 'Error',
+        //     //                 'Please select both opening and closing times',
+        //     //                 snackPosition: SnackPosition.BOTTOM,
+        //     //                 backgroundColor: Colors.red,
+        //     //                 colorText: Colors.white,
+        //     //               );
+        //     //               return;
+        //     //             }
+
+        //     //             setState(() {
+        //     //               _isUpdatingBusinessHours = true;
+        //     //             });
+
+        //     //             // Convert TimeOfDay to HH:mm:ss format
+        //     //             final openingTimeStr =
+        //     //                 '${_openingTime!.hour.toString().padLeft(2, '0')}:${_openingTime!.minute.toString().padLeft(2, '0')}:00';
+        //     //             final closingTimeStr =
+        //     //                 '${_closingTime!.hour.toString().padLeft(2, '0')}:${_closingTime!.minute.toString().padLeft(2, '0')}:00';
+
+        //     //             final success = await restaurantController
+        //     //                 .updateBusinessHours(
+        //     //                   openingTimeStr,
+        //     //                   closingTimeStr,
+        //     //                 );
+
+        //     //             setState(() {
+        //     //               _isUpdatingBusinessHours = false;
+        //     //             });
+
+        //     //             if (success) {
+        //     //               Get.snackbar(
+        //     //                 'Success',
+        //     //                 'Business hours updated successfully',
+        //     //                 snackPosition: SnackPosition.BOTTOM,
+        //     //                 backgroundColor: Colors.green,
+        //     //                 colorText: Colors.white,
+        //     //               );
+        //     //             } else {
+        //     //               Get.snackbar(
+        //     //                 'Error',
+        //     //                 'Failed to update business hours',
+        //     //                 snackPosition: SnackPosition.BOTTOM,
+        //     //                 backgroundColor: Colors.red,
+        //     //                 colorText: Colors.white,
+        //     //               );
+        //     //             }
+        //     //           },
+        //     //     style: ElevatedButton.styleFrom(
+        //     //       backgroundColor: AppColors.primaryColor,
+        //     //       padding: const EdgeInsets.symmetric(vertical: 12),
+        //     //       shape: RoundedRectangleBorder(
+        //     //         borderRadius: BorderRadius.circular(8),
+        //     //       ),
+        //     //     ),
+        //     //     child: _isUpdatingBusinessHours
+        //     //         ? const SizedBox(
+        //     //             height: 20,
+        //     //             width: 20,
+        //     //             child: CircularProgressIndicator(
+        //     //               color: Colors.white,
+        //     //               strokeWidth: 2,
+        //     //             ),
+        //     //           )
+        //     //         : Text(
+        //     //             'Update Business Hours',
+        //     //             style: TextStyle(fontSize: 14, color: Colors.white),
+        //     //           ),
+        //     //   ),
+        //     // ),
+        //   ],
+        // ),
+        const SizedBox(height: 24),
+
+        // Weekly Schedule Section
+        _buildSectionTitle('Weekly Schedule'),
+        Obx(() {
+          if (scheduleController.isLoading.value) {
+            return _buildCard(
+              children: [const Center(child: CircularProgressIndicator())],
+            );
+          }
+
+          return _buildCard(
+            children: [
+              const Text(
+                'Set opening and closing hours for each day of the week',
+                style: TextStyle(color: Colors.grey, fontSize: 14),
+              ),
+              const SizedBox(height: 16),
+              ...scheduleController.weeklySchedule.keys.map((day) {
+                final dayCapitalized = day[0].toUpperCase() + day.substring(1);
+                final schedule = scheduleController.weeklySchedule[day]!;
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        dayCapitalized,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () async {
+                                final TimeOfDay? picked = await showTimePicker(
+                                  context: context,
+                                  initialTime:
+                                      schedule['opening'] ?? TimeOfDay.now(),
+                                );
+                                if (picked != null) {
+                                  scheduleController.updateTime(
+                                    day,
+                                    'opening',
+                                    picked,
+                                  );
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12.0,
+                                  vertical: 12.0,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF8F9FB),
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  border: Border.all(color: Colors.grey[300]!),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.access_time,
+                                      color: Colors.grey,
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Obx(
+                                        () => Text(
+                                          scheduleController
+                                                      .weeklySchedule[day]!['opening'] !=
+                                                  null
+                                              ? scheduleController
+                                                    .weeklySchedule[day]!['opening']!
+                                                    .format(context)
+                                              : 'Opening',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color:
+                                                scheduleController
+                                                        .weeklySchedule[day]!['opening'] !=
+                                                    null
+                                                ? Colors.black
+                                                : Colors.grey,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'to',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () async {
+                                final TimeOfDay? picked = await showTimePicker(
+                                  context: context,
+                                  initialTime:
+                                      schedule['closing'] ?? TimeOfDay.now(),
+                                );
+                                if (picked != null) {
+                                  scheduleController.updateTime(
+                                    day,
+                                    'closing',
+                                    picked,
+                                  );
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12.0,
+                                  vertical: 12.0,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF8F9FB),
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  border: Border.all(color: Colors.grey[300]!),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.access_time,
+                                      color: Colors.grey,
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Obx(
+                                        () => Text(
+                                          scheduleController
+                                                      .weeklySchedule[day]!['closing'] !=
+                                                  null
+                                              ? scheduleController
+                                                    .weeklySchedule[day]!['closing']!
+                                                    .format(context)
+                                              : 'Closing',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color:
+                                                scheduleController
+                                                        .weeklySchedule[day]!['closing'] !=
+                                                    null
+                                                ? Colors.black
+                                                : Colors.grey,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton(
+                            onPressed: () async {
+                              final success = await scheduleController
+                                  .saveDaySchedule(day);
+
+                              if (success) {
+                                Get.snackbar(
+                                  'Success',
+                                  '$dayCapitalized schedule updated successfully',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.green,
+                                  colorText: Colors.white,
+                                  duration: const Duration(seconds: 2),
+                                );
+                              } else {
+                                Get.snackbar(
+                                  'Error',
+                                  'Failed to update $dayCapitalized schedule',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.red,
+                                  colorText: Colors.white,
+                                  duration: const Duration(seconds: 2),
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryColor,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: Text(
+                              'Update',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              const SizedBox(height: 12),
+              // SizedBox(
+              //   width: double.infinity,
+              //   child: Obx(
+              //     () => ElevatedButton(
+              //       onPressed: scheduleController.isSaving.value
+              //           ? null
+              //           : () async {
+              //               final success = await scheduleController
+              //                   .saveWeeklySchedule();
+
+              //               if (success) {
+              //                 Get.snackbar(
+              //                   'Success',
+              //                   'Weekly schedule saved successfully',
+              //                   snackPosition: SnackPosition.BOTTOM,
+              //                   backgroundColor: Colors.green,
+              //                   colorText: Colors.white,
+              //                   duration: const Duration(seconds: 3),
+              //                 );
+              //               } else {
+              //                 Get.snackbar(
+              //                   'Error',
+              //                   'Failed to save weekly schedule',
+              //                   snackPosition: SnackPosition.BOTTOM,
+              //                   backgroundColor: Colors.red,
+              //                   colorText: Colors.white,
+              //                   duration: const Duration(seconds: 3),
+              //                 );
+              //               }
+              //             },
+              //       style: ElevatedButton.styleFrom(
+              //         backgroundColor: AppColors.primaryColor,
+              //         padding: const EdgeInsets.symmetric(vertical: 12),
+              //         shape: RoundedRectangleBorder(
+              //           borderRadius: BorderRadius.circular(8),
+              //         ),
+              //       ),
+              //       child: scheduleController.isSaving.value
+              //           ? const SizedBox(
+              //               height: 20,
+              //               width: 20,
+              //               child: CircularProgressIndicator(
+              //                 color: Colors.white,
+              //                 strokeWidth: 2,
+              //               ),
+              //             )
+              //           : Text(
+              //               'Save Weekly Schedule',
+              //               style: TextStyle(fontSize: 14, color: Colors.white),
+              //             ),
+              //     ),
+              //   ),
+              // ),
+            ],
+          );
+        }),
+
         const SizedBox(height: 24),
 
         // Special promotions Section
-        _buildSectionTitle('Special promotions'),
-        _buildCard(
-          children: [
-            Text(
-              'AI will mention during calls',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: TextEditingController(text: _specialPromotionsText),
-              onChanged: (value) {
-                setState(() {
-                  _specialPromotionsText = value;
-                });
-              },
-              maxLines: 4,
-              decoration: InputDecoration(
-                hintText: 'Type here',
-                fillColor: const Color(0xFFF8F9FB),
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.all(12.0),
-              ),
-            ),
-          ],
-        ),
+        // _buildSectionTitle('Special promotions'),
+        // _buildCard(
+        //   children: [
+        //     Text(
+        //       'AI will mention during calls',
+        //       style: TextStyle(color: Colors.grey[600]),
+        //     ),
+        //     const SizedBox(height: 8),
+        //     TextField(
+        //       controller: TextEditingController(text: _specialPromotionsText),
+        //       onChanged: (value) {
+        //         setState(() {
+        //           _specialPromotionsText = value;
+        //         });
+        //       },
+        //       maxLines: 4,
+        //       decoration: InputDecoration(
+        //         hintText: 'Type here',
+        //         fillColor: const Color(0xFFF8F9FB),
+        //         filled: true,
+        //         border: OutlineInputBorder(
+        //           borderRadius: BorderRadius.circular(12.0),
+        //           borderSide: BorderSide.none,
+        //         ),
+        //         contentPadding: const EdgeInsets.all(12.0),
+        //       ),
+        //     ),
+        //   ],
+        // ),
       ],
     );
   }
@@ -418,30 +1213,6 @@ class _SettingsScreenState extends State<SettingsScreen>
         const SizedBox(height: 10),
         control,
       ],
-    );
-  }
-
-  Widget _buildDropdownField({required IconData icon, required String text}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FB),
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.grey),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 14, color: Colors.black),
-            ),
-          ),
-          const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
-        ],
-      ),
     );
   }
 }

@@ -14,19 +14,25 @@ class OrderEntryController extends GetxController {
   final customerNameController = TextEditingController();
   final addressController = TextEditingController();
   final phoneController = TextEditingController();
+  final emailController = TextEditingController();
   final orderNotesController = TextEditingController();
+  final allergyController = TextEditingController();
+  final discountTextController = TextEditingController();
 
   var selectedCategory = 'All'.obs;
+  var orderType = 'delivery'.obs; // 'pickup' or 'delivery'
+  var selectedDeliveryArea = Rxn<int>(); // Nullable integer
 
   Future<void> createOrder() async {
-    if (orderItems.isEmpty ||
-        customerNameController.text.isEmpty ||
-        addressController.text.isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Please add food items, customer name, and address.',
-      );
+    if (orderItems.isEmpty || customerNameController.text.isEmpty) {
+      Get.snackbar('Error', 'Please add food items and customer name.');
       print("Order creation failed: Missing required fields");
+      return;
+    }
+
+    // Validate address for delivery orders
+    if (orderType.value == 'delivery' && addressController.text.isEmpty) {
+      Get.snackbar('Error', 'Address is required for delivery orders.');
       return;
     }
 
@@ -46,21 +52,32 @@ class OrderEntryController extends GetxController {
           return {
             "item": item.id,
             "quantity": item.quantity,
-            "extras": item.extras.join(", "),
-            "extras_price":
-                item.totalPrice - item.price, // calculate extras price
+            "extras": item.extras,
+            "extras_price": item.extrasPrice.toString(),
             "special_instructions": item.specialInstructions,
           };
         }).toList(),
-        "email": "test@example.com",
-        "phone": phoneController.text,
-        "order_notes": orderNotesController.text,
-        "address": addressController.text,
-        "allergy": "",
-        "discount_text": "",
+        "email": emailController.text.isNotEmpty ? emailController.text : null,
+        "phone": phoneController.text.isNotEmpty ? phoneController.text : null,
+        "order_notes": orderNotesController.text.isNotEmpty
+            ? orderNotesController.text
+            : null,
+        "address": addressController.text.isNotEmpty
+            ? addressController.text
+            : null,
+        "allergy": allergyController.text.isNotEmpty
+            ? allergyController.text
+            : null,
+        "discount_text": discountTextController.text.isNotEmpty
+            ? discountTextController.text
+            : null,
+        "delivery_area": selectedDeliveryArea.value,
+        "verified": true,
+        "order_type": orderType.value,
       };
 
-      print("Sending order payload: $body");
+      // print("\n📦 ========== ORDER PAYLOAD DEBUG ==========");
+      // print("📝 Raw Body Map: $body");
 
       final response = await http.post(
         url,
@@ -72,7 +89,7 @@ class OrderEntryController extends GetxController {
       );
 
       print("Response status: ${response.statusCode}");
-      print("Response body: ${response.body}");
+      // print("Response body: ${response.body}");
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         Get.snackbar("Success", "Order Created Successfully!");
@@ -128,8 +145,13 @@ class OrderEntryController extends GetxController {
     customerNameController.clear();
     addressController.clear();
     phoneController.clear();
+    emailController.clear();
     orderNotesController.clear();
+    allergyController.clear();
+    discountTextController.clear();
     orderItems.clear();
+    selectedDeliveryArea.value = null;
+    orderType.value = 'delivery';
     print("Form cleared");
   }
 }

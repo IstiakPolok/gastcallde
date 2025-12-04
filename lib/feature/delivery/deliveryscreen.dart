@@ -1,0 +1,596 @@
+import 'package:flutter/material.dart';
+import 'package:gastcallde/core/const/app_colors.dart';
+import 'package:gastcallde/core/global_widegts/CustomDrawer.dart';
+import 'package:gastcallde/core/global_widegts/CustomNavigationRail.dart';
+import 'package:get/get.dart';
+
+import 'controllers/delivery_info_controller.dart';
+
+class DeliveryScreen extends StatefulWidget {
+  const DeliveryScreen({super.key});
+
+  @override
+  State<DeliveryScreen> createState() => _DeliveryScreenState();
+}
+
+class _DeliveryScreenState extends State<DeliveryScreen> {
+  int _selectedIndex = 6;
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    const double breakpoint = 600;
+    final isMobile = screenWidth < breakpoint;
+
+    return Scaffold(
+      appBar: isMobile ? AppBar(title: const Text(' ')) : null,
+      drawer: isMobile
+          ? CustomDrawer(
+              selectedIndex: _selectedIndex,
+              onItemSelected: (index) {
+                setState(() => _selectedIndex = index);
+              },
+            )
+          : null,
+      body: SafeArea(
+        child: Row(
+          children: [
+            if (!isMobile)
+              CustomNavigationRail(
+                selectedIndex: _selectedIndex,
+                onDestinationSelected: (index) {
+                  setState(() => _selectedIndex = index);
+                },
+              ),
+            const Expanded(child: DeliveryInfoScreen()),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class DeliveryInfoScreen extends StatelessWidget {
+  const DeliveryInfoScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final DeliveryInfoController controller = Get.put(DeliveryInfoController());
+    controller.fetchDeliveryAreas(); // Fetch data on screen load
+
+    return Scaffold(
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'delivery_information'.tr,
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'delivery_areas'.tr,
+                    style: const TextStyle(fontSize: 13, color: Colors.black),
+                  ),
+                ],
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    _showAddAddressDialog(context, controller);
+                  },
+                  icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                  label: Text('add_address'.tr),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 12.0,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              if (controller.deliveryAreas.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(40.0),
+                    child: Text(
+                      'no_delivery_areas'.tr,
+                      style: const TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 2,
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        _buildHeader(),
+                        const SizedBox(height: 10),
+                        ...controller.deliveryAreas.map((area) {
+                          return Column(
+                            children: [
+                              _buildDataRow(
+                                postalCode: area['postalcode'] ?? '-',
+                                deliveryTime:
+                                    "${area['estimated_delivery_time']} mins",
+                                fee: "${area['delivery_fee']} €",
+                                id: area['id'],
+                                controller: controller,
+                                context: context,
+                              ),
+                              const SizedBox(height: 10),
+                            ],
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              'postal_code_plz'.tr,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              'estimated_delivery_time'.tr,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'delivery_fee'.tr,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'action'.tr,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDataRow({
+    required String postalCode,
+    required String deliveryTime,
+    required String fee,
+    required int id,
+    required DeliveryInfoController controller,
+    required BuildContext context,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F6FA),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              postalCode,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              deliveryTime,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              fee,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildActionButton(
+                  Icons.edit_outlined,
+                  onTap: () {
+                    _showEditAddressDialog(
+                      context,
+                      controller,
+                      id: id,
+                      currentPostalCode: postalCode,
+                      currentDeliveryTime: deliveryTime.replaceAll(' mins', ''),
+                      currentDeliveryFee: fee.replaceAll(' Tk', ''),
+                    );
+                  },
+                ),
+                const SizedBox(width: 8),
+                _buildActionButton(
+                  Icons.delete_outline,
+                  onTap: () {
+                    _showDeleteConfirmation(context, controller, id);
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddAddressDialog(
+    BuildContext context,
+    DeliveryInfoController controller,
+  ) {
+    final postalCodeController = TextEditingController();
+    final estimatedTimeController = TextEditingController();
+    final deliveryFeeController = TextEditingController();
+
+    Get.dialog(
+      Dialog(
+        insetPadding: const EdgeInsets.symmetric(
+          horizontal: 40.0,
+          vertical: 24.0,
+        ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 16,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'area_management'.tr,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'delivery_areas'.tr,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: postalCodeController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'postal_code'.tr,
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: estimatedTimeController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'estimated_delivery_time_mins'.tr,
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: deliveryFeeController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'delivery_fee'.tr,
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Get.back(),
+                          child: Text(
+                            'cancel'.tr,
+                            style: const TextStyle(
+                              color: AppColors.primaryColor,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: () async {
+                            final postal = postalCodeController.text.trim();
+                            final time = estimatedTimeController.text.trim();
+                            final fee = deliveryFeeController.text.trim();
+
+                            if (postal.isEmpty || time.isEmpty || fee.isEmpty) {
+                              Get.snackbar(
+                                'error'.tr,
+                                'please_fill_all_fields'.tr,
+                              );
+                              return;
+                            }
+
+                            Get.back();
+                            await controller.addDeliveryArea(
+                              postalCode: postal,
+                              estimatedTime: time,
+                              deliveryFee: fee,
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: Text('add'.tr),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showEditAddressDialog(
+    BuildContext context,
+    DeliveryInfoController controller, {
+    required int id,
+    required String currentPostalCode,
+    required String currentDeliveryTime,
+    required String currentDeliveryFee,
+  }) {
+    final postalCodeController = TextEditingController(text: currentPostalCode);
+    final estimatedTimeController = TextEditingController(
+      text: currentDeliveryTime,
+    );
+    final deliveryFeeController = TextEditingController(
+      text: currentDeliveryFee,
+    );
+
+    Get.dialog(
+      Dialog(
+        insetPadding: const EdgeInsets.symmetric(
+          horizontal: 40.0,
+          vertical: 24.0,
+        ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 16,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'edit_area'.tr,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'update_delivery_area'.tr,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: postalCodeController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'postal_code'.tr,
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: estimatedTimeController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'estimated_delivery_time_mins'.tr,
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: deliveryFeeController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'delivery_fee'.tr,
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Get.back(),
+                          child: Text(
+                            'cancel'.tr,
+                            style: const TextStyle(
+                              color: AppColors.primaryColor,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: () async {
+                            final postal = postalCodeController.text.trim();
+                            final time = estimatedTimeController.text.trim();
+                            final fee = deliveryFeeController.text.trim();
+
+                            if (postal.isEmpty || time.isEmpty || fee.isEmpty) {
+                              Get.snackbar(
+                                'error'.tr,
+                                'please_fill_all_fields'.tr,
+                              );
+                              return;
+                            }
+
+                            Get.back();
+                            await controller.updateDeliveryArea(
+                              id: id,
+                              postalCode: postal,
+                              estimatedTime: time,
+                              deliveryFee: fee,
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: Text('update'.tr),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton(IconData icon, {required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(6.0),
+          border: Border.all(color: Colors.grey.shade300, width: 1.5),
+        ),
+        padding: const EdgeInsets.all(4.0),
+        child: Icon(icon, size: 18.0, color: Colors.grey.shade600),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(
+    BuildContext context,
+    DeliveryInfoController controller,
+    int id,
+  ) {
+    Get.dialog(
+      AlertDialog(
+        title: Text('confirm_delete'.tr),
+        content: Text('delete_confirmation_message'.tr),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text(
+              'cancel'.tr,
+              style: const TextStyle(color: AppColors.primaryColor),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Get.back(); // close dialog
+              await controller.deleteDeliveryArea(id);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            child: Text('delete'.tr),
+          ),
+        ],
+      ),
+    );
+  }
+}
