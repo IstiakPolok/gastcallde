@@ -4,6 +4,7 @@ import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/feature/reservastion/controllers/addTableReservationController.dart';
 import 'package:gastcallde/feature/reservastion/screens/reservationScreen.dart';
 import 'package:get/get.dart';
+import 'package:country_picker/country_picker.dart';
 
 class ReservationFormPage extends StatefulWidget {
   const ReservationFormPage({super.key});
@@ -18,14 +19,18 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _peopleController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _allergyController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   final List<bool> _selectedFromTime = List.generate(10, (_) => false);
   final List<bool> _selectedToTime = List.generate(10, (_) => false);
   List<Map<String, dynamic>> tableList = [];
   bool isLoading = false;
+  bool isLoadingCustomer = false;
   final TableApiController _tableApiController = TableApiController();
   int? _selectedTableId;
+  String _selectedCountryCode = '+49';
 
   @override
   void initState() {
@@ -89,6 +94,66 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
     }
   }
 
+  Future<void> _fetchCustomerInfo() async {
+    if (_phoneController.text.isEmpty) {
+      Get.snackbar('Error', 'Please enter a phone number');
+      return;
+    }
+
+    setState(() {
+      isLoadingCustomer = true;
+    });
+
+    try {
+      final fullPhoneNumber = '$_selectedCountryCode${_phoneController.text}';
+      print('Fetching customer info for phone: $fullPhoneNumber');
+      final customerData = await _tableApiController.fetchCustomerByPhone(
+        fullPhoneNumber,
+      );
+      print('Customer data received: $customerData');
+
+      final customerInfo = customerData['customerInfo'];
+
+      // Auto-fill the form fields
+      _nameController.text = customerInfo['name'] ?? '';
+      _emailController.text = customerInfo['email'] ?? '';
+
+      // Get address and allergy from the first order if available
+      if (customerData['orders'] != null &&
+          (customerData['orders'] as List).isNotEmpty) {
+        final firstOrder = customerData['orders'][0];
+        print('First order found: $firstOrder');
+        _addressController.text = firstOrder['address'] ?? '';
+        _allergyController.text = firstOrder['allergy'] ?? '';
+      } else {
+        print('No orders found for this customer.');
+      }
+
+      Get.snackbar(
+        'Success',
+        'Customer information loaded successfully',
+        backgroundColor: AppColors.primaryColor.withOpacity(0.8),
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      print('Error fetching customer info: $e');
+      String errorMessage = e.toString();
+      if (errorMessage.startsWith('Exception: ')) {
+        errorMessage = errorMessage.replaceFirst('Exception: ', '');
+      }
+      Get.snackbar(
+        'Info',
+        errorMessage,
+        backgroundColor: Colors.orange.withOpacity(0.8),
+        colorText: Colors.white,
+      );
+    } finally {
+      setState(() {
+        isLoadingCustomer = false;
+      });
+    }
+  }
+
   @override
   void dispose() {
     _dateController.dispose();
@@ -96,6 +161,8 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
     _phoneController.dispose();
     _emailController.dispose();
     _peopleController.dispose();
+    _addressController.dispose();
+    _allergyController.dispose();
     super.dispose();
   }
 
@@ -299,17 +366,109 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
               },
             ),
             const SizedBox(height: 16),
-            _buildTextField(
-              label: 'phone_num'.tr,
-              hint: '+895 3467 458',
-              icon: Icons.phone_android,
-              controller: _phoneController,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter phone number';
-                }
-                return null;
-              },
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.phone_android, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'phone_num'.tr,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        showCountryPicker(
+                          context: context,
+                          showPhoneCode: true,
+                          onSelect: (Country country) {
+                            setState(() {
+                              _selectedCountryCode = '+${country.phoneCode}';
+                            });
+                          },
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.blue),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              _selectedCountryCode,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.arrow_drop_down, size: 20),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter phone number';
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                          hintText: '123 456 7890',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Colors.blue,
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: isLoadingCustomer ? null : _fetchCustomerInfo,
+                      icon: isLoadingCustomer
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
+                              ),
+                            )
+                          : const Icon(Icons.search, size: 18),
+                      label: Text('fetch'.tr),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 16,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             _buildTextField(
@@ -321,8 +480,12 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
                 if (value == null || value.isEmpty) {
                   return 'Please enter email';
                 }
-                if (!GetUtils.isEmail(value)) {
-                  return 'Please enter a valid email';
+                // Improved email validation
+                final emailRegex = RegExp(
+                  r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                );
+                if (!emailRegex.hasMatch(value)) {
+                  return 'Please enter a valid email address';
                 }
                 return null;
               },
@@ -339,6 +502,32 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
                 }
                 if (int.tryParse(value) == null) {
                   return 'Please enter a valid number';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              label: 'address'.tr,
+              hint: 'type_here'.tr,
+              icon: Icons.location_on_outlined,
+              controller: _addressController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter address';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              label: 'allergies'.tr,
+              hint: 'type_here'.tr,
+              icon: Icons.medical_services_outlined,
+              controller: _allergyController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter allergy information';
                 }
                 return null;
               },
@@ -539,6 +728,17 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
       return;
     }
 
+    // Validate that to_time is after from_time
+    if (toIndex <= fromIndex) {
+      Get.snackbar(
+        'Error',
+        'End time must be after start time',
+        backgroundColor: Colors.red.withOpacity(0.8),
+        colorText: Colors.white,
+      );
+      return;
+    }
+
     EasyLoading.show();
     try {
       final api = ReservationApiController();
@@ -559,25 +759,54 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
       String fromTime = times[fromIndex];
       String toTime = times[toIndex];
 
+      final fullPhoneNumber = '$_selectedCountryCode${_phoneController.text}';
+
       final result = await api.createReservation(
         customerName: _nameController.text,
-        phoneNumber: _phoneController.text,
+        phoneNumber: fullPhoneNumber,
         guestNo: int.tryParse(_peopleController.text) ?? 1,
         date: _dateController.text,
         fromTime: fromTime,
         toTime: toTime,
         tableId: _selectedTableId!,
         email: _emailController.text,
+        address: _addressController.text,
+        allergy: _allergyController.text,
       );
 
-      Get.snackbar("Success", "Reservation Created: ID ${result['id']}");
+      Get.snackbar(
+        "Success",
+        "Reservation Created: ID ${result['id']}",
+        backgroundColor: Colors.green.withOpacity(0.8),
+        colorText: Colors.white,
+      );
       Get.to(() => ReservationScreen());
     } catch (e) {
       String errorMessage = e.toString();
       if (errorMessage.startsWith("Exception: ")) {
         errorMessage = errorMessage.replaceFirst("Exception: ", "");
       }
-      Get.snackbar("Error", errorMessage);
+
+      // Truncate very long error messages to prevent UI overflow
+      if (errorMessage.length > 200) {
+        if (errorMessage.contains('SMTPRecipientsRefused')) {
+          errorMessage = 'Invalid email address. Please check and try again.';
+        } else if (errorMessage.contains('<!DOCTYPE html>')) {
+          errorMessage =
+              'Server error occurred. Please check your input and try again.';
+        } else {
+          errorMessage = errorMessage.substring(0, 200) + '...';
+        }
+      }
+
+      Get.snackbar(
+        "Error",
+        errorMessage,
+        backgroundColor: Colors.red.withOpacity(0.8),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 5),
+        maxWidth: 400,
+      );
     } finally {
       EasyLoading.dismiss();
     }

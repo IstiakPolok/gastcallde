@@ -16,12 +16,11 @@ class LoginController extends GetxController {
   var isLoading = false.obs;
 
   @override
-  void onClose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.onClose();
-  }
-
+  // void onClose() {
+  //   emailController.dispose();
+  //   passwordController.dispose();
+  //   super.onClose();
+  // }
   void togglePasswordVisibility() {
     isPasswordVisible.value = !isPasswordVisible.value;
   }

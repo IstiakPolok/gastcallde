@@ -14,6 +14,62 @@ class TableApiController {
     }
   }
 
+  /// Fetch customer information by phone number
+  Future<Map<String, dynamic>> fetchCustomerByPhone(String phone) async {
+    final String? token = await SharedPreferencesHelper.getAccessToken();
+    final url = Uri.parse(
+      '${Urls.baseUrl}/owner/customers/',
+    ).replace(queryParameters: {'search': phone});
+
+    final headers = {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      debugPrint('--- Fetching Customer by Phone ---');
+      debugPrint('Request URL: $url');
+      debugPrint('Headers: $headers');
+
+      final response = await http.get(url, headers: headers);
+
+      debugPrint('Status Code: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+
+        if (data.isEmpty) {
+          throw Exception('No customer found with this phone number');
+        }
+
+        // Return the first customer in a format compatible with the form
+        final customer = data[0];
+        return {
+          'customerInfo': {
+            'name': customer['customer_name'],
+            'email': customer['email'],
+          },
+          'orders': [
+            {
+              'address': customer['address'],
+              'allergy': '', // Not available in this API response
+            },
+          ],
+        };
+      } else if (response.statusCode == 404) {
+        throw Exception('No customer found with this phone number');
+      } else {
+        throw Exception(
+          'Failed to fetch customer. Code: ${response.statusCode}',
+        );
+      }
+    } catch (e, st) {
+      debugPrint('Error fetching customer: $e');
+      debugPrintStack(stackTrace: st, label: 'Stack Trace');
+      rethrow;
+    }
+  }
+
   /// Fetch the table list from the API
   Future<List<Map<String, dynamic>>> fetchTables() async {
     final prefs = await SharedPreferences.getInstance();
@@ -76,6 +132,8 @@ class ReservationApiController {
     required String toTime, // format: HH:mm:ss
     required int tableId,
     String? email,
+    String? address,
+    String? allergy,
     String status = "reserved", // default
   }) async {
     final prefs = await SharedPreferences.getInstance();
@@ -102,20 +160,10 @@ class ReservationApiController {
       "to_time": toTime,
       "table": tableId.toString(),
       "email": email ?? "",
+      "address": address ?? "",
+      "allergy": allergy ?? "",
       "status": status,
     };
-
-    // final body = jsonEncode({
-    //   "customer_name": 'customerName',
-    //   "phone_number": '51485',
-    //   "guest_no": '4',
-    //   "date": '2025-07-14', // Ensure the date is in 'yyyy-MM-dd' format
-    //   "from_time": '01:00:00',
-    //   "to_time": '02:00:00',
-    //   "table": 25,
-    //   "email": 'zJf6wb26lJo3@lsLllBOJSoFfTMiPUubKkXVh.wn' ?? "",
-    //   "status": 'finished',
-    // });
 
     // Debugging: print the request headers and body
     print("Request Headers: $headers");
