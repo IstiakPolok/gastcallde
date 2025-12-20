@@ -224,16 +224,19 @@ class OrderController extends GetxController {
     }
   }
 
-  // New method to delete an order from any list
-  void deleteOrder(Order order) {
-    if (incomingOrders.contains(order)) {
-      incomingOrders.remove(order);
-    } else if (inPreparationOrders.contains(order)) {
-      inPreparationOrders.remove(order);
-    } else if (outForDeliveryOrders.contains(order)) {
-      outForDeliveryOrders.remove(order);
-    } else if (completedOrders.contains(order)) {
-      completedOrders.remove(order);
+  // New method to delete/cancel an order from any list
+  Future<void> deleteOrder(Order order) async {
+    bool success = await updateOrderStatus(order.id, 'cancelled');
+    if (success) {
+      if (incomingOrders.contains(order)) {
+        incomingOrders.remove(order);
+      } else if (inPreparationOrders.contains(order)) {
+        inPreparationOrders.remove(order);
+      } else if (outForDeliveryOrders.contains(order)) {
+        outForDeliveryOrders.remove(order);
+      } else if (completedOrders.contains(order)) {
+        completedOrders.remove(order);
+      }
     }
   }
 }

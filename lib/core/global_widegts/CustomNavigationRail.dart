@@ -17,6 +17,9 @@ import 'package:gastcallde/feature/setting/screens/settingScreen.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
+import '../../feature/dashboard/controllers/RestaurantOverviewController.dart';
+import '../../feature/dashboard/widgets/RevenueController.dart';
+
 class CustomNavigationRail extends StatefulWidget {
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
@@ -265,10 +268,13 @@ class _CustomNavigationRailState extends State<CustomNavigationRail> {
                           }),
                         SizedBox(height: isTablet ? 8 : 10),
                         TextButton(
-                          onPressed: () {
+                          onPressed: () async {
                             print('Log out button pressed');
-                            SharedPreferencesHelper.logoutUser();
-                            Get.to(LoginScreen());
+                            // Delete controllers to clear old data
+                            Get.delete<RevenueController>(force: true);
+                            Get.delete<RevenueOverviewController>(force: true);
+                            await SharedPreferencesHelper.logoutUser();
+                            Get.offAll(LoginScreen());
                           },
                           style: TextButton.styleFrom(
                             foregroundColor: const Color(0xFFE53935),

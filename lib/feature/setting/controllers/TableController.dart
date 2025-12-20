@@ -11,14 +11,12 @@ class TableModel {
   final String name;
   final String capacity;
   final String status;
-  final String reservationStatus;
 
   TableModel({
     this.id,
     required this.name,
     required this.capacity,
     required this.status,
-    required this.reservationStatus,
   });
 
   Map<String, String> toRequestFields() {
@@ -26,7 +24,7 @@ class TableModel {
       'table_name': name,
       'total_set': capacity,
       'status': status,
-      'reservation_status': reservationStatus,
+      // reservation_status removed
     };
   }
 
@@ -37,14 +35,14 @@ class TableModel {
       name: json['table_name'],
       capacity: json['total_set'].toString(),
       status: json['status'],
-      reservationStatus: json['reservation_status'],
+      // reservationStatus removed
     );
   }
 }
 
 class TableController extends GetxController {
   var tables = <TableModel>[].obs; // Observable list of TableModel
-  var isLoading = false.obs;
+  var isLoading = false.obs; // Observable loading state
 
   Future<void> fetchTables() async {
     isLoading.value = true;
@@ -88,6 +86,7 @@ class TableController extends GetxController {
 
   // Save the tables to the server
   Future<void> saveTables(List<TableModel> newTables) async {
+    isLoading.value = true;
     print("Starting to save ${newTables.length} tables...");
     final String? token = await SharedPreferencesHelper.getAccessToken();
     final prefs = await SharedPreferences.getInstance();
@@ -95,7 +94,7 @@ class TableController extends GetxController {
 
     for (var table in newTables) {
       print(
-        "Saving table: ${table.name}, Capacity: ${table.capacity}, Status: ${table.status}, Reservation Status: ${table.reservationStatus}",
+        "Saving table: ${table.name}, Capacity: ${table.capacity}, Status: ${table.status}",
       );
 
       final request = http.MultipartRequest(
@@ -128,7 +127,7 @@ class TableController extends GetxController {
     }
 
     print("Finished saving tables.");
-    await fetchTables();
+    isLoading.value = false;
   }
 
   // Add tables locally to the observable list
@@ -140,6 +139,7 @@ class TableController extends GetxController {
 
   // Delete a table by ID
   Future<bool> deleteTable(int tableId) async {
+    isLoading.value = true;
     print("Starting to delete table with ID: $tableId");
     final String? token = await SharedPreferencesHelper.getAccessToken();
 
@@ -159,15 +159,18 @@ class TableController extends GetxController {
         print("✅ Table $tableId deleted successfully");
         // Remove the table from the local list
         tables.removeWhere((table) => table.id == tableId);
+        isLoading.value = false;
         return true;
       } else {
         print(
           "❌ Failed to delete table $tableId. Status Code: ${response.statusCode}",
         );
+        isLoading.value = false;
         return false;
       }
     } catch (e) {
       print("❌ Error while deleting table $tableId: $e");
+      isLoading.value = false;
       return false;
     }
   }
@@ -178,8 +181,8 @@ class TableController extends GetxController {
     String name,
     String capacity,
     String status,
-    String reservationStatus,
   ) async {
+    isLoading.value = true;
     print("Starting to update table with ID: $tableId");
     final String? token = await SharedPreferencesHelper.getAccessToken();
 
@@ -198,7 +201,7 @@ class TableController extends GetxController {
         'table_name': name,
         'total_set': capacity,
         'status': status,
-        'reservation_status': reservationStatus,
+        // reservation_status removed
       });
 
       print("Updating table with fields: ${request.fields}");
@@ -213,15 +216,18 @@ class TableController extends GetxController {
         print("✅ Table $tableId updated successfully");
         // Refresh the table list to get the updated data
         await fetchTables();
+        isLoading.value = false;
         return true;
       } else {
         print(
           "❌ Failed to update table $tableId. Status Code: ${response.statusCode}",
         );
+        isLoading.value = false;
         return false;
       }
     } catch (e) {
       print("❌ Error while updating table $tableId: $e");
+      isLoading.value = false;
       return false;
     }
   }

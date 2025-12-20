@@ -1,12 +1,16 @@
 // lib/feature/calls/order_entry_screen.dart
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
+import 'package:gastcallde/core/network_caller/endpoints.dart';
+import 'package:gastcallde/core/services_class/local_service/shared_preferences_helper.dart';
 import 'package:gastcallde/feature/delivery/controllers/delivery_info_controller.dart';
 import 'package:gastcallde/feature/menuManagement/controllers/ExtrasController.dart';
 import 'package:gastcallde/feature/orderManagment/models/food_item_model.dart';
 import 'package:get/get.dart';
 import 'package:country_picker/country_picker.dart';
+import 'package:http/http.dart' as http;
 import 'controllers/OrderEntryController.dart';
 import 'controllers/MenuController.dart';
 
@@ -23,11 +27,390 @@ class _OrderEntryScreenState extends State<OrderEntryScreen> {
   final deliveryController = Get.put(DeliveryInfoController());
   final extrasController = Get.put(ExtrasController());
 
+  // Autocomplete variables
+  List<Map<String, dynamic>> _customerSuggestions = [];
+  bool _isSearching = false;
+  final LayerLink _layerLink = LayerLink();
+  OverlayEntry? _overlayEntry;
+
   @override
   void initState() {
     super.initState();
     // Fetch delivery areas once when screen initializes
     deliveryController.fetchDeliveryAreas();
+
+    // Add listener for name field autocomplete
+    orderEntryController.customerNameController.addListener(_onNameChanged);
+  }
+
+  @override
+  void dispose() {
+    _removeOverlay();
+    orderEntryController.customerNameController.removeListener(_onNameChanged);
+    super.dispose();
+  }
+
+  void _onNameChanged() {
+    final query = orderEntryController.customerNameController.text.trim();
+    if (query.isEmpty) {
+      _removeOverlay();
+      return;
+    }
+    _searchCustomers(query);
+  }
+
+  Future<void> _searchCustomers(String query) async {
+    setState(() {
+      _isSearching = true;
+    });
+
+    try {
+      final token = await SharedPreferencesHelper.getAccessToken();
+      if (token == null) {
+        return;
+      }
+
+      final url = Uri.parse(
+        "${Urls.baseUrl}/owner/customers/",
+      ).replace(queryParameters: {'search': query});
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = jsonDecode(response.body);
+        setState(() {
+          _customerSuggestions = jsonData.map<Map<String, dynamic>>((item) {
+            return {
+              'id': item['id'],
+              'customer_name': item['customer_name'] ?? '',
+              'phone': item['phone'] ?? '',
+              'email': item['email'] ?? '',
+              'address': item['address'] ?? '',
+            };
+          }).toList();
+        });
+
+        if (_customerSuggestions.isNotEmpty) {
+          _showOverlay();
+        } else {
+          _removeOverlay();
+        }
+      }
+    } catch (e) {
+      print('Error searching customers: $e');
+    } finally {
+      setState(() {
+        _isSearching = false;
+      });
+    }
+  }
+
+  void _showOverlay() {
+    _removeOverlay();
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        width: _layerLink.leaderSize?.width ?? 300,
+        child: CompositedTransformFollower(
+          link: _layerLink,
+          showWhenUnlinked: false,
+          offset: Offset(0, _layerLink.leaderSize?.height ?? 60),
+          child: Material(
+            elevation: 4,
+            borderRadius: BorderRadius.circular(8),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 200),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: _customerSuggestions.length,
+                itemBuilder: (context, index) {
+                  final customer = _customerSuggestions[index];
+                  return ListTile(
+                    title: Text(customer['customer_name']),
+                    subtitle: Text(customer['phone']),
+                    onTap: () {
+                      _selectCustomer(customer);
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  void _selectCustomer(Map<String, dynamic> customer) {
+    orderEntryController.customerNameController.removeListener(_onNameChanged);
+
+    orderEntryController.customerNameController.text =
+        customer['customer_name'];
+    orderEntryController.emailController.text = customer['email'];
+    orderEntryController.addressController.text = customer['address'];
+
+    // Parse phone number to extract country code and remaining number
+    String fullPhone = customer['phone'];
+    _parseAndSetPhoneNumber(fullPhone);
+
+    _removeOverlay();
+
+    Future.delayed(const Duration(milliseconds: 100), () {
+      orderEntryController.customerNameController.addListener(_onNameChanged);
+    });
+
+    setState(() {});
+  }
+
+  void _parseAndSetPhoneNumber(String fullPhone) {
+    if (fullPhone.isEmpty) {
+      orderEntryController.phoneController.text = '';
+      return;
+    }
+
+    // List of common country codes (sorted by length, longest first)
+    final countryCodes = [
+      '+1',
+      '+7',
+      '+20',
+      '+27',
+      '+30',
+      '+31',
+      '+32',
+      '+33',
+      '+34',
+      '+36',
+      '+39',
+      '+40',
+      '+41',
+      '+43',
+      '+44',
+      '+45',
+      '+46',
+      '+47',
+      '+48',
+      '+49',
+      '+51',
+      '+52',
+      '+53',
+      '+54',
+      '+55',
+      '+56',
+      '+57',
+      '+58',
+      '+60',
+      '+61',
+      '+62',
+      '+63',
+      '+64',
+      '+65',
+      '+66',
+      '+81',
+      '+82',
+      '+84',
+      '+86',
+      '+90',
+      '+91',
+      '+92',
+      '+93',
+      '+94',
+      '+95',
+      '+98',
+      '+212',
+      '+213',
+      '+216',
+      '+218',
+      '+220',
+      '+221',
+      '+222',
+      '+223',
+      '+224',
+      '+225',
+      '+226',
+      '+227',
+      '+228',
+      '+229',
+      '+230',
+      '+231',
+      '+232',
+      '+233',
+      '+234',
+      '+235',
+      '+236',
+      '+237',
+      '+238',
+      '+239',
+      '+240',
+      '+241',
+      '+242',
+      '+243',
+      '+244',
+      '+245',
+      '+246',
+      '+248',
+      '+249',
+      '+250',
+      '+251',
+      '+252',
+      '+253',
+      '+254',
+      '+255',
+      '+256',
+      '+257',
+      '+258',
+      '+260',
+      '+261',
+      '+262',
+      '+263',
+      '+264',
+      '+265',
+      '+266',
+      '+267',
+      '+268',
+      '+269',
+      '+290',
+      '+291',
+      '+297',
+      '+298',
+      '+299',
+      '+350',
+      '+351',
+      '+352',
+      '+353',
+      '+354',
+      '+355',
+      '+356',
+      '+357',
+      '+358',
+      '+359',
+      '+370',
+      '+371',
+      '+372',
+      '+373',
+      '+374',
+      '+375',
+      '+376',
+      '+377',
+      '+378',
+      '+380',
+      '+381',
+      '+382',
+      '+383',
+      '+385',
+      '+386',
+      '+387',
+      '+389',
+      '+420',
+      '+421',
+      '+423',
+      '+500',
+      '+501',
+      '+502',
+      '+503',
+      '+504',
+      '+505',
+      '+506',
+      '+507',
+      '+508',
+      '+509',
+      '+590',
+      '+591',
+      '+592',
+      '+593',
+      '+594',
+      '+595',
+      '+596',
+      '+597',
+      '+598',
+      '+599',
+      '+670',
+      '+672',
+      '+673',
+      '+674',
+      '+675',
+      '+676',
+      '+677',
+      '+678',
+      '+679',
+      '+680',
+      '+681',
+      '+682',
+      '+683',
+      '+685',
+      '+686',
+      '+687',
+      '+688',
+      '+689',
+      '+690',
+      '+691',
+      '+692',
+      '+850',
+      '+852',
+      '+853',
+      '+855',
+      '+856',
+      '+880',
+      '+886',
+      '+960',
+      '+961',
+      '+962',
+      '+963',
+      '+964',
+      '+965',
+      '+966',
+      '+967',
+      '+968',
+      '+970',
+      '+971',
+      '+972',
+      '+973',
+      '+974',
+      '+975',
+      '+976',
+      '+977',
+      '+992',
+      '+993',
+      '+994',
+      '+995',
+      '+996',
+      '+998',
+    ];
+
+    // Sort by length descending to match longest codes first
+    countryCodes.sort((a, b) => b.length.compareTo(a.length));
+
+    String detectedCode = '+49'; // Default
+    String remainingNumber = fullPhone;
+
+    // Check if phone starts with +
+    if (fullPhone.startsWith('+')) {
+      for (String code in countryCodes) {
+        if (fullPhone.startsWith(code)) {
+          detectedCode = code;
+          remainingNumber = fullPhone.substring(code.length);
+          break;
+        }
+      }
+    }
+
+    setState(() {
+      orderEntryController.countryCode.value = detectedCode;
+      orderEntryController.phoneController.text = remainingNumber;
+    });
   }
 
   @override
@@ -65,11 +448,15 @@ class _OrderEntryScreenState extends State<OrderEntryScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      TextField(
-                        controller: orderEntryController.customerNameController,
-                        decoration: InputDecoration(
-                          labelText: 'customer_name'.tr,
-                          border: const OutlineInputBorder(),
+                      CompositedTransformTarget(
+                        link: _layerLink,
+                        child: TextField(
+                          controller:
+                              orderEntryController.customerNameController,
+                          decoration: InputDecoration(
+                            labelText: 'customer_name'.tr,
+                            border: const OutlineInputBorder(),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 10),

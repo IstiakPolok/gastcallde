@@ -445,7 +445,19 @@ class OrderCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (showBackButton && title != 'incoming')
-          Text('${'customer'.tr}: ${order.customerName}'),
+          Row(
+            children: [
+              Text('${'customer'.tr}: ${order.customerName}'),
+              Spacer(),
+              IconButton(
+                icon: const Icon(Icons.delete, color: AppColors.primaryColor),
+                onPressed: () {
+                  final controller = Get.find<OrderController>();
+                  controller.deleteOrder(order);
+                },
+              ),
+            ],
+          ),
         Text('${'phone'.tr}: ${order.customernumber}'),
         const SizedBox(height: 8),
         // Iterate over the food items and display their details
@@ -595,6 +607,7 @@ class OrderCard extends StatelessWidget {
               controller.reverseOrderStatus(order);
             },
           ),
+
         if (onButtonPressed != null)
           Expanded(
             child: ElevatedButton(

@@ -242,6 +242,23 @@ class AppTranslations extends Translations {
       'all_status': 'All Status',
       'no_data_found': 'No data found',
 
+      // Customer Edit & Additional
+      'edit_customer': 'Edit Customer',
+      'customer_id_not_found': 'Customer ID not found',
+      'customer_updated_successfully': 'Customer updated successfully',
+      'failed_to_update_customer': 'Failed to update customer',
+      'customer_not_found': 'Customer not found',
+      'no_orders_found': 'No orders found',
+      'no_services_found': 'No services found',
+      'order': 'Order',
+      'order_items': 'Order Items',
+      'actions': 'Actions',
+      'reservation': 'Reservation',
+      'reservation_id': 'Reservation ID',
+      'services': 'Services',
+      'customer_section': 'Customer Section',
+      'live_overview_restaurant': 'Live Overview of your Restaurant',
+
       // Reservation Form
       'reservation_form': 'Reservation Form',
       'information': 'Information',
@@ -262,6 +279,9 @@ class AppTranslations extends Translations {
       'seats': 'Seats',
       'failed_to_fetch_tables': 'Failed to fetch tables',
 
+      // Reservation Form - Comment
+      'comment': 'Comment',
+      'add_comment_optional': 'Add a comment (Optional)',
       // Time/Date
       'friday': 'Friday',
       'january': 'January',
@@ -690,6 +710,26 @@ class AppTranslations extends Translations {
           'Kundendetails konnten nicht abgerufen werden',
       'failed_to_fetch_tables': 'Tische konnten nicht abgerufen werden',
 
+      // Customer Edit & Additional
+      'edit_customer': 'Kunde bearbeiten',
+      'customer_id_not_found': 'Kunden-ID nicht gefunden',
+      'customer_updated_successfully': 'Kunde erfolgreich aktualisiert',
+      'failed_to_update_customer': 'Kunde konnte nicht aktualisiert werden',
+      'customer_not_found': 'Kunde nicht gefunden',
+      'no_orders_found': 'Keine Bestellungen gefunden',
+      'no_services_found': 'Keine Dienste gefunden',
+      'order': 'Bestellung',
+      'order_items': 'Bestellartikel',
+      'actions': 'Aktionen',
+      'reservation': 'Reservierung',
+      'reservation_id': 'Reservierungs-ID',
+      'services': 'Dienste',
+      'save': 'Speichern',
+      'cancel': 'Abbrechen',
+
+      // Reservation Form - Comment
+      'comment': 'Kommentar',
+      'add_comment_optional': 'Kommentar hinzufügen (Optional)',
       // Time/Date
       'friday': 'Freitag',
       'january': 'Januar',

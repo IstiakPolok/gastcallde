@@ -134,6 +134,7 @@ class ReservationApiController {
     String? email,
     String? address,
     String? allergy,
+    String? comment,
     String status = "reserved", // default
   }) async {
     final prefs = await SharedPreferences.getInstance();
@@ -163,6 +164,7 @@ class ReservationApiController {
       "address": address ?? "",
       "allergy": allergy ?? "",
       "status": status,
+      if (comment != null && comment.isNotEmpty) "comment": comment,
     };
 
     // Debugging: print the request headers and body
