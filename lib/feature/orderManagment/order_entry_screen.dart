@@ -1,10 +1,16 @@
 // lib/feature/calls/order_entry_screen.dart
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
+import 'package:gastcallde/core/network_caller/endpoints.dart';
+import 'package:gastcallde/core/services_class/local_service/shared_preferences_helper.dart';
 import 'package:gastcallde/feature/delivery/controllers/delivery_info_controller.dart';
+import 'package:gastcallde/feature/menuManagement/controllers/ExtrasController.dart';
 import 'package:gastcallde/feature/orderManagment/models/food_item_model.dart';
 import 'package:get/get.dart';
+import 'package:country_picker/country_picker.dart';
+import 'package:http/http.dart' as http;
 import 'controllers/OrderEntryController.dart';
 import 'controllers/MenuController.dart';
 
@@ -19,12 +25,392 @@ class _OrderEntryScreenState extends State<OrderEntryScreen> {
   final menuController = Get.put(Menu_Controller());
   final orderEntryController = Get.put(OrderEntryController());
   final deliveryController = Get.put(DeliveryInfoController());
+  final extrasController = Get.put(ExtrasController());
+
+  // Autocomplete variables
+  List<Map<String, dynamic>> _customerSuggestions = [];
+  bool _isSearching = false;
+  final LayerLink _layerLink = LayerLink();
+  OverlayEntry? _overlayEntry;
 
   @override
   void initState() {
     super.initState();
     // Fetch delivery areas once when screen initializes
     deliveryController.fetchDeliveryAreas();
+
+    // Add listener for name field autocomplete
+    orderEntryController.customerNameController.addListener(_onNameChanged);
+  }
+
+  @override
+  void dispose() {
+    _removeOverlay();
+    orderEntryController.customerNameController.removeListener(_onNameChanged);
+    super.dispose();
+  }
+
+  void _onNameChanged() {
+    final query = orderEntryController.customerNameController.text.trim();
+    if (query.isEmpty) {
+      _removeOverlay();
+      return;
+    }
+    _searchCustomers(query);
+  }
+
+  Future<void> _searchCustomers(String query) async {
+    setState(() {
+      _isSearching = true;
+    });
+
+    try {
+      final token = await SharedPreferencesHelper.getAccessToken();
+      if (token == null) {
+        return;
+      }
+
+      final url = Uri.parse(
+        "${Urls.baseUrl}/owner/customers/",
+      ).replace(queryParameters: {'search': query});
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = jsonDecode(response.body);
+        setState(() {
+          _customerSuggestions = jsonData.map<Map<String, dynamic>>((item) {
+            return {
+              'id': item['id'],
+              'customer_name': item['customer_name'] ?? '',
+              'phone': item['phone'] ?? '',
+              'email': item['email'] ?? '',
+              'address': item['address'] ?? '',
+            };
+          }).toList();
+        });
+
+        if (_customerSuggestions.isNotEmpty) {
+          _showOverlay();
+        } else {
+          _removeOverlay();
+        }
+      }
+    } catch (e) {
+      print('Error searching customers: $e');
+    } finally {
+      setState(() {
+        _isSearching = false;
+      });
+    }
+  }
+
+  void _showOverlay() {
+    _removeOverlay();
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        width: _layerLink.leaderSize?.width ?? 300,
+        child: CompositedTransformFollower(
+          link: _layerLink,
+          showWhenUnlinked: false,
+          offset: Offset(0, _layerLink.leaderSize?.height ?? 60),
+          child: Material(
+            elevation: 4,
+            borderRadius: BorderRadius.circular(8),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 200),
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                itemCount: _customerSuggestions.length,
+                itemBuilder: (context, index) {
+                  final customer = _customerSuggestions[index];
+                  return ListTile(
+                    title: Text(customer['customer_name']),
+                    subtitle: Text(customer['phone']),
+                    onTap: () {
+                      _selectCustomer(customer);
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+  }
+
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  void _selectCustomer(Map<String, dynamic> customer) {
+    orderEntryController.customerNameController.removeListener(_onNameChanged);
+
+    orderEntryController.customerNameController.text =
+        customer['customer_name'];
+    orderEntryController.emailController.text = customer['email'];
+    orderEntryController.addressController.text = customer['address'];
+
+    // Parse phone number to extract country code and remaining number
+    String fullPhone = customer['phone'];
+    _parseAndSetPhoneNumber(fullPhone);
+
+    _removeOverlay();
+
+    Future.delayed(const Duration(milliseconds: 100), () {
+      orderEntryController.customerNameController.addListener(_onNameChanged);
+    });
+
+    setState(() {});
+  }
+
+  void _parseAndSetPhoneNumber(String fullPhone) {
+    if (fullPhone.isEmpty) {
+      orderEntryController.phoneController.text = '';
+      return;
+    }
+
+    // List of common country codes (sorted by length, longest first)
+    final countryCodes = [
+      '+1',
+      '+7',
+      '+20',
+      '+27',
+      '+30',
+      '+31',
+      '+32',
+      '+33',
+      '+34',
+      '+36',
+      '+39',
+      '+40',
+      '+41',
+      '+43',
+      '+44',
+      '+45',
+      '+46',
+      '+47',
+      '+48',
+      '+49',
+      '+51',
+      '+52',
+      '+53',
+      '+54',
+      '+55',
+      '+56',
+      '+57',
+      '+58',
+      '+60',
+      '+61',
+      '+62',
+      '+63',
+      '+64',
+      '+65',
+      '+66',
+      '+81',
+      '+82',
+      '+84',
+      '+86',
+      '+90',
+      '+91',
+      '+92',
+      '+93',
+      '+94',
+      '+95',
+      '+98',
+      '+212',
+      '+213',
+      '+216',
+      '+218',
+      '+220',
+      '+221',
+      '+222',
+      '+223',
+      '+224',
+      '+225',
+      '+226',
+      '+227',
+      '+228',
+      '+229',
+      '+230',
+      '+231',
+      '+232',
+      '+233',
+      '+234',
+      '+235',
+      '+236',
+      '+237',
+      '+238',
+      '+239',
+      '+240',
+      '+241',
+      '+242',
+      '+243',
+      '+244',
+      '+245',
+      '+246',
+      '+248',
+      '+249',
+      '+250',
+      '+251',
+      '+252',
+      '+253',
+      '+254',
+      '+255',
+      '+256',
+      '+257',
+      '+258',
+      '+260',
+      '+261',
+      '+262',
+      '+263',
+      '+264',
+      '+265',
+      '+266',
+      '+267',
+      '+268',
+      '+269',
+      '+290',
+      '+291',
+      '+297',
+      '+298',
+      '+299',
+      '+350',
+      '+351',
+      '+352',
+      '+353',
+      '+354',
+      '+355',
+      '+356',
+      '+357',
+      '+358',
+      '+359',
+      '+370',
+      '+371',
+      '+372',
+      '+373',
+      '+374',
+      '+375',
+      '+376',
+      '+377',
+      '+378',
+      '+380',
+      '+381',
+      '+382',
+      '+383',
+      '+385',
+      '+386',
+      '+387',
+      '+389',
+      '+420',
+      '+421',
+      '+423',
+      '+500',
+      '+501',
+      '+502',
+      '+503',
+      '+504',
+      '+505',
+      '+506',
+      '+507',
+      '+508',
+      '+509',
+      '+590',
+      '+591',
+      '+592',
+      '+593',
+      '+594',
+      '+595',
+      '+596',
+      '+597',
+      '+598',
+      '+599',
+      '+670',
+      '+672',
+      '+673',
+      '+674',
+      '+675',
+      '+676',
+      '+677',
+      '+678',
+      '+679',
+      '+680',
+      '+681',
+      '+682',
+      '+683',
+      '+685',
+      '+686',
+      '+687',
+      '+688',
+      '+689',
+      '+690',
+      '+691',
+      '+692',
+      '+850',
+      '+852',
+      '+853',
+      '+855',
+      '+856',
+      '+880',
+      '+886',
+      '+960',
+      '+961',
+      '+962',
+      '+963',
+      '+964',
+      '+965',
+      '+966',
+      '+967',
+      '+968',
+      '+970',
+      '+971',
+      '+972',
+      '+973',
+      '+974',
+      '+975',
+      '+976',
+      '+977',
+      '+992',
+      '+993',
+      '+994',
+      '+995',
+      '+996',
+      '+998',
+    ];
+
+    // Sort by length descending to match longest codes first
+    countryCodes.sort((a, b) => b.length.compareTo(a.length));
+
+    String detectedCode = '+49'; // Default
+    String remainingNumber = fullPhone;
+
+    // Check if phone starts with +
+    if (fullPhone.startsWith('+')) {
+      for (String code in countryCodes) {
+        if (fullPhone.startsWith(code)) {
+          detectedCode = code;
+          remainingNumber = fullPhone.substring(code.length);
+          break;
+        }
+      }
+    }
+
+    setState(() {
+      orderEntryController.countryCode.value = detectedCode;
+      orderEntryController.phoneController.text = remainingNumber;
+    });
   }
 
   @override
@@ -62,11 +448,15 @@ class _OrderEntryScreenState extends State<OrderEntryScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      TextField(
-                        controller: orderEntryController.customerNameController,
-                        decoration: InputDecoration(
-                          labelText: 'customer_name'.tr,
-                          border: const OutlineInputBorder(),
+                      CompositedTransformTarget(
+                        link: _layerLink,
+                        child: TextField(
+                          controller:
+                              orderEntryController.customerNameController,
+                          decoration: InputDecoration(
+                            labelText: 'customer_name'.tr,
+                            border: const OutlineInputBorder(),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -78,12 +468,93 @@ class _OrderEntryScreenState extends State<OrderEntryScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      TextField(
-                        controller: orderEntryController.phoneController,
-                        decoration: InputDecoration(
-                          labelText: 'phone_number'.tr,
-                          border: const OutlineInputBorder(),
-                        ),
+                      Row(
+                        children: [
+                          Obx(
+                            () => InkWell(
+                              onTap: () {
+                                showCountryPicker(
+                                  context: context,
+                                  showPhoneCode: true,
+                                  onSelect: (Country country) {
+                                    orderEntryController.countryCode.value =
+                                        '+${country.phoneCode}';
+                                  },
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 20,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      orderEntryController.countryCode.value,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Icon(Icons.arrow_drop_down, size: 20),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              controller: orderEntryController.phoneController,
+                              keyboardType: TextInputType.phone,
+                              decoration: InputDecoration(
+                                labelText: 'phone_number'.tr,
+                                border: const OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Obx(
+                            () => ElevatedButton.icon(
+                              onPressed:
+                                  orderEntryController.isLoadingCustomer.value
+                                  ? null
+                                  : () => orderEntryController
+                                        .fetchCustomerByPhone(
+                                          orderEntryController
+                                              .countryCode
+                                              .value,
+                                        ),
+                              icon: orderEntryController.isLoadingCustomer.value
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                      ),
+                                    )
+                                  : const Icon(Icons.search),
+                              label: Text('fetch'.tr),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryColor,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 10),
                       TextField(
@@ -287,21 +758,20 @@ class _OrderEntryScreenState extends State<OrderEntryScreen> {
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Obx(() {
-                          return SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: menuController.categories.map((cat) {
-                                return FilterButton(
-                                  text: cat,
-                                  onPressed: () {
-                                    orderEntryController
-                                            .selectedCategory
-                                            .value =
-                                        cat;
-                                  },
-                                );
-                              }).toList(),
-                            ),
+                          return Row(
+                            children: menuController.categories.map((cat) {
+                              final isSelected =
+                                  orderEntryController.selectedCategory.value ==
+                                  cat;
+                              return FilterButton(
+                                text: cat,
+                                isSelected: isSelected,
+                                onPressed: () {
+                                  orderEntryController.selectedCategory.value =
+                                      cat;
+                                },
+                              );
+                            }).toList(),
                           );
                         }),
                       ),
@@ -445,7 +915,7 @@ class _OrderEntryScreenState extends State<OrderEntryScreen> {
                                   ),
                                   Flexible(
                                     child: Text(
-                                      "\$${subtotal.toStringAsFixed(2)}",
+                                      "€${subtotal.toStringAsFixed(2)}",
                                       style: const TextStyle(fontSize: 14),
                                       overflow: TextOverflow.ellipsis,
                                       textAlign: TextAlign.right,
@@ -502,7 +972,7 @@ class _OrderEntryScreenState extends State<OrderEntryScreen> {
                                   ),
                                   Flexible(
                                     child: Text(
-                                      "\$${total.toStringAsFixed(2)}",
+                                      "€${total.toStringAsFixed(2)}",
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -543,9 +1013,15 @@ class _OrderEntryScreenState extends State<OrderEntryScreen> {
 // Filter Button Widget
 class FilterButton extends StatelessWidget {
   final String text;
+  final bool isSelected;
   final VoidCallback onPressed;
 
-  const FilterButton({super.key, required this.text, required this.onPressed});
+  const FilterButton({
+    super.key,
+    required this.text,
+    required this.isSelected,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -554,9 +1030,12 @@ class FilterButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryColor,
-          foregroundColor: Colors.white,
+          backgroundColor: isSelected ? Colors.white : AppColors.primaryColor,
+          foregroundColor: isSelected ? AppColors.primaryColor : Colors.white,
           minimumSize: Size(60, 40),
+          side: isSelected
+              ? BorderSide(color: AppColors.primaryColor, width: 1.5)
+              : null,
         ),
         child: Text(text),
       ),
@@ -613,13 +1092,20 @@ class FoodMenuItem extends StatefulWidget {
 }
 
 class _FoodMenuItemState extends State<FoodMenuItem> {
-  bool _baconSelected = false;
-  bool _cheeseSelected = false;
-  bool _avocadoSelected = false;
-  bool _extraPattySelected = false;
+  final extrasController = Get.find<ExtrasController>();
+  Map<int, bool> selectedExtras = {};
 
   final TextEditingController _specialInstructionsController =
-      TextEditingController(); // ✅ added
+      TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize all extras as unselected
+    for (var extra in extrasController.extras) {
+      selectedExtras[extra.id] = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -653,36 +1139,30 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
                     ),
                   ),
                 ),
-                _buildText('${'bacon'.tr} (+\$2.50)', _baconSelected, (value) {
-                  setState(() {
-                    _baconSelected = value!;
-                  });
+                Obx(() {
+                  if (extrasController.extras.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        'No extras available',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    );
+                  }
+                  return Column(
+                    children: extrasController.extras.map((extra) {
+                      return _buildText(
+                        '${extra.title} (+€${extra.price})',
+                        selectedExtras[extra.id] ?? false,
+                        (value) {
+                          setState(() {
+                            selectedExtras[extra.id] = value!;
+                          });
+                        },
+                      );
+                    }).toList(),
+                  );
                 }),
-                _buildText('${'cheese'.tr} (+\$1.50)', _cheeseSelected, (
-                  value,
-                ) {
-                  setState(() {
-                    _cheeseSelected = value!;
-                  });
-                }),
-                _buildText('${'avocado'.tr} (+\$2.00)', _avocadoSelected, (
-                  value,
-                ) {
-                  setState(() {
-                    _avocadoSelected = value!;
-                  });
-                }),
-                const Divider(height: 1, thickness: 1),
-                _buildText(
-                  '${'extra_patty'.tr} (+\$4.00)',
-                  _extraPattySelected,
-                  (value) {
-                    setState(() {
-                      _extraPattySelected = value!;
-                    });
-                  },
-                ),
-                const Divider(height: 1, thickness: 1),
                 Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: 16.0,
@@ -736,7 +1216,7 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: Text(
-            '\$${widget.price.toStringAsFixed(2)}',
+            '€${widget.price.toStringAsFixed(2)}',
             style: const TextStyle(fontSize: 12, color: Colors.grey),
           ),
         ),
@@ -748,29 +1228,17 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
           onPressed: () {
             // Collect selected extras
             List<String> extras = [];
-            if (_baconSelected) extras.add('Bacon');
-            if (_cheeseSelected) extras.add('Cheese');
-            if (_avocadoSelected) extras.add('Avocado');
-            if (_extraPattySelected) extras.add('Extra Patty');
-
-            // Calculate extras price
             double extrasPrice = 0.0;
-            for (var extra in extras) {
-              switch (extra) {
-                case 'Bacon':
-                  extrasPrice += 2.5;
-                  break;
-                case 'Cheese':
-                  extrasPrice += 1.5;
-                  break;
-                case 'Avocado':
-                  extrasPrice += 2.0;
-                  break;
-                case 'Extra Patty':
-                  extrasPrice += 4.0;
-                  break;
+
+            selectedExtras.forEach((extraId, isSelected) {
+              if (isSelected) {
+                final extra = extrasController.extras.firstWhere(
+                  (e) => e.id == extraId,
+                );
+                extras.add(extra.title);
+                extrasPrice += double.tryParse(extra.price) ?? 0.0;
               }
-            }
+            });
 
             widget.onAdd(
               FoodItem(
@@ -809,7 +1277,7 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
               ),
               const SizedBox(height: 4),
               Text(
-                '\$${widget.price.toStringAsFixed(2)}',
+                '€${widget.price.toStringAsFixed(2)}',
                 style: const TextStyle(fontSize: 16, color: Colors.grey),
               ),
             ],
@@ -821,39 +1289,19 @@ class _FoodMenuItemState extends State<FoodMenuItem> {
             foregroundColor: AppColors.primaryColor,
           ),
           onPressed: () {
+            // Collect selected extras
             List<String> extras = [];
-
-            if (_baconSelected) {
-              extras.add('Bacon');
-            }
-            if (_cheeseSelected) {
-              extras.add('Cheese');
-            }
-            if (_avocadoSelected) {
-              extras.add('Avocado');
-            }
-            if (_extraPattySelected) {
-              extras.add('Extra Patty');
-            }
-
-            // Calculate extras price
             double extrasPrice = 0.0;
-            for (var extra in extras) {
-              switch (extra) {
-                case 'Bacon':
-                  extrasPrice += 2.5;
-                  break;
-                case 'Cheese':
-                  extrasPrice += 1.5;
-                  break;
-                case 'Avocado':
-                  extrasPrice += 2.0;
-                  break;
-                case 'Extra Patty':
-                  extrasPrice += 4.0;
-                  break;
+
+            selectedExtras.forEach((extraId, isSelected) {
+              if (isSelected) {
+                final extra = extrasController.extras.firstWhere(
+                  (e) => e.id == extraId,
+                );
+                extras.add(extra.title);
+                extrasPrice += double.tryParse(extra.price) ?? 0.0;
               }
-            }
+            });
 
             widget.onAdd(
               FoodItem(
@@ -950,7 +1398,7 @@ class OrderItemSummary extends StatelessWidget {
                   ],
                   const SizedBox(height: 4),
                   Text(
-                    '\$${(item.totalPrice * item.quantity).toStringAsFixed(2)}',
+                    '€${(item.totalPrice * item.quantity).toStringAsFixed(2)}',
                   ),
 
                   Row(
@@ -1017,7 +1465,7 @@ class OrderItemSummary extends StatelessWidget {
                         ],
                         const SizedBox(height: 4),
                         Text(
-                          '\$${(item.totalPrice * item.quantity).toStringAsFixed(2)}',
+                          '€${(item.totalPrice * item.quantity).toStringAsFixed(2)}',
                         ),
                       ],
                     ),

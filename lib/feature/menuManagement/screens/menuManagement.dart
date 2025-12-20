@@ -6,6 +6,7 @@ import 'package:gastcallde/core/global_widegts/CustomDrawer.dart';
 import 'package:gastcallde/core/global_widegts/CustomNavigationRail.dart';
 import 'package:gastcallde/feature/menuManagement/controllers/menuManagmentController.dart';
 import 'package:gastcallde/feature/menuManagement/screens/EditFoodScreen.dart';
+import 'package:gastcallde/feature/menuManagement/screens/ExtrasScreen.dart';
 import 'package:gastcallde/feature/menuManagement/screens/FoodDetailsScreen.dart';
 import 'package:gastcallde/feature/menuManagement/screens/UploadFoodMenuScreen.dart';
 import 'package:get/get.dart';
@@ -231,6 +232,30 @@ class _ItemsScreenState extends State<ItemsScreen> {
                   icon: const Icon(Icons.add, color: Colors.white),
                   label: Text(
                     'add_item'.tr,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: isTablet ? 16 : 12,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isTablet ? 20 : 12,
+                      vertical: isTablet ? 14 : 10,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Get.to(ExtrasScreen());
+                  },
+                  icon: const Icon(Icons.art_track, color: Colors.white),
+                  label: Text(
+                    'extras'.tr,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: isTablet ? 16 : 12,

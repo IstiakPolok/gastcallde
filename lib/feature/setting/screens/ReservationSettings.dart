@@ -14,8 +14,8 @@ class ReservationSettingsScreen extends StatefulWidget {
 }
 
 class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
-  final bool _automaticTableAssignment = true;
-  final bool _manageTableAssignmentManually = false;
+  // final bool _automaticTableAssignment = true;
+  // final bool _manageTableAssignmentManually = false;
   final TextEditingController _numberOfTablesController =
       TextEditingController();
   final TextEditingController _perTableCapacityController =
@@ -116,7 +116,7 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
               subtitle: Text(
-                '${'capacity'.tr}: ${table.capacity} | ${'status'.tr}: ${table.status} | ${'reservation'.tr}: ${table.reservationStatus}',
+                '${'capacity'.tr}: ${table.capacity} | ${'status'.tr}: ${table.status}',
                 style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
               ),
               trailing: Row(
@@ -199,7 +199,6 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
     final nameController = TextEditingController(text: table.name);
     final capacityController = TextEditingController(text: table.capacity);
     String selectedStatus = table.status;
-    String selectedReservationStatus = table.reservationStatus;
 
     showDialog(
       context: context,
@@ -322,49 +321,6 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'reservation_status'.tr,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF475569),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  value: selectedReservationStatus,
-                  items: ['available', 'unavailable']
-                      .map(
-                        (val) => DropdownMenuItem(value: val, child: Text(val)),
-                      )
-                      .toList(),
-                  onChanged: (val) {
-                    setDialogState(() {
-                      selectedReservationStatus = val!;
-                    });
-                  },
-                  decoration: InputDecoration(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                        color: AppColors.primaryColor,
-                        width: 1.5,
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -390,7 +346,6 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                     newName,
                     newCapacity,
                     selectedStatus,
-                    selectedReservationStatus,
                   );
 
                   if (success) {
@@ -549,116 +504,58 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                       itemBuilder: (context, index) {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Column(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  // Table Name
-                                  Expanded(
-                                    child: _buildSmallTextField(
-                                      '${'table'.tr} ${index + 1}',
-                                      _tables[index].name,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-
-                                  // Capacity
-                                  Expanded(
-                                    child: _buildSmallTextField(
-                                      'capacity'.tr,
-                                      _tables[index].capacity,
-                                      keyboardType: TextInputType.number,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-
-                                  // Remove button
-                                  InkWell(
-                                    onTap: () => _removeTable(index),
-                                    child: const Icon(
-                                      Icons.close,
-                                      color: Color(0xFF94A3B8),
-                                      size: 20,
-                                    ),
-                                  ),
-                                ],
+                              // Table Name
+                              Expanded(
+                                flex: 2,
+                                child: _buildSmallTextField(
+                                  '${'table'.tr} ${index + 1}',
+                                  _tables[index].name,
+                                ),
                               ),
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      'status'.tr,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF475569),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 16),
-                                  Expanded(
-                                    child: Text(
-                                      'reservation_status'.tr,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF475569),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: 24), // For the remove icon
-                                ],
+                              const SizedBox(width: 12),
+                              // Capacity
+                              Expanded(
+                                flex: 2,
+                                child: _buildSmallTextField(
+                                  'capacity'.tr,
+                                  _tables[index].capacity,
+                                  keyboardType: TextInputType.number,
+                                ),
                               ),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: DropdownButtonFormField<String>(
-                                      value: _tables[index].status,
-                                      items: ['active', 'inactive']
-                                          .map(
-                                            (val) => DropdownMenuItem(
-                                              value: val,
-                                              child: Text(val),
-                                            ),
-                                          )
-                                          .toList(),
-                                      onChanged: (val) {
-                                        setState(() {
-                                          _tables[index].status = val!;
-                                        });
-                                      },
-                                      decoration: _dropdownDecoration(),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-
-                                  Expanded(
-                                    child: DropdownButtonFormField<String>(
-                                      value: _tables[index].reservationStatus,
-                                      items:
-                                          [
-                                                'available',
-                                                'unavailable', // <-- lowercase version
-                                              ]
-                                              .map(
-                                                (val) => DropdownMenuItem(
-                                                  value: val,
-                                                  child: Text(val),
-                                                ),
-                                              )
-                                              .toList(),
-                                      onChanged: (val) {
-                                        setState(() {
-                                          _tables[index].reservationStatus =
-                                              val!;
-                                        });
-                                      },
-                                      decoration: _dropdownDecoration(),
-                                    ),
-                                  ),
-
-                                  // Reservation Status Dropdown
-                                  const SizedBox(width: 8),
-                                ],
+                              const SizedBox(width: 12),
+                              // Status Dropdown
+                              Expanded(
+                                flex: 2,
+                                child: DropdownButtonFormField<String>(
+                                  value: _tables[index].status,
+                                  items: ['active', 'inactive']
+                                      .map(
+                                        (val) => DropdownMenuItem(
+                                          value: val,
+                                          child: Text(val),
+                                        ),
+                                      )
+                                      .toList(),
+                                  onChanged: (val) {
+                                    setState(() {
+                                      _tables[index].status = val!;
+                                    });
+                                  },
+                                  decoration: _dropdownDecoration(),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              // Remove button
+                              InkWell(
+                                onTap: () => _removeTable(index),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Color(0xFF94A3B8),
+                                  size: 20,
+                                ),
                               ),
                             ],
                           ),
@@ -674,6 +571,9 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                           await widget.tableController.saveTables(
                             _tables.map((t) => t.toModel()).toList(),
                           );
+
+                          // Refresh the table list after saving
+                          await widget.tableController.fetchTables();
 
                           // Clear all table fields after saving
                           for (var table in _tables) {
@@ -729,129 +629,6 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: Color(0xFF1E293B),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildToggleRow(
-    String title,
-    String subtitle,
-    bool value,
-    ValueChanged<bool> onChanged,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeColor: AppColors.primaryColor, // Blue active color
-            inactiveThumbColor: const Color(
-              0xFFCBD5E1,
-            ), // Light grey inactive thumb
-            inactiveTrackColor: const Color(
-              0xFFE2E8F0,
-            ), // Lighter grey inactive track
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTextFieldRow(
-    String label,
-    String hint,
-    TextEditingController controller, {
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF1E293B),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                spreadRadius: 1,
-                blurRadius: 5,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: TextField(
-            controller: controller,
-            keyboardType: keyboardType,
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              border: InputBorder.none,
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(
-                  color: AppColors.primaryColor,
-                  width: 1.5,
-                ),
-              ),
-            ),
-            style: const TextStyle(color: Color(0xFF1E293B)),
           ),
         ),
       ],
@@ -914,12 +691,7 @@ class TableForm {
   });
 
   TableModel toModel() {
-    return TableModel(
-      name: name.text,
-      capacity: capacity.text,
-      status: status,
-      reservationStatus: reservationStatus,
-    );
+    return TableModel(name: name.text, capacity: capacity.text, status: status);
   }
 
   void dispose() {

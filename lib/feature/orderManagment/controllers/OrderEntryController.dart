@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/feature/orderManagment/models/food_item_model.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -22,6 +23,75 @@ class OrderEntryController extends GetxController {
   var selectedCategory = 'All'.obs;
   var orderType = 'delivery'.obs; // 'pickup' or 'delivery'
   var selectedDeliveryArea = Rxn<int>(); // Nullable integer
+  var isLoadingCustomer = false.obs;
+  var countryCode = '+49'.obs;
+
+  Future<void> fetchCustomerByPhone(String selectedCountryCode) async {
+    if (phoneController.text.isEmpty) {
+      Get.snackbar('Error', 'Please enter a phone number');
+      return;
+    }
+
+    try {
+      isLoadingCustomer.value = true;
+      countryCode.value = selectedCountryCode;
+      final token = await SharedPreferencesHelper.getAccessToken();
+      final fullPhoneNumber = '$selectedCountryCode${phoneController.text}';
+      final url = Uri.parse(
+        '${Urls.baseUrl}/owner/customers/',
+      ).replace(queryParameters: {'search': fullPhoneNumber});
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+
+        if (data.isEmpty) {
+          Get.snackbar(
+            'Info',
+            'No customer found with this phone number',
+            backgroundColor: Colors.orange.withOpacity(0.8),
+            colorText: Colors.white,
+          );
+          return;
+        }
+
+        final customer = data[0];
+
+        // Auto-fill the form fields
+        customerNameController.text = customer['customer_name'] ?? '';
+        emailController.text = customer['email'] ?? '';
+        addressController.text = customer['address'] ?? '';
+
+        Get.snackbar(
+          'Success',
+          'Customer information loaded successfully',
+          backgroundColor: AppColors.primaryColor.withOpacity(0.8),
+          colorText: Colors.white,
+        );
+      } else if (response.statusCode == 404) {
+        Get.snackbar(
+          'Info',
+          'No customer found with this phone number',
+          backgroundColor: Colors.orange.withOpacity(0.8),
+          colorText: Colors.white,
+        );
+      } else {
+        Get.snackbar('Error', 'Failed to fetch customer information');
+      }
+    } catch (e) {
+      print('Error fetching customer: $e');
+      Get.snackbar('Error', 'An error occurred: $e');
+    } finally {
+      isLoadingCustomer.value = false;
+    }
+  }
 
   Future<void> createOrder() async {
     if (orderItems.isEmpty || customerNameController.text.isEmpty) {
@@ -58,7 +128,9 @@ class OrderEntryController extends GetxController {
           };
         }).toList(),
         "email": emailController.text.isNotEmpty ? emailController.text : null,
-        "phone": phoneController.text.isNotEmpty ? phoneController.text : null,
+        "phone": phoneController.text.isNotEmpty
+            ? '${countryCode.value}${phoneController.text}'
+            : null,
         "order_notes": orderNotesController.text.isNotEmpty
             ? orderNotesController.text
             : null,

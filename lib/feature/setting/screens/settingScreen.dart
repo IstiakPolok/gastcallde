@@ -481,6 +481,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                               });
 
                               if (success) {
+                                // Unfocus the address field after saving
+                                FocusScope.of(context).unfocus();
                                 Get.snackbar(
                                   'Success',
                                   'address_update_success'.tr,

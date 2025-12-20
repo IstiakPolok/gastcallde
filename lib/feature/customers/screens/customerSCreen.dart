@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/core/global_widegts/CustomDrawer.dart';
 import 'package:gastcallde/core/global_widegts/CustomNavigationRail.dart';
 import 'package:gastcallde/core/network_caller/endpoints.dart';
@@ -86,18 +87,14 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
   @override
   void initState() {
     super.initState();
-    fetchCustomerData(); // Initial fetch for today
+    fetchAllCustomers(); // Fetch all customers on initial load
 
     searchController.addListener(() {
-      final query = searchController.text.toLowerCase();
+      final query = searchController.text;
       if (query.isEmpty) {
-        filteredData.value = List.from(customerData);
+        fetchAllCustomers(); // Fetch all when search is cleared
       } else {
-        filteredData.value = customerData
-            .where(
-              (customer) => customer['phone']!.toLowerCase().contains(query),
-            )
-            .toList();
+        searchCustomers(query); // Search API when user types
       }
     });
   }
@@ -112,12 +109,12 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
     setState(() {
       selectedDate = selectedDate.add(Duration(days: deltaDays));
     });
-    fetchCustomerData();
+    fetchAllCustomers();
   }
 
-  Future<void> fetchCustomerData() async {
+  Future<void> fetchAllCustomers() async {
     isLoading.value = true;
-    print("Fetching customer data for date: $selectedDate"); // debug
+    print("Fetching all customers (summary API)"); // debug
 
     try {
       final token = await SharedPreferencesHelper.getAccessToken();
@@ -130,14 +127,8 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
         return;
       }
 
-      final formattedDate =
-          "${selectedDate.year.toString().padLeft(4, '0')}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}";
-      print("Formatted date for API: $formattedDate"); // debug
-
       final response = await http.get(
-        Uri.parse(
-          "$baseUrl/owner/customers/summary/?created_at=$formattedDate",
-        ),
+        Uri.parse("$baseUrl/owner/customers/summary/"),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -152,21 +143,40 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
         print("Parsed JSON data: $jsonData"); // debug
 
         customerData.value = jsonData.map<Map<String, String>>((item) {
+          final mostRecent = item['most_recent_last'];
+          String date = '';
+          String time = '';
+          String type = '';
+          if (mostRecent != null) {
+            if (mostRecent['created_at'] != null) {
+              final createdAt = mostRecent['created_at'].toString();
+              if (createdAt.length >= 16) {
+                date = createdAt.substring(0, 10);
+                time = createdAt.substring(11, 16);
+              }
+            }
+            if (mostRecent['type'] != null) {
+              type = mostRecent['type'].toString();
+            }
+          }
           return {
             'name': (item['name'] ?? '').toString(),
             'phone': (item['phone'] ?? '').toString(),
-            'date':
-                (item['most_recent_last']?['created_at']?.substring(0, 10) ??
-                        '')
-                    .toString(),
-            'time':
-                (item['most_recent_last']?['created_at']?.substring(11, 16) ??
-                        '')
-                    .toString(),
-            'noOfCall': (item['total_create'] ?? 0).toString(),
-            'lastOrders': (item['most_recent_last']?['type'] ?? '').toString(),
+            'email': (item['email'] ?? '').toString(),
+            'address': (item['address'] ?? '').toString(),
+            'date': date,
+            'time': time,
+            'type': type,
+            'noOfCall': (item['total_create']?.toString() ?? '0'),
+            'lastOrders': '', // Not available in this API
           };
         }).toList();
+
+        // Sort alphabetically by name
+        customerData.value.sort(
+          (a, b) =>
+              a['name']!.toLowerCase().compareTo(b['name']!.toLowerCase()),
+        );
 
         // Initially, filteredData shows all results
         filteredData.value = List.from(customerData);
@@ -187,6 +197,87 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
     } finally {
       isLoading.value = false;
       print("Fetch completed. isLoading: ${isLoading.value}"); // debug
+    }
+  }
+
+  Future<void> searchCustomers(String query) async {
+    isLoading.value = true;
+    print("Searching customers (summary API) with query: $query"); // debug
+
+    try {
+      final token = await SharedPreferencesHelper.getAccessToken();
+
+      if (token == null) {
+        Get.snackbar('error'.tr, 'user_not_authenticated'.tr);
+        isLoading.value = false;
+        return;
+      }
+
+      final url = Uri.parse(
+        "$baseUrl/owner/customers/summary/",
+      ).replace(queryParameters: {'phone': query});
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print("Search HTTP status code: ${response.statusCode}"); // debug
+      print("Search Response body: ${response.body}"); // debug
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = jsonDecode(response.body);
+        print("Search results: $jsonData"); // debug
+
+        filteredData.value = jsonData.map<Map<String, String>>((item) {
+          final mostRecent = item['most_recent_last'];
+          String date = '';
+          String time = '';
+          String type = '';
+          if (mostRecent != null) {
+            if (mostRecent['created_at'] != null) {
+              final createdAt = mostRecent['created_at'].toString();
+              if (createdAt.length >= 16) {
+                date = createdAt.substring(0, 10);
+                time = createdAt.substring(11, 16);
+              }
+            }
+            if (mostRecent['type'] != null) {
+              type = mostRecent['type'].toString();
+            }
+          }
+          return {
+            'name': (item['name'] ?? '').toString(),
+            'phone': (item['phone'] ?? '').toString(),
+            'email': (item['email'] ?? '').toString(),
+            'address': (item['address'] ?? '').toString(),
+            'date': date,
+            'time': time,
+            'type': type,
+            'noOfCall': (item['total_create']?.toString() ?? '0'),
+            'lastOrders': '',
+          };
+        }).toList();
+
+        // Sort search results alphabetically by name
+        filteredData.value.sort(
+          (a, b) =>
+              a['name']!.toLowerCase().compareTo(b['name']!.toLowerCase()),
+        );
+
+        print("Search filtered results: ${filteredData.value}"); // debug
+      } else {
+        filteredData.value = [];
+        print("Search failed with status: ${response.statusCode}"); // debug
+      }
+    } catch (e) {
+      print("Search exception: $e"); // debug
+      filteredData.value = [];
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -220,49 +311,50 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
             ),
           ],
         ),
-        actions: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.chevron_left),
-                      onPressed: () => changeDate(-1),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      displayDate,
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      icon: const Icon(Icons.chevron_right),
-                      onPressed: () => changeDate(1),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
+
+        // actions: [
+        //   Column(
+        //     crossAxisAlignment: CrossAxisAlignment.end,
+        //     children: [
+        //       Container(
+        //         padding: const EdgeInsets.symmetric(
+        //           horizontal: 12,
+        //           vertical: 8,
+        //         ),
+        //         decoration: BoxDecoration(
+        //           color: Colors.white,
+        //           borderRadius: BorderRadius.circular(10),
+        //           boxShadow: [
+        //             BoxShadow(
+        //               color: Colors.grey.withOpacity(0.1),
+        //               spreadRadius: 1,
+        //               blurRadius: 5,
+        //               offset: const Offset(0, 3),
+        //             ),
+        //           ],
+        //         ),
+        //         child: Row(
+        //           children: [
+        //             IconButton(
+        //               icon: const Icon(Icons.chevron_left),
+        //               onPressed: () => changeDate(-1),
+        //             ),
+        //             const SizedBox(width: 8),
+        //             Text(
+        //               displayDate,
+        //               style: const TextStyle(color: Colors.grey),
+        //             ),
+        //             const SizedBox(width: 8),
+        //             IconButton(
+        //               icon: const Icon(Icons.chevron_right),
+        //               onPressed: () => changeDate(1),
+        //             ),
+        //           ],
+        //         ),
+        //       ),
+        //     ],
+        //   ),
+        // ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -363,7 +455,7 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                         Expanded(
                           flex: 2,
                           child: Text(
-                            'name'.tr, // Removed const
+                            'name'.tr,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey,
@@ -373,7 +465,17 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                         Expanded(
                           flex: 2,
                           child: Text(
-                            'phone'.tr, // Removed const
+                            'phone'.tr,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            'type'.tr,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey,
@@ -383,7 +485,17 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                         Expanded(
                           flex: 3,
                           child: Text(
-                            'date'.tr, // Removed const
+                            'date'.tr,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            'email'.tr,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey,
@@ -393,17 +505,7 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                         Expanded(
                           flex: 2,
                           child: Text(
-                            'no_of_call'.tr, // Removed const
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            'last_orders'.tr, // Removed const
+                            'address'.tr,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey,
@@ -413,7 +515,7 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                         Expanded(
                           flex: 1,
                           child: Text(
-                            'action'.tr, // Removed const
+                            'action'.tr,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey,
@@ -459,35 +561,34 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                                 children: [
                                   Text("${'name'.tr}: ${data['name']}"),
                                   Text("${'phone'.tr}: ${data['phone']}"),
+                                  Text("${'type'.tr}: ${data['type']}"),
+                                  Text("${'email'.tr}: ${data['email']}"),
+                                  Text("${'address'.tr}: ${data['address']}"),
                                   Text("${'date'.tr}: ${data['date']}"),
                                   Text("${'time'.tr}: ${data['time']}"),
-                                  Text(
-                                    "${'no_of_call'.tr}: ${data['noOfCall']}",
-                                  ),
-                                  Text(
-                                    "${'last_orders'.tr}: ${data['lastOrders']}",
-                                  ),
                                   const SizedBox(height: 8),
                                   Align(
                                     alignment: Alignment.centerRight,
                                     child: ElevatedButton.icon(
-                                      onPressed: () {
-                                        Get.to(
-                                          Get.to(
-                                            () => CustomerDetailsScreen(),
-                                            arguments: {'phone': data['phone']},
-                                          ),
+                                      onPressed: () async {
+                                        final result = await Get.to(
+                                          () => CustomerDetailsScreen(),
+                                          arguments: {'phone': data['phone']},
                                         );
+                                        // Refresh customer list when returning
+                                        if (result == true) {
+                                          fetchAllCustomers();
+                                        }
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.white,
-                                        foregroundColor: Colors.teal,
+                                        foregroundColor: AppColors.primaryColor,
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
                                             8.0,
                                           ),
                                           side: const BorderSide(
-                                            color: Colors.teal,
+                                            color: AppColors.primaryColor,
                                           ),
                                         ),
                                         padding: const EdgeInsets.symmetric(
@@ -527,6 +628,10 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                                 Expanded(flex: 2, child: Text(data['name']!)),
                                 Expanded(flex: 2, child: Text(data['phone']!)),
                                 Expanded(
+                                  flex: 2,
+                                  child: Text(data['Last Service type'] ?? ''),
+                                ),
+                                Expanded(
                                   flex: 3,
                                   child: Column(
                                     crossAxisAlignment:
@@ -537,34 +642,33 @@ class _CustomerSectionScreenState extends State<CustomerSectionScreen> {
                                     ],
                                   ),
                                 ),
+                                Expanded(flex: 3, child: Text(data['email']!)),
                                 Expanded(
                                   flex: 2,
-                                  child: Text(data['noOfCall']!),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: Text(data['lastOrders']!),
+                                  child: Text(data['address']!),
                                 ),
                                 Expanded(
                                   flex: 1,
                                   child: ElevatedButton(
-                                    onPressed: () {
-                                      Get.to(
-                                        Get.to(
-                                          () => CustomerDetailsScreen(),
-                                          arguments: {'phone': data['phone']},
-                                        ),
+                                    onPressed: () async {
+                                      final result = await Get.to(
+                                        () => CustomerDetailsScreen(),
+                                        arguments: {'phone': data['phone']},
                                       );
+                                      // Refresh customer list when returning
+                                      if (result == true) {
+                                        fetchAllCustomers();
+                                      }
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.white,
-                                      foregroundColor: Colors.teal,
+                                      foregroundColor: AppColors.primaryColor,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(
                                           8.0,
                                         ),
                                         side: const BorderSide(
-                                          color: Colors.teal,
+                                          color: AppColors.primaryColor,
                                         ),
                                       ),
                                       padding: const EdgeInsets.symmetric(

@@ -567,7 +567,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                           () => SmallInfoCard(
                             title: 'returning_customer_order'.tr,
                             value:
-                                '${Revenuecontroller.numberOfReturningReservations.value}%',
+                                '${Revenuecontroller.returningCustomerReservationPercentage.value}%',
                           ),
                         ),
                         const SizedBox(height: 16),
