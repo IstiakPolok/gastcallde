@@ -493,7 +493,16 @@ class _ReservationSettingsScreenState extends State<ReservationSettingsScreen> {
                             ),
                           ),
                         ),
-                        SizedBox(width: 24), // For the remove icon
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: Text(
+                            'table_status'.tr,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF475569),
+                            ),
+                          ),
+                        ), // For the remove icon
                       ],
                     ),
                     const Divider(height: 24, color: Color(0xFFE2E8F0)),

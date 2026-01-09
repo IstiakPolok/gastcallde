@@ -8,7 +8,6 @@ import 'package:gastcallde/core/network_caller/endpoints.dart';
 import 'package:gastcallde/feature/customers/screens/CustomerDetailsScreen.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-
 import '../../../core/services_class/local_service/shared_preferences_helper.dart';
 
 class Customerscreen extends StatelessWidget {
