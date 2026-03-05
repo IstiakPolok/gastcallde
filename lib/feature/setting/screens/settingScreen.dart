@@ -898,6 +898,44 @@ class _SettingsScreenState extends State<SettingsScreen>
                                       schedule['opening'] ?? TimeOfDay.now(),
                                 );
                                 if (picked != null) {
+                                  // Validate time is not at or after 23:59 or midnight (00:00)
+                                  if ((picked.hour == 23 &&
+                                          picked.minute == 59) ||
+                                      (picked.hour == 0 &&
+                                          picked.minute == 0)) {
+                                    Get.snackbar(
+                                      'Error',
+                                      'Time cannot be set to or after 11:59 PM or midnight',
+                                      snackPosition: SnackPosition.BOTTOM,
+                                      backgroundColor: Colors.red,
+                                      colorText: Colors.white,
+                                      duration: const Duration(seconds: 2),
+                                    );
+                                    return;
+                                  }
+
+                                  // Validate opening time is before closing time if closing time exists
+                                  final closingTime = schedule['closing'];
+                                  if (closingTime != null) {
+                                    final openingMinutes =
+                                        picked.hour * 60 + picked.minute;
+                                    final closingMinutes =
+                                        closingTime.hour * 60 +
+                                        closingTime.minute;
+
+                                    if (openingMinutes >= closingMinutes) {
+                                      Get.snackbar(
+                                        'Error',
+                                        'Opening time must be before closing time',
+                                        snackPosition: SnackPosition.BOTTOM,
+                                        backgroundColor: Colors.red,
+                                        colorText: Colors.white,
+                                        duration: const Duration(seconds: 2),
+                                      );
+                                      return;
+                                    }
+                                  }
+
                                   scheduleController.updateTime(
                                     day,
                                     'opening',
@@ -965,6 +1003,44 @@ class _SettingsScreenState extends State<SettingsScreen>
                                       schedule['closing'] ?? TimeOfDay.now(),
                                 );
                                 if (picked != null) {
+                                  // Validate time is not at or after 23:59 or midnight (00:00)
+                                  if ((picked.hour == 23 &&
+                                          picked.minute == 59) ||
+                                      (picked.hour == 0 &&
+                                          picked.minute == 0)) {
+                                    Get.snackbar(
+                                      'Error',
+                                      'Time cannot be set to or after 11:59 PM or midnight',
+                                      snackPosition: SnackPosition.BOTTOM,
+                                      backgroundColor: Colors.red,
+                                      colorText: Colors.white,
+                                      duration: const Duration(seconds: 2),
+                                    );
+                                    return;
+                                  }
+
+                                  // Validate closing time is after opening time if opening time exists
+                                  final openingTime = schedule['opening'];
+                                  if (openingTime != null) {
+                                    final openingMinutes =
+                                        openingTime.hour * 60 +
+                                        openingTime.minute;
+                                    final closingMinutes =
+                                        picked.hour * 60 + picked.minute;
+
+                                    if (closingMinutes <= openingMinutes) {
+                                      Get.snackbar(
+                                        'Error',
+                                        'Closing time must be after opening time',
+                                        snackPosition: SnackPosition.BOTTOM,
+                                        backgroundColor: Colors.red,
+                                        colorText: Colors.white,
+                                        duration: const Duration(seconds: 2),
+                                      );
+                                      return;
+                                    }
+                                  }
+
                                   scheduleController.updateTime(
                                     day,
                                     'closing',

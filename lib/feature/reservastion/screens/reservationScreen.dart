@@ -560,13 +560,13 @@ Widget _buildDataTable(List<Reservation> data) {
               rows: data.map((reservation) {
                 return DataRow(
                   cells: [
-                    DataCell(Text(reservation.tableName)),
+                    DataCell(Text(reservation.tableName ?? 'N/A')),
                     DataCell(
                       Text('${reservation.fromTime} - ${reservation.toTime}'),
                     ),
                     DataCell(Text(reservation.guestNo.toString())),
-                    DataCell(Text(reservation.customerName)),
-                    DataCell(Text(reservation.phoneNumber)),
+                    DataCell(Text(reservation.customerName ?? 'N/A')),
+                    DataCell(Text(reservation.phoneNumber ?? 'N/A')),
                     DataCell(_StatusTag(status: reservation.status)),
                   ],
                 );
@@ -758,7 +758,7 @@ class _MobileTableItem extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Table: ${reservation.tableName}', // Accessing reservation table name
+                  'Table: ${reservation.tableName ?? 'N/A'}', // Accessing reservation table name
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 _StatusTag(
@@ -772,10 +772,12 @@ class _MobileTableItem extends StatelessWidget {
             ), // Accessing time range
             const SizedBox(height: 4),
             Text(
-              'Name: ${reservation.customerName}',
+              'Name: ${reservation.customerName ?? 'N/A'}',
             ), // Accessing customer name
             const SizedBox(height: 4),
-            Text('Phone: ${reservation.phoneNumber}'), // Accessing phone number
+            Text(
+              'Phone: ${reservation.phoneNumber ?? 'N/A'}',
+            ), // Accessing phone number
             const SizedBox(height: 4),
             Row(
               children: [

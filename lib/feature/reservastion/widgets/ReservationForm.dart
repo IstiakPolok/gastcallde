@@ -186,7 +186,7 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
     opening ??= const TimeOfDay(hour: 6, minute: 0);
     closing ??= const TimeOfDay(hour: 15, minute: 0);
 
-    final newSlots = _generateSlots(opening, closing, stepMinutes: 60);
+    final newSlots = _generateSlots(opening, closing, stepMinutes: 15);
     if (!mounted) return;
 
     setState(() {
@@ -663,8 +663,8 @@ class _ReservationFormPageState extends State<ReservationFormPage> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2023),
-      lastDate: DateTime(2026),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2030),
     );
     if (picked != null) {
       setState(() {

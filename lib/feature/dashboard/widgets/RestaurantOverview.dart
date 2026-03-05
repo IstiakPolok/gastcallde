@@ -23,6 +23,7 @@ class RestaurantOverviewPage extends StatefulWidget {
 class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
   DateTime? _startDate;
   DateTime? _endDate;
+  String _selectedFilter = 'Today';
 
   final DateFormat _formatter = DateFormat('dd MMM yy');
 
@@ -30,8 +31,70 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
   void initState() {
     super.initState();
 
-    // Fetch default stats if no dates selected
-    Revenuecontroller.fetchStats(); // no dates, API will just call /owner/stats/
+    // Set Today as default filter
+    _applyFilter('Today');
+  }
+
+  void _applyFilter(String filter) {
+    setState(() {
+      _selectedFilter = filter;
+      DateTime now = DateTime.now();
+
+      switch (filter) {
+        case 'Today':
+          _startDate = DateTime(now.year, now.month, now.day);
+          _endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
+          break;
+        case 'This week':
+          int weekday = now.weekday;
+          _startDate = now.subtract(Duration(days: weekday - 1));
+          _startDate = DateTime(
+            _startDate!.year,
+            _startDate!.month,
+            _startDate!.day,
+          );
+          _endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
+          break;
+        case 'Last week':
+          int weekday = now.weekday;
+          DateTime startOfThisWeek = now.subtract(Duration(days: weekday - 1));
+          _startDate = startOfThisWeek.subtract(const Duration(days: 7));
+          _startDate = DateTime(
+            _startDate!.year,
+            _startDate!.month,
+            _startDate!.day,
+          );
+          _endDate = startOfThisWeek.subtract(const Duration(days: 1));
+          _endDate = DateTime(
+            _endDate!.year,
+            _endDate!.month,
+            _endDate!.day,
+            23,
+            59,
+            59,
+          );
+          break;
+        case 'This month':
+          _startDate = DateTime(now.year, now.month, 1);
+          _endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
+          break;
+        case 'Last month':
+          _startDate = DateTime(now.year, now.month - 1, 1);
+          _endDate = DateTime(now.year, now.month, 0, 23, 59, 59);
+          break;
+        case 'Custom':
+          // Don't change dates, user will select manually
+          return;
+      }
+
+      // Fetch stats with the new date range
+      if (_startDate != null && _endDate != null) {
+        Revenuecontroller.fetchStats(
+          startDate: _startDate!,
+          endDate: _endDate!,
+        );
+      }
+    });
   }
 
   Future<void> _selectStartDate(BuildContext context) async {
@@ -42,7 +105,10 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
       lastDate: DateTime(2100),
     );
     if (picked != null) {
-      setState(() => _startDate = picked);
+      setState(() {
+        _startDate = picked;
+        _selectedFilter = 'Custom';
+      });
       // Only fetch if end date is already selected
       if (_endDate != null) {
         Revenuecontroller.fetchStats(
@@ -61,7 +127,10 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
       lastDate: DateTime(2100),
     );
     if (picked != null) {
-      setState(() => _endDate = picked);
+      setState(() {
+        _endDate = picked;
+        _selectedFilter = 'Custom';
+      });
       // Only fetch if start date is already selected
       if (_startDate != null) {
         Revenuecontroller.fetchStats(
@@ -70,6 +139,41 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
         );
       }
     }
+  }
+
+  Widget _buildFilterDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFFD9ECFF)),
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedFilter,
+          icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF1A2E35)),
+          style: const TextStyle(
+            color: Color(0xFF1A2E35),
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+          items: const [
+            DropdownMenuItem(value: 'Today', child: Text('Today')),
+            DropdownMenuItem(value: 'This week', child: Text('This week')),
+            DropdownMenuItem(value: 'Last week', child: Text('Last week')),
+            DropdownMenuItem(value: 'This month', child: Text('This month')),
+            DropdownMenuItem(value: 'Last month', child: Text('Last month')),
+            DropdownMenuItem(value: 'Custom', child: Text('Custom')),
+          ],
+          onChanged: (String? newValue) {
+            if (newValue != null) {
+              _applyFilter(newValue);
+            }
+          },
+        ),
+      ),
+    );
   }
 
   Widget _buildDateBox({
@@ -115,28 +219,34 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
 
     if (isMobile) {
       // MOBILE VIEW: show in column
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      return Column(
         children: [
-          _buildDateBox(
-            label: 'start_date'.tr,
-            date: _startDate,
-            onTap: () => _selectStartDate(context),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            'to'.tr,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF1A2E35),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(width: 12),
-          _buildDateBox(
-            label: 'end_date'.tr,
-            date: _endDate,
-            onTap: () => _selectEndDate(context),
+          _buildFilterDropdown(),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildDateBox(
+                label: 'start_date'.tr,
+                date: _startDate,
+                onTap: () => _selectStartDate(context),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'to'.tr,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF1A2E35),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(width: 12),
+              _buildDateBox(
+                label: 'end_date'.tr,
+                date: _endDate,
+                onTap: () => _selectEndDate(context),
+              ),
+            ],
           ),
         ],
       );
@@ -145,6 +255,8 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          _buildFilterDropdown(),
+          const SizedBox(width: 24),
           const Text(
             'Select date range : ',
             style: TextStyle(
@@ -533,7 +645,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                           () => SmallInfoCard(
                             title: 'num_orders'.tr,
                             value:
-                                '${Revenuecontroller.numberOfNewCustomers.value}%',
+                                '${Revenuecontroller.newCustomerOrderPercentage.value}%',
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -567,7 +679,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                           () => SmallInfoCard(
                             title: 'returning_customer_order'.tr,
                             value:
-                                '${Revenuecontroller.returningCustomerReservationPercentage.value}%',
+                                '${Revenuecontroller.returningCustomerOrderPercentage.value}%',
                           ),
                         ),
                         const SizedBox(height: 16),
