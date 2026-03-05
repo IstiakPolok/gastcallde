@@ -25,14 +25,14 @@ class TableReservationItem {
 }
 
 class Reservation {
-  final String customerName;
+  final String? customerName;
   final int guestNo;
   final String fromTime;
   final String toTime;
   final String status;
 
   Reservation({
-    required this.customerName,
+    this.customerName,
     required this.guestNo,
     required this.fromTime,
     required this.toTime,

@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 
 import '../../../core/network_caller/endpoints.dart';
 import '../../../core/services_class/local_service/shared_preferences_helper.dart';
+import '../../auth/login/screens/loginScreen.dart';
 
 class CallsLineChart extends StatelessWidget {
   final MonthlyStatsController controller = Get.put(MonthlyStatsController());
@@ -223,6 +224,7 @@ class MonthlyStatsController extends GetxController {
         print('📈 Reservation Data: $reservationData');
       } else if (response.statusCode == 401) {
         print("🔒 Unauthorized - Token may be expired");
+        Get.to(LoginScreen());
         Get.snackbar(
           "Session Expired",
           "Please login again",

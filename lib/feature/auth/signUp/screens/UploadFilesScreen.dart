@@ -20,6 +20,7 @@ class _UploadFilesPageState extends State<UploadFilesPage> {
   final List<File> selectedFiles = [];
   String? bearerToken;
   final String apiUrl = Urls.uploadmenu;
+  bool isUploading = false;
 
   @override
   void initState() {
@@ -66,9 +67,16 @@ class _UploadFilesPageState extends State<UploadFilesPage> {
   }
 
   Future<void> uploadFiles() async {
+    setState(() {
+      isUploading = true;
+    });
+
     try {
       if (selectedFiles.isEmpty) {
         Get.snackbar('Error', 'Please select files to upload');
+        setState(() {
+          isUploading = false;
+        });
         return;
       }
 
@@ -99,9 +107,11 @@ class _UploadFilesPageState extends State<UploadFilesPage> {
 
       // Send the request with timeout
       var response = await request.send().timeout(
-        const Duration(seconds: 120), // 2 minutes timeout
+        const Duration(seconds: 600), // 2 minutes timeout
         onTimeout: () {
-          throw Exception('Upload timed out. Please try with fewer or smaller files.');
+          throw Exception(
+            'Upload timed out. Please try with fewer or smaller files.',
+          );
         },
       );
 
@@ -113,9 +123,16 @@ class _UploadFilesPageState extends State<UploadFilesPage> {
       if (response.statusCode == 200) {
         print('Files uploaded successfully');
         Get.snackbar('Success', 'Files uploaded successfully!');
+        setState(() {
+          isUploading = false;
+        });
+        Get.to(SubmissionCompleteScreen());
       } else {
         print('Failed to upload files: ${response.statusCode}');
         Get.snackbar('Error', 'Failed to upload files');
+        setState(() {
+          isUploading = false;
+        });
       }
 
       // Debugging response body (if available)
@@ -125,17 +142,18 @@ class _UploadFilesPageState extends State<UploadFilesPage> {
       }
     } catch (e) {
       print('Error: $e');
-      
+
       String errorMessage = 'An error occurred during the upload';
-      
+
       if (e.toString().contains('Connection reset')) {
-        errorMessage = 'Connection lost. Please check your internet and try again.';
+        errorMessage =
+            'Connection lost. Please check your internet and try again.';
       } else if (e.toString().contains('timed out')) {
         errorMessage = 'Upload timed out. Try uploading fewer files at once.';
       } else if (e.toString().contains('SocketException')) {
         errorMessage = 'Network error. Please check your connection.';
       }
-      
+
       Get.snackbar(
         'Upload Failed',
         errorMessage,
@@ -144,6 +162,10 @@ class _UploadFilesPageState extends State<UploadFilesPage> {
         colorText: Colors.white,
         duration: const Duration(seconds: 5),
       );
+    } finally {
+      setState(() {
+        isUploading = false;
+      });
     }
   }
 
@@ -209,10 +231,11 @@ class _UploadFilesPageState extends State<UploadFilesPage> {
           SizedBox(
             width: MediaQuery.of(context).size.width,
             child: ElevatedButton(
-              onPressed: () {
-                uploadFiles();
-                Get.to(SubmissionCompleteScreen());
-              },
+              onPressed: isUploading
+                  ? null
+                  : () {
+                      uploadFiles();
+                    },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
                 foregroundColor: Colors.white,
@@ -221,7 +244,16 @@ class _UploadFilesPageState extends State<UploadFilesPage> {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: const Text('Submit'),
+              child: isUploading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text('Submit'),
             ),
           ),
           // ElevatedButton(onPressed: uploadFiles, child: Text('Submit')),

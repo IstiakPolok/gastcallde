@@ -6,29 +6,29 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class Reservation {
   final int id;
-  final String customerName;
-  final String phoneNumber;
+  final String? customerName;
+  final String? phoneNumber;
   final int guestNo;
   final String status;
   final String date;
   final String fromTime;
   final String toTime;
   final int table;
-  final String email;
-  final String tableName;
+  final String? email;
+  final String? tableName;
 
   Reservation({
     required this.id,
-    required this.customerName,
-    required this.phoneNumber,
+    this.customerName,
+    this.phoneNumber,
     required this.guestNo,
     required this.status,
     required this.date,
     required this.fromTime,
     required this.toTime,
     required this.table,
-    required this.email,
-    required this.tableName,
+    this.email,
+    this.tableName,
   });
 
   factory Reservation.fromJson(Map<String, dynamic> json) {
@@ -43,7 +43,7 @@ class Reservation {
       toTime: json['to_time'],
       table: json['table'],
       email: json['email'],
-      tableName: json['table_name']['table_name'],
+      tableName: json['table_name']?['table_name'],
     );
   }
 }

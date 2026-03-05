@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:gastcallde/core/const/app_colors.dart';
 import 'package:gastcallde/core/global_widegts/CustomDrawer.dart';
@@ -8,7 +7,6 @@ import 'package:gastcallde/core/network_caller/endpoints.dart';
 import 'package:gastcallde/feature/customers/screens/CustomerDetailsScreen.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-
 import '../../../core/services_class/local_service/shared_preferences_helper.dart';
 
 class Customerscreen extends StatelessWidget {

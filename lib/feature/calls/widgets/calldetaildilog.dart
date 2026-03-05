@@ -31,23 +31,46 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
   @override
   void initState() {
     super.initState();
+    print(
+      "🔧 CallDetailsDialog initState called for call ID: ${widget.entry.id}",
+    );
+    print("📞 Customer: ${widget.entry.customer}");
+    print("🎵 Recording URL: ${widget.entry.recording}");
     audioPlayer = AudioPlayer();
+    print("✅ AudioPlayer initialized");
   }
 
   @override
   void dispose() {
+    print(
+      "🧹 CallDetailsDialog dispose called for call ID: ${widget.entry.id}",
+    );
     audioPlayer.dispose();
+    print("✅ AudioPlayer disposed");
     super.dispose();
   }
 
   Future<void> markCallback(CallEntry entry) async {
-    if (entry.callback) return;
+    print("📞 markCallback() called for call ID: ${entry.id}");
 
+    if (entry.callback) {
+      print("⚠️ Callback already marked, skipping...");
+      return;
+    }
+
+    print("🔑 Fetching access token...");
     final token = await SharedPreferencesHelper.getAccessToken();
-    if (token == null) return;
+    if (token == null) {
+      print("❌ No token found, cannot mark callback");
+      return;
+    }
+    print("✅ Token found");
 
     final url = "${Urls.baseUrl}/owner/user-call/callback/${entry.id}/";
+    print("🌐 API URL: $url");
+
     try {
+      print("📤 Sending PATCH request to mark callback...");
       final response = await http.patch(
         Uri.parse(url),
         headers: {
@@ -57,13 +80,17 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
         body: jsonEncode({"callback": true}),
       );
 
+      print("📥 Response status code: ${response.statusCode}");
+
       if (response.statusCode == 200 || response.statusCode == 204) {
         setState(() {
           entry.callback = true; // UI updates immediately
         });
-        print("✅ Callback marked for call id: ${entry.id}");
+        print("✅ Callback marked successfully for call id: ${entry.id}");
       } else {
-        print("❌ Failed to mark callback | Response: ${response.body}");
+        print(
+          "❌ Failed to mark callback | Status: ${response.statusCode} | Response: ${response.body}",
+        );
       }
     } catch (e) {
       print("🔥 Exception while marking callback: $e");
@@ -71,19 +98,38 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
   }
 
   void _togglePlay() async {
+    print(
+      "🎵 _togglePlay() called | Current state: ${isPlaying ? 'Playing' : 'Stopped'}",
+    );
+
     if (isPlaying) {
+      print("⏸️ Stopping audio playback...");
       await audioPlayer.stop();
+      print("✅ Audio stopped");
     } else if (widget.entry.recording.isNotEmpty) {
-      await audioPlayer.setSource(UrlSource(widget.entry.recording));
-      await audioPlayer.resume();
+      print("▶️ Starting audio playback...");
+      print("🎵 Recording URL: ${widget.entry.recording}");
+      try {
+        await audioPlayer.setSource(UrlSource(widget.entry.recording));
+        print("✅ Audio source set");
+        await audioPlayer.resume();
+        print("✅ Audio playback started");
+      } catch (e) {
+        print("🔥 Error playing audio: $e");
+      }
+    } else {
+      print("⚠️ No recording available to play");
     }
+
     setState(() {
       isPlaying = !isPlaying;
     });
+    print("🔄 New playback state: ${isPlaying ? 'Playing' : 'Stopped'}");
   }
 
   @override
   Widget build(BuildContext context) {
+    print("🎨 Building CallDetailsDialog for call ID: ${widget.entry.id}");
     final entry = widget.entry;
     return Dialog(
       backgroundColor: const Color(0xFFF6F8FB),

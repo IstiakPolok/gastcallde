@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gastcallde/feature/reservastion/controllers/TableReservationGridcontroller.dart';
+import 'package:gastcallde/feature/setting/controllers/WeeklyScheduleController.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
@@ -10,6 +11,20 @@ class TableReservationGrid extends StatelessWidget {
   const TableReservationGrid({super.key, required this.selectedDate});
 
   String get formattedDate => DateFormat('yyyy-MM-dd').format(selectedDate);
+
+  // Helper function to get day of week key
+  String getDayOfWeekKey() {
+    const days = [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday',
+    ];
+    return days[selectedDate.weekday - 1];
+  }
 
   // Helper function to get color based on status
   Color getStatusColor(String status) {
@@ -47,14 +62,18 @@ class TableReservationGrid extends StatelessWidget {
   ) {
     String status = reservation.status;
     int guestCount = reservation.guestNo;
-    String customerName = reservation.customerName;
+    String customerName = reservation.customerName ?? 'N/A';
     String fromTime = reservation.fromTime;
     String toTime = reservation.toTime;
+
+    // Calculate width accounting for margins between cells
+    // Each cell has margin of 2 on all sides, so 4 pixels between cells
+    double totalWidth = (slotWidth * slotSpan) + ((slotSpan - 1) * 4);
 
     return Stack(
       children: [
         Container(
-          width: slotWidth * slotSpan,
+          width: totalWidth,
           height: 70,
           margin: const EdgeInsets.all(2),
           padding: const EdgeInsets.all(4),
@@ -110,119 +129,157 @@ class TableReservationGrid extends StatelessWidget {
     );
   }
 
-  // Generate time slots from 06:00 to 15:00
-  List<String> generateTimeSlots() {
+  // Generate time slots from opening to closing time in 15-minute intervals
+  List<String> generateTimeSlots(TimeOfDay? opening, TimeOfDay? closing) {
     List<String> slots = [];
-    for (int hour = 6; hour <= 15; hour++) {
-      slots.add('${hour.toString().padLeft(2, '0')}:00:00');
+
+    // Default to 06:00 - 15:00 if times are not set
+    int startHour = opening?.hour ?? 6;
+    int startMinute = opening?.minute ?? 0;
+    int endHour = closing?.hour ?? 15;
+    int endMinute = closing?.minute ?? 0;
+
+    // Convert to minutes for easier comparison
+    int currentMinutes = startHour * 60 + startMinute;
+    int endMinutes = endHour * 60 + endMinute;
+
+    while (currentMinutes <= endMinutes) {
+      int hour = currentMinutes ~/ 60;
+      int minute = currentMinutes % 60;
+
+      slots.add(
+        '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}:00',
+      );
+
+      currentMinutes += 15; // 15-minute intervals
     }
+
     return slots;
   }
 
   @override
   Widget build(BuildContext context) {
-    final timeSlots = generateTimeSlots();
-    const double slotWidth = 100;
+    // Get the WeeklyScheduleController instance
+    final scheduleController = Get.isRegistered<WeeklyScheduleController>()
+        ? Get.find<WeeklyScheduleController>()
+        : Get.put(WeeklyScheduleController());
 
-    return FutureBuilder<List<TableReservationItem>>(
-      future: fetchTableReservations(formattedDate),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('${'error'.tr}: ${snapshot.error}'));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text('no_data_found'.tr));
-        }
+    return Obx(() {
+      // Get the day of week for the selected date
+      final dayKey = getDayOfWeekKey();
+      final schedule = scheduleController.weeklySchedule[dayKey];
 
-        final tableReservations = snapshot.data!;
-        final tableNames = tableReservations.map((t) => t.tableName).toList();
+      // Get opening and closing times for the day
+      final TimeOfDay? opening = schedule?['opening'] as TimeOfDay?;
+      final TimeOfDay? closing = schedule?['closing'] as TimeOfDay?;
 
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Column(
-            children: [
-              // Time slots header for X-axis
-              Row(
-                children: [
-                  const SizedBox(width: 100), // Empty corner for table names
-                  ...timeSlots.map((time) {
-                    return Container(
-                      width: slotWidth,
-                      padding: const EdgeInsets.all(4),
-                      child: Center(
+      final timeSlots = generateTimeSlots(opening, closing);
+      const double slotWidth = 100;
+
+      return FutureBuilder<List<TableReservationItem>>(
+        future: fetchTableReservations(formattedDate),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('${'error'.tr}: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('no_data_found'.tr));
+          }
+
+          final tableReservations = snapshot.data!;
+          final tableNames = tableReservations.map((t) => t.tableName).toList();
+
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Column(
+              children: [
+                // Time slots header for X-axis
+                Row(
+                  children: [
+                    const SizedBox(width: 100), // Empty corner for table names
+                    ...timeSlots.map((time) {
+                      return Container(
+                        width: slotWidth,
+                        height: 40,
+                        margin: const EdgeInsets.all(2),
+                        alignment: Alignment.center,
                         child: Text(
                           time,
                           style: const TextStyle(fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
                         ),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-              // Table rows
-              ...tableReservations.map((table) {
-                // Build a map of slot index to reservation
-                Map<int, Reservation> slotToReservation = {};
-                for (var res in table.reservations) {
-                  int start = getSlotIndex(res.fromTime, timeSlots);
-                  int end = getSlotIndex(res.toTime, timeSlots);
-                  if (start != -1 && end != -1) {
-                    for (int i = start; i <= end; i++) {
-                      slotToReservation[i] = res;
-                    }
-                  }
-                }
-
-                List<Widget> rowCells = [];
-                rowCells.add(
-                  Container(
-                    width: 100,
-                    padding: const EdgeInsets.all(4),
-                    child: Text(
-                      table.tableName,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                );
-
-                int i = 0;
-                while (i < timeSlots.length) {
-                  if (slotToReservation.containsKey(i)) {
-                    // Only show reservation info at the first slot of the reservation
-                    Reservation res = slotToReservation[i]!;
+                      );
+                    }),
+                  ],
+                ),
+                // Table rows
+                ...tableReservations.map((table) {
+                  // Build a map of slot index to reservation
+                  Map<int, Reservation> slotToReservation = {};
+                  for (var res in table.reservations) {
                     int start = getSlotIndex(res.fromTime, timeSlots);
                     int end = getSlotIndex(res.toTime, timeSlots);
-                    int span = end - start + 1;
-                    if (i == start) {
-                      rowCells.add(buildReservationCell(res, span, slotWidth));
-                      i += span;
+                    if (start != -1 && end != -1) {
+                      // Reservation occupies from start up to (but not including) end
+                      for (int i = start; i < end; i++) {
+                        slotToReservation[i] = res;
+                      }
+                    }
+                  }
+
+                  List<Widget> rowCells = [];
+                  rowCells.add(
+                    Container(
+                      width: 100,
+                      padding: const EdgeInsets.all(4),
+                      child: Text(
+                        table.tableName,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  );
+
+                  int i = 0;
+                  while (i < timeSlots.length) {
+                    if (slotToReservation.containsKey(i)) {
+                      // Only show reservation info at the first slot of the reservation
+                      Reservation res = slotToReservation[i]!;
+                      int start = getSlotIndex(res.fromTime, timeSlots);
+                      int end = getSlotIndex(res.toTime, timeSlots);
+                      int span = end - start;
+                      if (i == start) {
+                        rowCells.add(
+                          buildReservationCell(res, span, slotWidth),
+                        );
+                        i += span;
+                      } else {
+                        // Skip cells covered by the reservation
+                        i++;
+                      }
                     } else {
-                      // Skip cells covered by the reservation
+                      rowCells.add(
+                        Container(
+                          width: slotWidth,
+                          height: 70,
+                          margin: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: getStatusColor('available'),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      );
                       i++;
                     }
-                  } else {
-                    rowCells.add(
-                      Container(
-                        width: slotWidth,
-                        height: 70,
-                        margin: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: getStatusColor('available'),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    );
-                    i++;
                   }
-                }
 
-                return Row(children: rowCells);
-              }),
-            ],
-          ),
-        );
-      },
-    );
+                  return Row(children: rowCells);
+                }),
+              ],
+            ),
+          );
+        },
+      );
+    });
   }
 }
