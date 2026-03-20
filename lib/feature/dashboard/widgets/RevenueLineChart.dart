@@ -4,9 +4,21 @@ import 'package:get/get.dart';
 
 import 'RevenueController.dart';
 
-class RevenueLineChart extends StatelessWidget {
-  RevenueLineChart({super.key});
+class RevenueLineChart extends StatefulWidget {
+  const RevenueLineChart({super.key});
+
+  @override
+  State<RevenueLineChart> createState() => _RevenueLineChartState();
+}
+
+class _RevenueLineChartState extends State<RevenueLineChart> {
   final RevenueController controller = Get.put(RevenueController());
+
+  @override
+  void initState() {
+    super.initState();
+    controller.fetchRevenueStats();
+  }
 
   @override
   Widget build(BuildContext context) {

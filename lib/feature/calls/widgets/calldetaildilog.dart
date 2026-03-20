@@ -378,7 +378,7 @@ class _CallDetailsDialogState extends State<CallDetailsDialog> {
                   ),
                 ),
                 icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-                label: Text(isPlaying ? "Pause" : "Play"),
+                label: Text(isPlaying ? 'pause'.tr : 'play'.tr),
               ),
             ],
 

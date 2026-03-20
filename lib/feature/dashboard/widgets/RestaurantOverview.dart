@@ -3,6 +3,7 @@ import 'package:gastcallde/core/global_widegts/LanguageToggleWidget.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import '../controllers/RestaurantOverviewController.dart';
 import 'OrdersBarChart.dart';
@@ -23,16 +24,21 @@ class RestaurantOverviewPage extends StatefulWidget {
 class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
   DateTime? _startDate;
   DateTime? _endDate;
-  String _selectedFilter = 'Today';
+  String _selectedFilter = 'today';
 
-  final DateFormat _formatter = DateFormat('dd MMM yy');
+  DateFormat get _formatter {
+    final locale = Get.locale?.languageCode ?? 'en';
+    return DateFormat('dd MMM yy', locale == 'de' ? 'de_DE' : 'en_US');
+  }
 
   @override
   void initState() {
     super.initState();
+    // Initialize date formatting for German locale
+    initializeDateFormatting();
 
     // Set Today as default filter
-    _applyFilter('Today');
+    _applyFilter('today');
   }
 
   void _applyFilter(String filter) {
@@ -41,11 +47,11 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
       DateTime now = DateTime.now();
 
       switch (filter) {
-        case 'Today':
+        case 'today':
           _startDate = DateTime(now.year, now.month, now.day);
           _endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
           break;
-        case 'This week':
+        case 'this_week':
           int weekday = now.weekday;
           _startDate = now.subtract(Duration(days: weekday - 1));
           _startDate = DateTime(
@@ -55,7 +61,7 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
           );
           _endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
           break;
-        case 'Last week':
+        case 'last_week':
           int weekday = now.weekday;
           DateTime startOfThisWeek = now.subtract(Duration(days: weekday - 1));
           _startDate = startOfThisWeek.subtract(const Duration(days: 7));
@@ -74,15 +80,15 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
             59,
           );
           break;
-        case 'This month':
+        case 'this_month':
           _startDate = DateTime(now.year, now.month, 1);
           _endDate = DateTime(now.year, now.month, now.day, 23, 59, 59);
           break;
-        case 'Last month':
+        case 'last_month':
           _startDate = DateTime(now.year, now.month - 1, 1);
           _endDate = DateTime(now.year, now.month, 0, 23, 59, 59);
           break;
-        case 'Custom':
+        case 'custom':
           // Don't change dates, user will select manually
           return;
       }
@@ -103,11 +109,12 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
       initialDate: _startDate ?? DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
+      locale: Get.locale,
     );
     if (picked != null) {
       setState(() {
         _startDate = picked;
-        _selectedFilter = 'Custom';
+        _selectedFilter = 'custom';
       });
       // Only fetch if end date is already selected
       if (_endDate != null) {
@@ -125,11 +132,12 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
       initialDate: _endDate ?? (_startDate ?? DateTime.now()),
       firstDate: _startDate ?? DateTime(2020),
       lastDate: DateTime(2100),
+      locale: Get.locale,
     );
     if (picked != null) {
       setState(() {
         _endDate = picked;
-        _selectedFilter = 'Custom';
+        _selectedFilter = 'custom';
       });
       // Only fetch if start date is already selected
       if (_startDate != null) {
@@ -158,13 +166,13 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
             fontWeight: FontWeight.w600,
             fontSize: 14,
           ),
-          items: const [
-            DropdownMenuItem(value: 'Today', child: Text('Today')),
-            DropdownMenuItem(value: 'This week', child: Text('This week')),
-            DropdownMenuItem(value: 'Last week', child: Text('Last week')),
-            DropdownMenuItem(value: 'This month', child: Text('This month')),
-            DropdownMenuItem(value: 'Last month', child: Text('Last month')),
-            DropdownMenuItem(value: 'Custom', child: Text('Custom')),
+          items: [
+            DropdownMenuItem(value: 'today', child: Text('today'.tr)),
+            DropdownMenuItem(value: 'this_week', child: Text('this_week'.tr)),
+            DropdownMenuItem(value: 'last_week', child: Text('last_week'.tr)),
+            DropdownMenuItem(value: 'this_month', child: Text('this_month'.tr)),
+            DropdownMenuItem(value: 'last_month', child: Text('last_month'.tr)),
+            DropdownMenuItem(value: 'custom', child: Text('custom'.tr)),
           ],
           onChanged: (String? newValue) {
             if (newValue != null) {
@@ -257,9 +265,9 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
         children: [
           _buildFilterDropdown(),
           const SizedBox(width: 24),
-          const Text(
-            'Select date range : ',
-            style: TextStyle(
+          Text(
+            'select_date_range'.tr,
+            style: const TextStyle(
               color: Color(0xFF1A2E35),
               fontWeight: FontWeight.w500,
               fontSize: 14,
@@ -368,7 +376,8 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                           () => InfoCard(
                             title: 'total_order'.tr,
                             value: Revenuecontroller.totalOrders.value
-                                .toStringAsFixed(2),
+                                .toInt()
+                                .toString(),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -557,7 +566,8 @@ class _RestaurantOverviewPageState extends State<RestaurantOverviewPage> {
                       () => InfoCard(
                         title: 'total_order'.tr,
                         value: Revenuecontroller.totalOrders.value
-                            .toStringAsFixed(2),
+                            .toInt()
+                            .toString(),
                       ),
                     ),
                   ),

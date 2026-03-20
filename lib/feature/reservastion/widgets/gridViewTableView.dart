@@ -54,6 +54,24 @@ class TableReservationGrid extends StatelessWidget {
     return -1;
   }
 
+  // Helper to localize reservation status
+  String _getLocalizedStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'walk-in':
+      case 'walk_in':
+        return 'walk_in'.tr;
+      case 'reserved':
+        return 'reserved'.tr;
+      case 'cancel':
+      case 'cancelled':
+        return 'cancelled'.tr;
+      case 'finished':
+        return 'finished'.tr;
+      default:
+        return status;
+    }
+  }
+
   // Helper function to build a reservation cell
   Widget buildReservationCell(
     Reservation reservation,
@@ -62,7 +80,7 @@ class TableReservationGrid extends StatelessWidget {
   ) {
     String status = reservation.status;
     int guestCount = reservation.guestNo;
-    String customerName = reservation.customerName ?? 'N/A';
+    String customerName = reservation.customerName ?? 'n_a'.tr;
     String fromTime = reservation.fromTime;
     String toTime = reservation.toTime;
 
@@ -88,7 +106,7 @@ class TableReservationGrid extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  customerName.isNotEmpty ? customerName : 'N/A',
+                  customerName.isNotEmpty ? customerName : 'n_a'.tr,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 15,
@@ -96,7 +114,7 @@ class TableReservationGrid extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '$guestCount guests',
+                  '$guestCount ${'guests'.tr}',
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 15),
                 ),
@@ -121,7 +139,7 @@ class TableReservationGrid extends StatelessWidget {
             color: Colors.white,
             child: Padding(
               padding: const EdgeInsets.all(4.0),
-              child: Text(status),
+              child: Text(_getLocalizedStatus(status)),
             ),
           ),
         ),

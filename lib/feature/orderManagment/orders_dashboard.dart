@@ -497,7 +497,7 @@ class OrderCard extends StatelessWidget {
                     foodItem.name,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  Text('${'price'.tr}: \$${foodItem.price.toStringAsFixed(2)}'),
+                  Text('${'price'.tr}: €${foodItem.price.toStringAsFixed(2)}'),
                   Text('${'quantity'.tr}: ${foodItem.quantity}'),
                   if (foodItem.extras.isNotEmpty)
                     Text(
@@ -509,7 +509,7 @@ class OrderCard extends StatelessWidget {
                     ),
                   if (foodItem.extrasPrice > 0)
                     Text(
-                      '${'extras_price'.tr}: \$${foodItem.extrasPrice.toStringAsFixed(2)}',
+                      '${'extras_price'.tr}: €${foodItem.extrasPrice.toStringAsFixed(2)}',
                       style: const TextStyle(fontSize: 12),
                     ),
                   if (foodItem.specialInstructions.isNotEmpty)
@@ -522,7 +522,7 @@ class OrderCard extends StatelessWidget {
                       ),
                     ),
                   Text(
-                    '${'total'.tr}: \$${(foodItem.price * foodItem.quantity).toStringAsFixed(2)}',
+                    '${'total'.tr}: €${(foodItem.price * foodItem.quantity).toStringAsFixed(2)}',
                   ),
                 ],
               ),
@@ -567,20 +567,20 @@ class OrderCard extends StatelessWidget {
         const SizedBox(height: 8),
         // Subtotal
         Text(
-          '${'subtotal'.tr}: \$${orderTotal.toStringAsFixed(2)}',
+          '${'subtotal'.tr}: €${orderTotal.toStringAsFixed(2)}',
           style: const TextStyle(fontSize: 13),
         ),
         // Delivery Fee
         if (order.deliveryAreaJson != null &&
             order.deliveryAreaJson!['delivery_fee'] != null)
           Text(
-            '${'delivery_fee'.tr}: \$${order.deliveryAreaJson!['delivery_fee'].toString()}',
+            '${'delivery_fee'.tr}: €${order.deliveryAreaJson!['delivery_fee'].toString()}',
             style: const TextStyle(fontSize: 13),
           ),
         const SizedBox(height: 4),
         // Total Price
         Text(
-          '${'total_price'.tr}: \$${order.totalPrice}',
+          '${'total_price'.tr}: €${order.totalPrice}',
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,

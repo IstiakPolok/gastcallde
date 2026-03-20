@@ -7,6 +7,7 @@ import 'package:gastcallde/feature/reservastion/widgets/ReservationForm.dart';
 import 'package:gastcallde/feature/reservastion/widgets/gridViewTableView.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class ReservationScreen extends StatelessWidget {
   ReservationScreen({super.key});
@@ -90,6 +91,8 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
   @override
   void initState() {
     super.initState();
+    // Initialize date formatting for German locale
+    initializeDateFormatting();
     String todayDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
     reservationStats = fetchReservationStats(
       DateFormat('yyyy-MM-dd').format(selectedDate),
@@ -157,21 +160,21 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
                             children: [
                               Expanded(
                                 child: _SummaryCard(
-                                  title: 'Total Guests',
+                                  title: 'total_guests',
                                   value: data['total_guests'].toString(),
                                 ),
                               ),
                               const SizedBox(width: 20),
                               Expanded(
                                 child: _SummaryCard(
-                                  title: 'Reservations',
+                                  title: 'reservations',
                                   value: data['total_reservations'].toString(),
                                 ),
                               ),
                               const SizedBox(width: 20),
                               Expanded(
                                 child: _SummaryCard(
-                                  title: 'Walk-Ins',
+                                  title: 'walk_ins',
                                   value: data['total_walk_in'].toString(),
                                 ),
                               ),
@@ -181,17 +184,17 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
                           return Column(
                             children: [
                               _SummaryCard(
-                                title: 'Total Guests',
+                                title: 'total_guests',
                                 value: data['total_guests'].toString(),
                               ),
                               const SizedBox(height: 16),
                               _SummaryCard(
-                                title: 'Reservations',
+                                title: 'reservations',
                                 value: data['total_reservations'].toString(),
                               ),
                               const SizedBox(height: 16),
                               _SummaryCard(
-                                title: 'Walk-Ins',
+                                title: 'walk_ins',
                                 value: data['total_walk_in'].toString(),
                               ),
                             ],
@@ -208,21 +211,21 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
                             children: [
                               Expanded(
                                 child: _SummaryCard(
-                                  title: 'Total Guests',
+                                  title: 'total_guests',
                                   value: '0',
                                 ),
                               ),
                               const SizedBox(width: 20),
                               Expanded(
                                 child: _SummaryCard(
-                                  title: 'Reservations',
+                                  title: 'reservations',
                                   value: '0',
                                 ),
                               ),
                               const SizedBox(width: 20),
                               Expanded(
                                 child: _SummaryCard(
-                                  title: 'Walk-Ins',
+                                  title: 'walk_ins',
                                   value: '0',
                                 ),
                               ),
@@ -231,11 +234,11 @@ class _RestaurantDashboardState extends State<RestaurantDashboard> {
                         } else {
                           return Column(
                             children: [
-                              _SummaryCard(title: 'Total Guests', value: '0'),
+                              _SummaryCard(title: 'total_guests', value: '0'),
                               const SizedBox(height: 16),
-                              _SummaryCard(title: 'Reservations', value: '0'),
+                              _SummaryCard(title: 'reservations', value: '0'),
                               const SizedBox(height: 16),
-                              _SummaryCard(title: 'Walk-Ins', value: '0'),
+                              _SummaryCard(title: 'walk_ins', value: '0'),
                             ],
                           );
                         }
@@ -693,14 +696,16 @@ class _StatusTag extends StatelessWidget {
   final String status;
 
   Color _getColor() {
-    switch (status) {
-      case 'Walk-in':
+    switch (status.toLowerCase()) {
+      case 'walk-in':
+      case 'walk_in':
         return Colors.blue[100]!;
-      case 'Reserved':
+      case 'reserved':
         return Colors.green[100]!;
-      case 'Cancel':
+      case 'cancel':
+      case 'cancelled':
         return Colors.red[100]!;
-      case 'Finished':
+      case 'finished':
         return Colors.green[100]!;
       default:
         return Colors.grey[200]!;
@@ -708,17 +713,36 @@ class _StatusTag extends StatelessWidget {
   }
 
   Color _getTextColor() {
-    switch (status) {
-      case 'Walk-in':
+    switch (status.toLowerCase()) {
+      case 'walk-in':
+      case 'walk_in':
         return Colors.blue[800]!;
-      case 'Reserved':
+      case 'reserved':
         return Colors.green[800]!;
-      case 'Cancel':
+      case 'cancel':
+      case 'cancelled':
         return Colors.red[800]!;
-      case 'Finished':
+      case 'finished':
         return Colors.green[800]!;
       default:
         return Colors.black;
+    }
+  }
+
+  String _getLocalizedStatus() {
+    switch (status.toLowerCase()) {
+      case 'walk-in':
+      case 'walk_in':
+        return 'walk_in'.tr;
+      case 'reserved':
+        return 'reserved'.tr;
+      case 'cancel':
+      case 'cancelled':
+        return 'cancelled'.tr;
+      case 'finished':
+        return 'finished'.tr;
+      default:
+        return status;
     }
   }
 
@@ -731,7 +755,7 @@ class _StatusTag extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        status,
+        _getLocalizedStatus(),
         style: TextStyle(color: _getTextColor(), fontWeight: FontWeight.bold),
       ),
     );
@@ -758,7 +782,7 @@ class _MobileTableItem extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Table: ${reservation.tableName ?? 'N/A'}', // Accessing reservation table name
+                  '${'table'.tr}: ${reservation.tableName ?? 'n_a'.tr}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 _StatusTag(
@@ -768,24 +792,18 @@ class _MobileTableItem extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Time: ${reservation.fromTime} - ${reservation.toTime}',
-            ), // Accessing time range
+              '${'time'.tr}: ${reservation.fromTime} - ${reservation.toTime}',
+            ),
             const SizedBox(height: 4),
-            Text(
-              'Name: ${reservation.customerName ?? 'N/A'}',
-            ), // Accessing customer name
+            Text('${'name'.tr}: ${reservation.customerName ?? 'n_a'.tr}'),
             const SizedBox(height: 4),
-            Text(
-              'Phone: ${reservation.phoneNumber ?? 'N/A'}',
-            ), // Accessing phone number
+            Text('${'phone'.tr}: ${reservation.phoneNumber ?? 'n_a'.tr}'),
             const SizedBox(height: 4),
             Row(
               children: [
                 const Icon(Icons.person, color: Colors.grey, size: 16),
                 const SizedBox(width: 4),
-                Text(
-                  'Person: ${reservation.guestNo}',
-                ), // Accessing number of guests
+                Text('${'person'.tr}: ${reservation.guestNo}'),
               ],
             ),
           ],
@@ -808,6 +826,14 @@ class _HeaderSection extends StatelessWidget {
     return DateFormat('yyyy-MM-dd').format(selectedDate);
   }
 
+  String get displayFormattedDate {
+    final locale = Get.locale?.languageCode ?? 'en';
+    return DateFormat(
+      'dd MMM yyyy',
+      locale == 'de' ? 'de_DE' : 'en_US',
+    ).format(selectedDate);
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -818,8 +844,8 @@ class _HeaderSection extends StatelessWidget {
         (selectedDate.year == DateTime.now().year &&
             selectedDate.month == DateTime.now().month &&
             selectedDate.day == DateTime.now().day)
-        ? 'Today'
-        : formattedDate;
+        ? 'today'.tr
+        : displayFormattedDate;
 
     return isMobile
         ? Row(

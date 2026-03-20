@@ -23,7 +23,7 @@ class menuManagement extends StatelessWidget {
     final isMobile = screenWidth < breakpoint;
 
     return Scaffold(
-      appBar: isMobile ? AppBar(title: const Text('Menu Management')) : null,
+      appBar: isMobile ? AppBar(title: Text('menu_management'.tr)) : null,
       drawer: isMobile
           ? ValueListenableBuilder<int>(
               valueListenable: _selectedIndexNotifier,
@@ -413,7 +413,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
             Expanded(
               flex: 2,
               child: Text(
-                item.status,
+                item.status.toLowerCase().tr,
                 style: const TextStyle(color: Colors.green),
               ),
             ),
@@ -502,11 +502,11 @@ class _ItemsScreenState extends State<ItemsScreen> {
             ),
             const SizedBox(height: 10),
             Text(
-              'Availability: ${item.status}',
+              '${'availability'.tr}: ${item.status.toLowerCase().tr}',
               style: const TextStyle(color: Colors.green),
             ),
-            Text('Category: ${item.category}'),
-            Text('Price: ${item.price}'),
+            Text('${'category'.tr}: ${item.category}'),
+            Text('${'price'.tr}: ${item.price}'),
             const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -544,29 +544,34 @@ class _ItemsScreenState extends State<ItemsScreen> {
     Get.dialog(
       AlertDialog(
         backgroundColor: Colors.white,
-        title: const Text('Are you sure you want to delete this item?'),
-        content: const Text('This action cannot be undone.'),
+        title: Text('delete_item_confirm'.tr),
+        content: Text('delete_item_undone'.tr),
         actions: <Widget>[
           TextButton(
-            child: const Text('Cancel'),
+            child: Text('cancel'.tr),
             onPressed: () {
               Get.back(); // Close the dialog
             },
           ),
           TextButton(
-            child: const Text('Delete'),
+            child: Text('delete'.tr),
             onPressed: () async {
               Get.back(); // Close the dialog
-              EasyLoading.show(status: 'Deleting...'); // Show loading indicator
+              EasyLoading.show(
+                status: '${'deleting'.tr}...',
+              ); // Show loading indicator
 
               try {
                 await deleteItem(itemId); // Call the delete method
                 EasyLoading.dismiss();
-                Get.snackbar('Success', 'Item deleted successfully');
+                Get.snackbar('success'.tr, 'item_deleted_successfully'.tr);
                 _loadItems(); // Refresh the list
               } catch (error) {
                 EasyLoading.dismiss();
-                Get.snackbar('Error', 'Failed to delete item: $error');
+                Get.snackbar(
+                  'error'.tr,
+                  '${'failed_to_delete_item'.tr}: $error',
+                );
               }
             },
           ),

@@ -96,6 +96,11 @@ class AppTranslations extends Translations {
       'start_date': 'Start Date',
       'to': 'To',
       'end_date': 'End Date',
+      'this_week': 'This week',
+      'last_week': 'Last week',
+      'this_month': 'This month',
+      'last_month': 'Last month',
+      'custom': 'Custom',
 
       'num_returning_customer_orders': 'Num of Returning Customer Orders ',
       'returning_customer_order': 'Returning Customer Order %',
@@ -274,6 +279,7 @@ class AppTranslations extends Translations {
       'reserve_a_table': 'Reserve a table',
       'person': 'person',
       'guests': 'guests',
+      'n_a': 'N/A',
       'confirm_now': 'Confirm now',
       'available_tables': 'Available Tables:',
       'seats': 'Seats',
@@ -307,6 +313,7 @@ class AppTranslations extends Translations {
       'walk_in': 'Walk-in',
       'reserved': 'Reserved',
       'finished': 'Finished',
+      'cancelled': 'Cancelled',
 
       // Additional Reservation Screen
       'reservations_walk_ins': 'Reservations & Walk-Ins',
@@ -343,6 +350,13 @@ class AppTranslations extends Translations {
       'add_item': 'Add Item',
       'no_items_found': 'No items found',
       'item': 'Item',
+      'availability': 'Availability',
+      'category': 'Category',
+      'delete_item_confirm': 'Are you sure you want to delete this item?',
+      'delete_item_undone': 'This action cannot be undone.',
+      'deleting': 'Deleting',
+      'item_deleted_successfully': 'Item deleted successfully',
+      'failed_to_delete_item': 'Failed to delete item',
 
       // Sidebar
       'overview': 'Overview',
@@ -386,6 +400,9 @@ class AppTranslations extends Translations {
       'close': 'Close',
       'callback_status': 'Callback Status',
       'order': 'Order',
+      'sec': 'sec',
+      'play': 'Play',
+      'pause': 'Pause',
 
       // Report Issue
       'report_issue': 'Report an Issue',
@@ -535,6 +552,11 @@ class AppTranslations extends Translations {
       'start_date': 'Startdatum',
       'to': 'Bis',
       'end_date': 'Enddatum',
+      'this_week': 'Diese Woche',
+      'last_week': 'Letzte Woche',
+      'this_month': 'Dieser Monat',
+      'last_month': 'Letzter Monat',
+      'custom': 'Benutzerdefiniert',
 
       'num_returning_customer_orders':
           'Anzahl der Bestellungen von Rückkehrkunden %',
@@ -665,6 +687,7 @@ class AppTranslations extends Translations {
       'reserve_a_table': 'Tisch reservieren',
       'person': 'Person',
       'guests': 'Gäste',
+      'n_a': 'N/V',
       'confirm_now': 'Jetzt bestätigen',
       'available_tables': 'Verfügbare Tische:',
       'seats': 'Sitzplätze',
@@ -755,6 +778,7 @@ class AppTranslations extends Translations {
       'walk_in': 'Laufkundschaft',
       'reserved': 'Reserviert',
       'finished': 'Abgeschlossen',
+      'cancelled': 'Storniert',
 
       // Additional Reservation Screen
       'reservations_walk_ins': 'Reservierungen & Walk-Ins',
@@ -835,6 +859,9 @@ class AppTranslations extends Translations {
       'close': 'Schließen',
       'callback_status': 'Rückrufstatus',
       'order': 'Bestellung',
+      'sec': 'Sek.',
+      'play': 'Abspielen',
+      'pause': 'Pause',
 
       // Report Issue
       'report_issue': 'Problem melden',
@@ -892,6 +919,14 @@ class AppTranslations extends Translations {
       'settings_update_failed':
           'Einstellungen konnten nicht aktualisiert werden',
       'enter_phone_number': 'Telefonnummer eingeben',
+      'availability': 'Verfügbarkeit',
+      'category': 'Kategorie',
+      'delete_item_confirm': 'Möchten Sie diesen Artikel wirklich löschen?',
+      'delete_item_undone':
+          'Diese Aktion kann nicht rückgängig gemacht werden.',
+      'deleting': 'Löschen',
+      'item_deleted_successfully': 'Artikel erfolgreich gelöscht',
+      'failed_to_delete_item': 'Artikel konnte nicht gelöscht werden',
     },
   };
 }

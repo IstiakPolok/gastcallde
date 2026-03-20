@@ -1,17 +1,32 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+
 import 'package:get/get.dart';
 
 import '../../../core/const/app_colors.dart';
 import 'RevenueController.dart';
 
-class OrdersBarChart extends StatelessWidget {
-  OrdersBarChart({super.key});
+class OrdersBarChart extends StatefulWidget {
+  const OrdersBarChart({super.key});
+
+  @override
+  State<OrdersBarChart> createState() => _OrdersBarChartState();
+}
+
+class _OrdersBarChartState extends State<OrdersBarChart> {
   final RevenueController controller = Get.find();
+
+  @override
+  void initState() {
+    super.initState();
+    controller.fetchRevenueStats();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
+      // Depend on locale so chart labels rebuild on language change
+
       if (controller.isLoading.value) {
         return const Center(child: CircularProgressIndicator());
       }

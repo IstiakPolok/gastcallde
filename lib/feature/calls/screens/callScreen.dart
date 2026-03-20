@@ -8,6 +8,7 @@ import 'package:gastcallde/core/network_caller/endpoints.dart';
 import 'package:gastcallde/feature/calls/widgets/calldetaildilog.dart';
 import 'package:http/http.dart' as http show get;
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:get/get.dart';
 
 import '../../../core/services_class/local_service/shared_preferences_helper.dart';
@@ -116,6 +117,8 @@ class _callDashboardState extends State<callDashboard> {
   @override
   void initState() {
     super.initState();
+    // Initialize date formatting for German locale
+    initializeDateFormatting();
     fetchCalls();
 
     _searchController.addListener(() {
@@ -173,17 +176,29 @@ class _callDashboardState extends State<callDashboard> {
             final formattedTime =
                 "${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}";
 
+            // Localize type field
+            String rawType = (item['type'] ?? '-').toString().toLowerCase();
+            String localizedType;
+            if (rawType.contains('reservation')) {
+              localizedType = 'reservation'.tr;
+            } else if (rawType.contains('service')) {
+              localizedType = 'customer_services'.tr;
+            } else if (rawType.contains('order')) {
+              localizedType = 'order'.tr;
+            } else {
+              localizedType = rawType;
+            }
             final entry = CallEntry(
               date: formattedDate,
               time: formattedTime,
               id: item['id'],
               phone: item['phone'] ?? '-',
-              customer: item['customer_name'] ?? 'Unknown',
-              type: item['type'] ?? '-',
+              customer: item['customer_name'] ?? 'unknown_customer'.tr,
+              type: localizedType,
               callback: item['callback'] ?? false,
               duration:
-                  "${double.tryParse(item['duration_seconds'].toString())?.toStringAsFixed(1) ?? '0'} sec",
-              summary: item['summary'] ?? 'No summary available',
+                  "${double.tryParse(item['duration_seconds'].toString())?.toStringAsFixed(1) ?? '0'} ${'sec'.tr}",
+              summary: item['summary'] ?? 'no_summary_available'.tr,
               recording: item['recording'] ?? '',
             );
 
@@ -198,7 +213,7 @@ class _callDashboardState extends State<callDashboard> {
               date: "-",
               time: "-",
               phone: "-",
-              customer: "Unknown",
+              customer: 'unknown_customer'.tr,
               type: "-",
               callback: false,
               duration: "-",
@@ -388,9 +403,14 @@ class _callDashboardState extends State<callDashboard> {
         _currentDate.year == now.year &&
         _currentDate.month == now.month &&
         _currentDate.day == now.day;
+
+    final locale = Get.locale?.languageCode ?? 'en';
     String displayDate = isToday
         ? 'today'.tr
-        : DateFormat('dd MMM yyyy').format(_currentDate);
+        : DateFormat(
+            'dd MMM yyyy',
+            locale == 'de' ? 'de_DE' : 'en_US',
+          ).format(_currentDate);
 
     return Scaffold(
       body: SingleChildScrollView(
